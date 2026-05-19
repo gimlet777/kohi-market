@@ -33,7 +33,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between py-3 border-b border-stone-100 last:border-0">
       <span className="text-xs tracking-widest uppercase text-stone-400">{label}</span>
-      <span className="text-sm text-[#1a1a1a] font-medium">{value}</span>
+      <span className="text-sm text-[#34150F] font-medium">{value}</span>
     </div>
   )
 }
@@ -52,15 +52,15 @@ function FormatCard({
       onClick={onClick}
       className={`flex-1 text-left p-4 rounded-xl border-2 transition-all ${
         selected
-          ? "border-[#c8a96e] bg-[#c8a96e]/5"
+          ? "border-[#C8965A] bg-[#C8965A]/5"
           : "border-stone-200 bg-white hover:border-stone-300"
       }`}
     >
-      <p className={`text-sm font-medium ${selected ? "text-[#1a1a1a]" : "text-stone-600"}`}>
+      <p className={`text-sm font-medium ${selected ? "text-[#34150F]" : "text-stone-600"}`}>
         {option.name}
       </p>
       <p className="text-xs text-stone-400 mt-0.5">{option.grams}g</p>
-      <p className={`text-base font-semibold mt-2 ${selected ? "text-[#c8a96e]" : "text-[#1a1a1a]"}`}>
+      <p className={`text-base font-semibold mt-2 ${selected ? "text-[#C8965A]" : "text-[#34150F]"}`}>
         ¥{option.price.toLocaleString()}
       </p>
     </button>
@@ -86,7 +86,7 @@ function BatchPanel({ product }: { product: Product }) {
           </div>
           <div>
             <p className="text-[11px] text-stone-400 uppercase tracking-wider">Next roast date</p>
-            <p className="text-sm font-medium text-[#1a1a1a]">{formatDate(nextRoastDate)}</p>
+            <p className="text-sm font-medium text-[#34150F]">{formatDate(nextRoastDate)}</p>
           </div>
         </div>
 
@@ -100,7 +100,7 @@ function BatchPanel({ product }: { product: Product }) {
           <div className="flex items-center gap-2 flex-1">
             <div>
               <p className="text-[11px] text-stone-400 uppercase tracking-wider">Bags remaining</p>
-              <p className="text-sm font-medium text-[#1a1a1a]">{bagsRemaining} bags</p>
+              <p className="text-sm font-medium text-[#34150F]">{bagsRemaining} bags</p>
             </div>
             <span className={`ml-auto w-2 h-2 rounded-full ${urgencyColor(bagsRemaining)}`} />
           </div>
@@ -113,7 +113,7 @@ function BatchPanel({ product }: { product: Product }) {
         className={`w-full py-3 rounded-full text-sm font-medium tracking-wide transition-all ${
           ordered
             ? "bg-emerald-100 text-emerald-700 cursor-default"
-            : "bg-[#c8a96e] hover:bg-[#b89860] text-white"
+            : "bg-[#C8965A] hover:bg-[#B8854C] text-white"
         }`}
       >
         {ordered ? "Pre-order placed ✓" : "Pre-order this batch"}
@@ -155,17 +155,17 @@ export default function ProductPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
-        <nav className="bg-[#1a1a1a] px-6 md:px-10 py-4 flex items-center justify-between">
+        <nav className="bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
           <button onClick={() => router.back()} className="flex items-center gap-2 text-stone-400 text-sm">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             Marketplace
           </button>
-          <span className="font-serif text-xl text-[#c8a96e]">KOHĪ</span>
+          <span className="font-serif text-xl text-[#C8965A]">KOHĪ</span>
           <div className="w-20" />
         </nav>
-        <div className="bg-[#1a1a1a] px-6 md:px-10 pt-12 pb-14 animate-pulse">
+        <div className="bg-[#34150F] px-6 md:px-10 pt-12 pb-14 animate-pulse">
           <div className="h-3 bg-white/10 rounded w-32 mb-6" />
           <div className="h-12 bg-white/10 rounded w-2/3 mb-3" />
           <div className="h-3 bg-white/10 rounded w-24" />
@@ -193,7 +193,7 @@ export default function ProductPage() {
       <div className="min-h-screen bg-[#f7f5f2] flex items-center justify-center">
         <div className="text-center">
           <p className="text-stone-400 text-sm mb-4">Product not found.</p>
-          <button onClick={() => router.push("/")} className="text-[#c8a96e] text-sm hover:underline">
+          <button onClick={() => router.push("/")} className="text-[#C8965A] text-sm hover:underline">
             ← Back to marketplace
           </button>
         </div>
@@ -205,7 +205,7 @@ export default function ProductPage() {
     <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-[#1a1a1a] px-6 md:px-10 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-stone-400 hover:text-white transition-colors text-sm"
@@ -216,20 +216,20 @@ export default function ProductPage() {
           Marketplace
         </button>
 
-        <span className="font-serif text-xl text-[#c8a96e] tracking-wide">KOHĪ</span>
+        <span className="font-serif text-xl text-[#C8965A] tracking-wide">KOHĪ</span>
 
         <div className="w-20" />
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#1a1a1a] px-6 md:px-10 pt-12 pb-14">
+      <section className="bg-[#34150F] px-6 md:px-10 pt-12 pb-14">
         <div className="max-w-4xl">
           <div className="flex items-center gap-3 mb-6">
             <p className="text-xs text-stone-500 tracking-wide">{product.roaster} · {product.region}</p>
             <span
               className={`text-[10px] tracking-widest uppercase px-2.5 py-0.5 rounded-full border ${
                 product.type === "Roastery"
-                  ? "border-[#c8a96e] text-[#c8a96e]"
+                  ? "border-[#C8965A] text-[#C8965A]"
                   : "border-stone-600 text-stone-500"
               }`}
             >
@@ -312,7 +312,7 @@ export default function ProductPage() {
               <div>
                 <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-1">Format</p>
                 <p className="text-sm text-stone-600">{product.formats[0].name} · {product.formats[0].grams}g</p>
-                <p className="text-2xl font-semibold text-[#1a1a1a] mt-1">
+                <p className="text-2xl font-semibold text-[#34150F] mt-1">
                   ¥{product.formats[0].price.toLocaleString()}
                 </p>
               </div>
@@ -322,7 +322,7 @@ export default function ProductPage() {
             {product.type === "Roastery" && (
               <div className="space-y-3">
                 {product.formats.length > 1 && selectedFormat && (
-                  <p className="text-2xl font-semibold text-[#1a1a1a]">
+                  <p className="text-2xl font-semibold text-[#34150F]">
                     ¥{selectedFormat.price.toLocaleString()}
                   </p>
                 )}
@@ -332,7 +332,7 @@ export default function ProductPage() {
                   className={`w-full py-3.5 rounded-full text-sm font-medium tracking-wide transition-all ${
                     cartAdded
                       ? "bg-emerald-100 text-emerald-700 cursor-default"
-                      : "bg-[#c8a96e] hover:bg-[#b89860] text-white"
+                      : "bg-[#C8965A] hover:bg-[#B8854C] text-white"
                   }`}
                 >
                   {cartAdded ? "Added to cart ✓" : "Add to cart"}
@@ -344,7 +344,7 @@ export default function ProductPage() {
             {product.type === "Café Roaster" && (
               <>
                 {product.formats.length > 1 && selectedFormat && (
-                  <p className="text-2xl font-semibold text-[#1a1a1a]">
+                  <p className="text-2xl font-semibold text-[#34150F]">
                     ¥{selectedFormat.price.toLocaleString()}
                   </p>
                 )}
@@ -357,8 +357,8 @@ export default function ProductPage() {
       </div>
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#1a1a1a] px-6 md:px-10 py-8 text-center mt-10">
-        <span className="font-serif text-lg text-[#c8a96e]">KOHĪ</span>
+      <footer className="bg-[#34150F] px-6 md:px-10 py-8 text-center mt-10">
+        <span className="font-serif text-lg text-[#C8965A]">KOHĪ</span>
         <p className="text-stone-600 text-xs mt-1 tracking-widest">珈琲市 · Specialty Coffee Marketplace</p>
       </footer>
 

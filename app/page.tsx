@@ -109,7 +109,7 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
       onClick={onClick}
       className={`px-4 py-1.5 rounded-full text-xs tracking-wide border transition-all whitespace-nowrap ${
         active
-          ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
+          ? "bg-[#34150F] text-white border-[#34150F]"
           : "bg-white text-stone-500 border-stone-200 hover:border-stone-400 hover:text-stone-700"
       }`}
     >
@@ -139,19 +139,19 @@ function ProductCard({
       onClick={() => router.push(`/product/${product.id}`)}
       className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
     >
-      <div className={`h-0.5 ${product.type === "Roastery" ? "bg-[#c8a96e]" : "bg-stone-200"}`} />
+      <div className={`h-0.5 ${product.type === "Roastery" ? "bg-[#C8965A]" : "bg-stone-200"}`} />
 
       <div className="p-5 flex flex-col flex-1 gap-4">
         {/* Header row */}
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-xs font-medium text-[#1a1a1a]">{product.roaster}</p>
+            <p className="text-xs font-medium text-[#34150F]">{product.roaster}</p>
             <p className="text-xs text-stone-400 mt-0.5">{product.region}</p>
           </div>
           <span
             className={`text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-full border shrink-0 ${
               product.type === "Roastery"
-                ? "border-[#c8a96e] text-[#c8a96e]"
+                ? "border-[#C8965A] text-[#C8965A]"
                 : "border-stone-300 text-stone-400"
             }`}
           >
@@ -160,7 +160,7 @@ function ProductCard({
         </div>
 
         {/* Product name */}
-        <h3 className="font-serif text-[1.1rem] leading-snug text-[#1a1a1a]">{product.name}</h3>
+        <h3 className="font-serif text-[1.1rem] leading-snug text-[#34150F]">{product.name}</h3>
 
         {/* Meta badges */}
         <div className="flex flex-wrap gap-1.5">
@@ -195,7 +195,7 @@ function ProductCard({
                 onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt) }}
                 className={`flex-1 text-[11px] py-1.5 rounded-lg border transition-all ${
                   selectedFormat.name === fmt.name
-                    ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
+                    ? "bg-[#34150F] text-white border-[#34150F]"
                     : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
                 }`}
               >
@@ -207,12 +207,12 @@ function ProductCard({
 
         {/* Price + CTA */}
         <div className="flex items-center justify-between pt-1">
-          <p className="text-lg font-medium text-[#1a1a1a] tracking-tight">
+          <p className="text-lg font-medium text-[#34150F] tracking-tight">
             {product.formats.length > 1 ? "From " : ""}¥{basePrice.toLocaleString()}
           </p>
           <button
             onClick={onAddToCart}
-            className="bg-[#c8a96e] hover:bg-[#b89860] text-white text-xs px-4 py-2 rounded-full tracking-wide transition-colors"
+            className="bg-[#C8965A] hover:bg-[#B8854C] text-white text-xs px-4 py-2 rounded-full tracking-wide transition-colors"
           >
             {c.addToCart}
           </button>
@@ -272,9 +272,9 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-[#1a1a1a] px-6 md:px-10 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
         <div className="flex items-baseline gap-2.5">
-          <span className="font-serif text-2xl text-[#c8a96e] tracking-wide">KOHĪ</span>
+          <span className="font-serif text-2xl text-[#C8965A] tracking-wide">KOHĪ</span>
           <span className="text-xs text-stone-600 tracking-wider hidden sm:block">珈琲市</span>
         </div>
 
@@ -285,7 +285,7 @@ export default function Home() {
                 key={l}
                 onClick={() => setLang(l)}
                 className={`px-3 py-1 transition-colors ${
-                  lang === l ? "bg-[#c8a96e] text-white" : "text-stone-400 hover:text-stone-200"
+                  lang === l ? "bg-[#C8965A] text-white" : "text-stone-400 hover:text-stone-200"
                 }`}
               >
                 {l}
@@ -298,7 +298,7 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
             {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#c8a96e] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C8965A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
                 {cartCount}
               </span>
             )}
@@ -307,12 +307,12 @@ export default function Home() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#1a1a1a] px-6 md:px-10 pt-16 pb-20">
+      <section className="bg-[#34150F] px-6 md:px-10 pt-16 pb-20">
         <p className="text-xs tracking-[0.3em] uppercase text-stone-500 mb-6">{c.tagline}</p>
-        <h1 className="font-serif text-5xl md:text-7xl text-white leading-[1.1] mb-4">
+        <h1 className="font-serif text-5xl md:text-7xl text-[#F5ECD7] leading-[1.1] mb-4">
           {c.headlineTop}
           <br />
-          <span className="text-[#c8a96e]">{c.headlineBottom}</span>
+          <span className="text-[#C8965A]">{c.headlineBottom}</span>
         </h1>
         <p className="text-stone-400 text-sm mb-10 max-w-sm leading-relaxed">{c.sub}</p>
 
@@ -325,7 +325,7 @@ export default function Home() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={c.placeholder}
-            className="w-full bg-white/10 text-white placeholder-stone-500 text-sm pl-11 pr-4 py-3.5 rounded-full border border-stone-700 focus:outline-none focus:border-[#c8a96e] transition-colors"
+            className="w-full bg-white/10 text-white placeholder-stone-500 text-sm pl-11 pr-4 py-3.5 rounded-full border border-stone-700 focus:outline-none focus:border-[#C8965A] transition-colors"
           />
         </div>
       </section>
@@ -357,15 +357,15 @@ export default function Home() {
             "Loading…"
           ) : (
             <>
-              Showing <span className="font-medium text-[#1a1a1a]">{filtered.length}</span> of {products.length} coffees
+              Showing <span className="font-medium text-[#34150F]">{filtered.length}</span> of {products.length} coffees
               {source === "mock" && (
-                <span className="ml-2 text-[#c8a96e]">(demo data)</span>
+                <span className="ml-2 text-[#C8965A]">(demo data)</span>
               )}
             </>
           )}
         </p>
         {!isLoading && hasActiveFilters && (
-          <button onClick={resetFilters} className="text-xs text-[#c8a96e] hover:text-[#b89860] transition-colors">
+          <button onClick={resetFilters} className="text-xs text-[#C8965A] hover:text-[#B8854C] transition-colors">
             Reset filters
           </button>
         )}
@@ -394,8 +394,8 @@ export default function Home() {
       </section>
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#1a1a1a] px-6 md:px-10 py-10 text-center">
-        <span className="font-serif text-xl text-[#c8a96e]">KOHĪ</span>
+      <footer className="bg-[#34150F] px-6 md:px-10 py-10 text-center">
+        <span className="font-serif text-xl text-[#C8965A]">KOHĪ</span>
         <p className="text-stone-600 text-xs mt-2 tracking-widest">珈琲市 · {c.footerSub}</p>
       </footer>
 

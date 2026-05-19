@@ -32,9 +32,11 @@ export interface Product {
 
 export interface ProductRow {
   id: number
+  roaster_id: string | null
   roaster_name: string
   region: string
   product_name: string
+  product_name_jp: string | null
   origin: string
   process: string
   roast_level: string
