@@ -73,6 +73,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   function clearCart() {
     setItems([])
+    try { localStorage.removeItem("kohi-cart") } catch {}
   }
 
   const totalCount = items.reduce((sum, i) => sum + i.quantity, 0)
