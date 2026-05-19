@@ -41,7 +41,11 @@ export async function POST(req: NextRequest) {
     : "No address provided"
 
   // Build items grouped by roaster
-  const roasterItems: Record<string, { email: string; name: string; items: OrderEmailItem[] }> = {}
+  const roasterItems: Record<string, {
+    email: string
+    name: string
+    items: (OrderEmailItem & { batchId?: string })[]
+  }> = {}
 
   for (const li of session.line_items?.data ?? []) {
     const product = li.price?.product as Stripe.Product | null
@@ -52,16 +56,18 @@ export async function POST(req: NextRequest) {
     const roasterEmail = meta.roaster_email ?? ""
     const formatName = meta.format_name ?? ""
     const grams = parseInt(meta.grams ?? "0", 10)
+    const batchId = meta.batch_id || undefined
     const unitAmount = li.price?.unit_amount ?? 0
     const quantity = li.quantity ?? 1
 
-    const item: OrderEmailItem = {
+    const item = {
       productName: product.name,
       roasterName,
       formatName,
       grams,
       unitPrice: unitAmount,
       quantity,
+      batchId,
     }
 
     if (!roasterItems[roasterName]) {
@@ -82,7 +88,7 @@ export async function POST(req: NextRequest) {
     if (r.roaster_name) roasterIdMap[r.roaster_name] = r.id
   }
 
-  // Save one order row per roaster
+  // Save one order row per roaster (stripe_session_id is UNIQUE — duplicate webhook = conflict)
   for (const [roasterName, roaster] of Object.entries(roasterItems)) {
     const roasterId = roasterIdMap[roasterName]
     if (!roasterId) {
@@ -108,7 +114,41 @@ export async function POST(req: NextRequest) {
       stripe_session_id: session.id,
     })
 
+    // 23505 = unique_violation — already processed this session (idempotency guard)
+    if (insertError?.code === "23505") {
+      console.log("Duplicate webhook for session:", session.id)
+      return NextResponse.json({ received: true })
+    }
     if (insertError) console.error(`Order insert error (${roasterName}):`, insertError)
+  }
+
+  // Decrement bags_remaining for any batch pre-orders
+  for (const roaster of Object.values(roasterItems)) {
+    for (const item of roaster.items) {
+      if (!item.batchId) continue
+
+      const { data: batch, error: fetchErr } = await supabaseAdmin
+        .from("batches")
+        .select("bags_remaining")
+        .eq("id", item.batchId)
+        .single()
+
+      if (fetchErr || !batch) {
+        console.warn(`Batch not found: ${item.batchId}`)
+        continue
+      }
+
+      const newRemaining = Math.max(0, batch.bags_remaining - item.quantity)
+      const { error: updateErr } = await supabaseAdmin
+        .from("batches")
+        .update({
+          bags_remaining: newRemaining,
+          ...(newRemaining === 0 ? { status: "complete" } : {}),
+        })
+        .eq("id", item.batchId)
+
+      if (updateErr) console.error(`Batch update error (${item.batchId}):`, updateErr)
+    }
   }
 
   const allItems = Object.values(roasterItems).flatMap(r => r.items)

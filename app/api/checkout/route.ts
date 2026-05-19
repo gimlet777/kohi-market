@@ -10,6 +10,7 @@ interface LineItem {
   format: { name: string; grams: number; price: number }
   price: number
   quantity: number
+  batchId?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
               roaster_email: roasterEmailMap[item.roasterName] ?? "",
               format_name: item.format.name,
               grams: String(item.format.grams),
+              batch_id: item.batchId ?? "",
             },
           },
           unit_amount: item.price, // JPY is zero-decimal — ¥1800 = 1800

@@ -8,7 +8,9 @@ export interface FormatOption {
 }
 
 export interface BatchInfo {
+  batchId?: string       // UUID from batches table (absent for mock data)
   nextRoastDate: string  // ISO date string
+  totalBags?: number
   bagsRemaining: number
 }
 

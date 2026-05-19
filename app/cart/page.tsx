@@ -101,7 +101,14 @@ export default function CartPage() {
                   {/* Product info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-stone-400 mb-0.5">{item.roasterName}</p>
-                    <p className="font-medium text-[#34150F] text-sm leading-snug">{item.productName}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-[#34150F] text-sm leading-snug">{item.productName}</p>
+                      {item.batchId && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded border border-[#C8965A] text-[#C8965A] leading-none">
+                          Pre-order
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-stone-400 mt-1">
                       {item.format.name}
                       {item.format.grams > 0 && ` · ${item.format.grams}g`}

@@ -10,6 +10,7 @@ export interface CartItem {
   format: { name: string; grams: number; price: number }
   price: number        // mirrors format.price for convenience
   quantity: number
+  batchId?: string     // set for Café Roaster pre-orders
 }
 
 interface CartContextValue {

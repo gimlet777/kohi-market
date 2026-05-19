@@ -7,16 +7,38 @@ import { PRODUCTS as MOCK_PRODUCTS, rowToProduct, type ProductRow, type Product,
 import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
 
-// ─── Supabase data layer ──────────────────────────────────────────────────────
+// ─── Data layer ───────────────────────────────────────────────────────────────
+
+interface LiveBatch {
+  id: string
+  productId: number
+  roastDate: string
+  totalBags: number
+  bagsRemaining: number
+}
 
 async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
     .select("*")
     .order("created_at", { ascending: true })
-
   if (error || !data || data.length === 0) return []
   return (data as ProductRow[]).map(rowToProduct)
+}
+
+async function fetchOpenBatches(): Promise<LiveBatch[]> {
+  const { data } = await supabase
+    .from("batches")
+    .select("id, product_id, roast_date, total_bags, bags_remaining")
+    .eq("status", "open")
+    .order("roast_date", { ascending: true })
+  return (data ?? []).map(r => ({
+    id: r.id,
+    productId: r.product_id,
+    roastDate: r.roast_date,
+    totalBags: r.total_bags,
+    bagsRemaining: r.bags_remaining,
+  }))
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -40,6 +62,7 @@ const copy = {
     roastLabel: "Roast",
     typeLabel: "Type",
     addToCart: "Add to cart",
+    preorder: "Pre-order",
     origin: "Origin",
     process: "Process",
     noResults: "No coffees match your filters.",
@@ -56,6 +79,7 @@ const copy = {
     roastLabel: "焙煎",
     typeLabel: "種別",
     addToCart: "カートに追加",
+    preorder: "先行予約",
     origin: "産地",
     process: "精製",
     noResults: "条件に合うコーヒーがありません。",
@@ -64,12 +88,16 @@ const copy = {
   },
 }
 
-// ─── Roast badge colours ──────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const roastBadge: Record<RoastLevel, string> = {
   Light: "bg-amber-100 text-amber-700",
   Medium: "bg-orange-100 text-orange-700",
   Dark: "bg-stone-800 text-stone-100",
+}
+
+function formatShortDate(iso: string) {
+  return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })
 }
 
 // ─── SkeletonCard ─────────────────────────────────────────────────────────────
@@ -125,17 +153,26 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
 function ProductCard({
   product,
   lang,
+  batch,
   onAddToCart,
 }: {
   product: Product
   lang: Lang
-  onAddToCart: (product: Product, format: FormatOption) => void
+  batch: LiveBatch | null
+  onAddToCart: (product: Product, format: FormatOption, batchId?: string) => void
 }) {
   const router = useRouter()
   const c = copy[lang]
   const [selectedFormat, setSelectedFormat] = useState(product.formats[0])
   const [justAdded, setJustAdded] = useState(false)
+  const [showWaitlist, setShowWaitlist] = useState(false)
+  const [waitlistEmail, setWaitlistEmail] = useState("")
+  const [waitlistDone, setWaitlistDone] = useState(false)
   const basePrice = product.formats[0].price
+
+  const isCafe = product.type === "Café Roaster"
+  const soldOut = isCafe && batch !== null && batch.bagsRemaining === 0
+  const noBatch = isCafe && batch === null
 
   function handleAddToCart(e: React.MouseEvent) {
     e.stopPropagation()
@@ -144,12 +181,32 @@ function ProductCard({
     setTimeout(() => setJustAdded(false), 1500)
   }
 
+  function handlePreorder(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!batch) return
+    onAddToCart(product, selectedFormat, batch.id)
+    setJustAdded(true)
+    setTimeout(() => setJustAdded(false), 1500)
+  }
+
+  function handleWaitlist(e: React.MouseEvent) {
+    e.stopPropagation()
+    setShowWaitlist(true)
+  }
+
+  function handleWaitlistSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    // TODO: persist waitlist email to a waitlist table
+    setWaitlistDone(true)
+  }
+
   return (
     <div
       onClick={() => router.push(`/product/${product.id}`)}
       className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
     >
-      <div className={`h-0.5 ${product.type === "Roastery" ? "bg-[#C8965A]" : "bg-stone-200"}`} />
+      <div className={`h-0.5 ${product.type === "Roastery" ? "bg-[#C8965A]" : "bg-stone-400"}`} />
 
       <div className="p-5 flex flex-col flex-1 gap-4">
         {/* Header row */}
@@ -194,6 +251,27 @@ function ProductCard({
           ))}
         </div>
 
+        {/* Batch info strip — Café Roasters only */}
+        {isCafe && batch && (
+          <div className="flex items-center justify-between bg-stone-50 rounded-lg px-3 py-2 text-[11px]">
+            <span className="text-stone-500">
+              Roasts {formatShortDate(batch.roastDate)}
+            </span>
+            {batch.bagsRemaining > 0 ? (
+              <span className={`font-medium ${batch.bagsRemaining <= 5 ? "text-red-500" : "text-emerald-600"}`}>
+                {batch.bagsRemaining} bag{batch.bagsRemaining !== 1 ? "s" : ""} left
+              </span>
+            ) : (
+              <span className="font-medium text-stone-400">Sold out</span>
+            )}
+          </div>
+        )}
+        {isCafe && !batch && (
+          <div className="bg-stone-50 rounded-lg px-3 py-2 text-[11px] text-stone-400">
+            No batches scheduled
+          </div>
+        )}
+
         <div className="flex-1" />
 
         {/* Format toggle */}
@@ -209,7 +287,7 @@ function ProductCard({
                     : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
                 }`}
               >
-                {c.formatLabels[fmt.name]}
+                {c.formatLabels[fmt.name] ?? fmt.name}
               </button>
             ))}
           </div>
@@ -220,17 +298,82 @@ function ProductCard({
           <p className="text-lg font-medium text-[#34150F] tracking-tight">
             {product.formats.length > 1 ? "From " : ""}¥{basePrice.toLocaleString()}
           </p>
-          <button
-            onClick={handleAddToCart}
-            className={`text-xs px-4 py-2 rounded-full tracking-wide transition-colors ${
-              justAdded
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-[#C8965A] hover:bg-[#B8854C] text-white"
-            }`}
-          >
-            {justAdded ? "Added ✓" : c.addToCart}
-          </button>
+
+          {/* Roastery: Add to cart */}
+          {!isCafe && (
+            <button
+              onClick={handleAddToCart}
+              className={`text-xs px-4 py-2 rounded-full tracking-wide transition-colors ${
+                justAdded
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-[#C8965A] hover:bg-[#B8854C] text-white"
+              }`}
+            >
+              {justAdded ? "Added ✓" : c.addToCart}
+            </button>
+          )}
+
+          {/* Café Roaster: Pre-order */}
+          {isCafe && !soldOut && !noBatch && (
+            <button
+              onClick={handlePreorder}
+              className={`text-xs px-4 py-2 rounded-full tracking-wide transition-colors ${
+                justAdded
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-[#34150F] hover:bg-[#4a1e12] text-[#F5ECD7]"
+              }`}
+            >
+              {justAdded ? "Added ✓" : c.preorder}
+            </button>
+          )}
+
+          {/* Café Roaster: Sold out */}
+          {isCafe && soldOut && (
+            <span className="text-xs px-4 py-2 rounded-full bg-stone-100 text-stone-400">
+              Sold out
+            </span>
+          )}
+
+          {/* Café Roaster: No batch */}
+          {isCafe && noBatch && (
+            <span className="text-xs px-4 py-2 rounded-full bg-stone-100 text-stone-400">
+              Coming soon
+            </span>
+          )}
         </div>
+
+        {/* Waitlist — sold out only */}
+        {isCafe && soldOut && (
+          <div onClick={e => e.stopPropagation()}>
+            {waitlistDone ? (
+              <p className="text-[11px] text-emerald-600 text-center">You're on the list ✓</p>
+            ) : showWaitlist ? (
+              <form onSubmit={handleWaitlistSubmit} className="flex gap-2">
+                <input
+                  type="email"
+                  required
+                  placeholder="your@email.com"
+                  value={waitlistEmail}
+                  onChange={e => setWaitlistEmail(e.target.value)}
+                  className="flex-1 text-[11px] px-3 py-1.5 rounded-full border border-stone-200 focus:outline-none focus:border-[#C8965A] min-w-0"
+                />
+                <button
+                  type="submit"
+                  className="text-[11px] px-3 py-1.5 rounded-full bg-[#34150F] text-[#F5ECD7] whitespace-nowrap"
+                >
+                  Notify me
+                </button>
+              </form>
+            ) : (
+              <button
+                onClick={handleWaitlist}
+                className="w-full text-[11px] text-[#C8965A] hover:text-[#B8854C] transition-colors text-center"
+              >
+                Join waitlist →
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -246,18 +389,25 @@ export default function Home() {
   const [sellerType, setSellerType] = useState("All")
   const [search, setSearch] = useState("")
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS)
+  const [batchMap, setBatchMap] = useState<Record<number, LiveBatch>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [source, setSource] = useState<"live" | "mock">("mock")
 
   useEffect(() => {
-    fetchProducts().then((rows) => {
-      if (rows.length > 0) {
-        setProducts(rows)
+    Promise.all([fetchProducts(), fetchOpenBatches()]).then(([prods, batches]) => {
+      if (prods.length > 0) {
+        setProducts(prods)
         setSource("live")
       } else {
         setProducts(MOCK_PRODUCTS)
         setSource("mock")
       }
+      // First open batch per product (batches already sorted by roast_date asc)
+      const map: Record<number, LiveBatch> = {}
+      for (const b of batches) {
+        if (!(b.productId in map)) map[b.productId] = b
+      }
+      setBatchMap(map)
       setIsLoading(false)
     })
   }, [])
@@ -353,12 +503,12 @@ export default function Home() {
           </div>
           <div className="w-px h-5 bg-stone-200 shrink-0" />
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-stone-400 tracking-widest uppercase">{c.roastLabel}</span>
+            <span className="text-[11px] text-stone-400 tracking-widests uppercase">{c.roastLabel}</span>
             {ROASTS.map((r) => <FilterPill key={r} label={r} active={roast === r} onClick={() => setRoast(r)} />)}
           </div>
           <div className="w-px h-5 bg-stone-200 shrink-0" />
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-stone-400 tracking-widest uppercase">{c.typeLabel}</span>
+            <span className="text-[11px] text-stone-400 tracking-widests uppercase">{c.typeLabel}</span>
             {TYPES.map((t) => <FilterPill key={t} label={t} active={sellerType === t} onClick={() => setSellerType(t)} />)}
           </div>
         </div>
@@ -372,9 +522,7 @@ export default function Home() {
           ) : (
             <>
               Showing <span className="font-medium text-[#34150F]">{filtered.length}</span> of {products.length} coffees
-              {source === "mock" && (
-                <span className="ml-2 text-[#C8965A]">(demo data)</span>
-              )}
+              {source === "mock" && <span className="ml-2 text-[#C8965A]">(demo data)</span>}
             </>
           )}
         </p>
@@ -400,7 +548,8 @@ export default function Home() {
                 key={product.id}
                 product={product}
                 lang={lang}
-                onAddToCart={(p, fmt) => {
+                batch={batchMap[product.id] ?? null}
+                onAddToCart={(p, fmt, batchId) => {
                   cart.addItem({
                     cartItemId: `${p.id}-${fmt.name}`,
                     productId: p.id,
@@ -408,6 +557,7 @@ export default function Home() {
                     roasterName: p.roaster,
                     format: fmt,
                     price: fmt.price,
+                    batchId,
                   })
                 }}
               />
