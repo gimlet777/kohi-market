@@ -261,7 +261,7 @@ export default function DashboardPage() {
           KOHĪ
         </Link>
         <div className="flex items-center gap-6">
-          <span className="text-xs text-stone-500 tracking-widests uppercase">Roaster Portal</span>
+          <span className="hidden sm:block text-xs text-stone-500 tracking-widests uppercase">Roaster Portal</span>
           <button
             onClick={handleLogout}
             disabled={loggingOut}
@@ -366,7 +366,7 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs text-stone-500 mb-1.5">Roast date</label>
                       <input
@@ -425,7 +425,7 @@ export default function DashboardPage() {
             ) : (
               <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full min-w-[640px] text-sm">
                     <thead>
                       <tr className="border-b border-stone-100">
                         <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-6 py-3">Roast date</th>
@@ -546,7 +546,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full min-w-[640px] text-sm">
                       <thead>
                         <tr className="border-b border-stone-100">
                           <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-6 py-3">Date</th>
@@ -670,7 +670,7 @@ export default function DashboardPage() {
                     </div>
                   )}
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full min-w-[640px] text-sm">
                       <thead>
                         <tr className="border-b border-stone-100">
                           <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-6 py-3">Product</th>

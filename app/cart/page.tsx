@@ -133,7 +133,7 @@ export default function CartPage() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => cart.updateQuantity(item.cartItemId, item.quantity - 1)}
-                      className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-stone-400 hover:border-[#C8965A] hover:text-[#C8965A] transition-colors text-lg leading-none"
+                      className="w-11 h-11 rounded-full border border-stone-200 flex items-center justify-center text-stone-400 hover:border-[#C8965A] hover:text-[#C8965A] transition-colors text-lg leading-none"
                       aria-label="Decrease quantity"
                     >
                       −
@@ -143,7 +143,7 @@ export default function CartPage() {
                     </span>
                     <button
                       onClick={() => cart.updateQuantity(item.cartItemId, item.quantity + 1)}
-                      className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-stone-400 hover:border-[#C8965A] hover:text-[#C8965A] transition-colors text-lg leading-none"
+                      className="w-11 h-11 rounded-full border border-stone-200 flex items-center justify-center text-stone-400 hover:border-[#C8965A] hover:text-[#C8965A] transition-colors text-lg leading-none"
                       aria-label="Increase quantity"
                     >
                       +

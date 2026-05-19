@@ -137,7 +137,7 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-1.5 rounded-full text-xs tracking-wide border transition-all whitespace-nowrap ${
+      className={`px-4 py-2 rounded-full text-xs tracking-wide border transition-all whitespace-nowrap ${
         active
           ? "bg-[#34150F] text-white border-[#34150F]"
           : "bg-white text-stone-500 border-stone-200 hover:border-stone-400 hover:text-stone-700"
@@ -281,7 +281,7 @@ function ProductCard({
               <button
                 key={fmt.name}
                 onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setJustAdded(false) }}
-                className={`flex-1 text-[11px] py-1.5 rounded-lg border transition-all ${
+                className={`flex-1 text-[11px] py-2 rounded-lg border transition-all ${
                   selectedFormat.name === fmt.name
                     ? "bg-[#34150F] text-white border-[#34150F]"
                     : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
@@ -303,7 +303,7 @@ function ProductCard({
           {!isCafe && (
             <button
               onClick={handleAddToCart}
-              className={`text-xs px-4 py-2 rounded-full tracking-wide transition-colors ${
+              className={`text-xs px-4 py-2.5 rounded-full tracking-wide transition-colors ${
                 justAdded
                   ? "bg-emerald-100 text-emerald-700"
                   : "bg-[#C8965A] hover:bg-[#B8854C] text-white"
@@ -317,7 +317,7 @@ function ProductCard({
           {isCafe && !soldOut && !noBatch && (
             <button
               onClick={handlePreorder}
-              className={`text-xs px-4 py-2 rounded-full tracking-wide transition-colors ${
+              className={`text-xs px-4 py-2.5 rounded-full tracking-wide transition-colors ${
                 justAdded
                   ? "bg-emerald-100 text-emerald-700"
                   : "bg-[#34150F] hover:bg-[#4a1e12] text-[#F5ECD7]"
