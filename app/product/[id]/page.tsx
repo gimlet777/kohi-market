@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { PRODUCTS, type FormatOption, type Product } from "@/lib/products"
+import { rowToProduct, type ProductRow, type FormatOption, type Product } from "@/lib/products"
+import { supabase } from "@/lib/supabase"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -129,12 +130,63 @@ function BatchPanel({ product }: { product: Product }) {
 export default function ProductPage() {
   const params = useParams()
   const router = useRouter()
-  const product = PRODUCTS.find((p) => p.id === Number(params.id))
 
-  const [selectedFormat, setSelectedFormat] = useState<FormatOption | null>(
-    product?.formats[0] ?? null
-  )
+  const [product, setProduct] = useState<Product | null>(null)
+  const [selectedFormat, setSelectedFormat] = useState<FormatOption | null>(null)
   const [cartAdded, setCartAdded] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    supabase
+      .from("products")
+      .select("*")
+      .eq("id", Number(params.id))
+      .single()
+      .then(({ data, error }) => {
+        if (!error && data) {
+          const p = rowToProduct(data as ProductRow)
+          setProduct(p)
+          setSelectedFormat(p.formats[0])
+        }
+        setIsLoading(false)
+      })
+  }, [params.id])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
+        <nav className="bg-[#1a1a1a] px-6 md:px-10 py-4 flex items-center justify-between">
+          <button onClick={() => router.back()} className="flex items-center gap-2 text-stone-400 text-sm">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            Marketplace
+          </button>
+          <span className="font-serif text-xl text-[#c8a96e]">KOHĪ</span>
+          <div className="w-20" />
+        </nav>
+        <div className="bg-[#1a1a1a] px-6 md:px-10 pt-12 pb-14 animate-pulse">
+          <div className="h-3 bg-white/10 rounded w-32 mb-6" />
+          <div className="h-12 bg-white/10 rounded w-2/3 mb-3" />
+          <div className="h-3 bg-white/10 rounded w-24" />
+        </div>
+        <div className="flex-1 px-6 md:px-10 py-10 max-w-5xl w-full mx-auto animate-pulse">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+            <div className="space-y-4">
+              <div className="h-3 bg-stone-200 rounded w-full" />
+              <div className="h-3 bg-stone-200 rounded w-5/6" />
+              <div className="h-3 bg-stone-200 rounded w-4/6" />
+              <div className="h-32 bg-stone-100 rounded-xl mt-6" />
+            </div>
+            <div className="space-y-4">
+              <div className="h-28 bg-stone-100 rounded-xl" />
+              <div className="h-12 bg-stone-100 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!product) {
     return (

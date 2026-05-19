@@ -28,6 +28,46 @@ export interface Product {
   batchInfo?: BatchInfo
 }
 
+// ─── Supabase row shape & mapper ─────────────────────────────────────────────
+
+export interface ProductRow {
+  id: number
+  roaster_name: string
+  region: string
+  product_name: string
+  origin: string
+  process: string
+  roast_level: string
+  altitude: string | null
+  flavour_notes: string[]
+  description: string
+  price: number
+  formats: FormatOption[]
+  seller_type: string
+  batch_info: { nextRoastDate: string; bagsRemaining: number } | null
+  created_at: string
+}
+
+export function rowToProduct(row: ProductRow): Product {
+  return {
+    id: row.id,
+    roaster: row.roaster_name,
+    region: row.region,
+    name: row.product_name,
+    origin: row.origin,
+    process: row.process,
+    roast: row.roast_level as RoastLevel,
+    altitude: row.altitude ?? undefined,
+    notes: row.flavour_notes,
+    description: row.description,
+    formats: row.formats,
+    type: row.seller_type as SellerType,
+    batchInfo: row.batch_info ?? undefined,
+  }
+}
+
+// ─── Mock / fallback data ─────────────────────────────────────────────────────
+
 export const PRODUCTS: Product[] = [
   {
     id: 1,

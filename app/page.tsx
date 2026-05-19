@@ -1,8 +1,21 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { PRODUCTS, type Product, type RoastLevel } from "@/lib/products"
+import { PRODUCTS as MOCK_PRODUCTS, rowToProduct, type ProductRow, type Product, type RoastLevel } from "@/lib/products"
+import { supabase } from "@/lib/supabase"
+
+// ─── Supabase data layer ──────────────────────────────────────────────────────
+
+async function fetchProducts(): Promise<Product[]> {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: true })
+
+  if (error || !data || data.length === 0) return []
+  return (data as ProductRow[]).map(rowToProduct)
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -55,6 +68,37 @@ const roastBadge: Record<RoastLevel, string> = {
   Light: "bg-amber-100 text-amber-700",
   Medium: "bg-orange-100 text-orange-700",
   Dark: "bg-stone-800 text-stone-100",
+}
+
+// ─── SkeletonCard ─────────────────────────────────────────────────────────────
+
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden border border-stone-100 animate-pulse">
+      <div className="h-0.5 bg-stone-100" />
+      <div className="p-5 space-y-4">
+        <div className="space-y-1.5">
+          <div className="h-3 bg-stone-100 rounded w-1/3" />
+          <div className="h-3 bg-stone-100 rounded w-1/4" />
+        </div>
+        <div className="h-5 bg-stone-100 rounded w-3/4" />
+        <div className="flex gap-1.5">
+          <div className="h-5 bg-stone-100 rounded-full w-24" />
+          <div className="h-5 bg-stone-100 rounded-full w-20" />
+          <div className="h-5 bg-stone-100 rounded-full w-14" />
+        </div>
+        <div className="flex gap-1">
+          <div className="h-5 bg-stone-100 rounded-full w-16" />
+          <div className="h-5 bg-stone-100 rounded-full w-20" />
+          <div className="h-5 bg-stone-100 rounded-full w-14" />
+        </div>
+        <div className="flex justify-between items-center pt-1">
+          <div className="h-6 bg-stone-100 rounded w-16" />
+          <div className="h-8 bg-stone-100 rounded-full w-24" />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ─── FilterPill ───────────────────────────────────────────────────────────────
@@ -187,11 +231,27 @@ export default function Home() {
   const [sellerType, setSellerType] = useState("All")
   const [search, setSearch] = useState("")
   const [cartCount, setCartCount] = useState(0)
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS)
+  const [isLoading, setIsLoading] = useState(true)
+  const [source, setSource] = useState<"live" | "mock">("mock")
+
+  useEffect(() => {
+    fetchProducts().then((rows) => {
+      if (rows.length > 0) {
+        setProducts(rows)
+        setSource("live")
+      } else {
+        setProducts(MOCK_PRODUCTS)
+        setSource("mock")
+      }
+      setIsLoading(false)
+    })
+  }, [])
 
   const c = copy[lang]
 
   const q = search.trim().toLowerCase()
-  const filtered = PRODUCTS.filter((p) => {
+  const filtered = products.filter((p) => {
     if (region !== "All" && p.region !== region) return false
     if (roast !== "All" && p.roast !== roast) return false
     if (sellerType !== "All" && p.type !== sellerType) return false
@@ -293,9 +353,18 @@ export default function Home() {
       {/* ── Results count ───────────────────────────────────────────────────── */}
       <div className="px-6 md:px-10 pt-6 pb-2 flex items-center justify-between">
         <p className="text-xs text-stone-400">
-          Showing <span className="font-medium text-[#1a1a1a]">{filtered.length}</span> of {PRODUCTS.length} coffees
+          {isLoading ? (
+            "Loading…"
+          ) : (
+            <>
+              Showing <span className="font-medium text-[#1a1a1a]">{filtered.length}</span> of {products.length} coffees
+              {source === "mock" && (
+                <span className="ml-2 text-[#c8a96e]">(demo data)</span>
+              )}
+            </>
+          )}
         </p>
-        {hasActiveFilters && (
+        {!isLoading && hasActiveFilters && (
           <button onClick={resetFilters} className="text-xs text-[#c8a96e] hover:text-[#b89860] transition-colors">
             Reset filters
           </button>
@@ -304,7 +373,11 @@ export default function Home() {
 
       {/* ── Product grid ────────────────────────────────────────────────────── */}
       <section className="flex-1 px-6 md:px-10 py-4">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : filtered.length === 0 ? (
           <p className="text-stone-400 text-sm text-center py-24">{c.noResults}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
