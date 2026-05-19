@@ -6,6 +6,7 @@ import Link from "next/link"
 import { rowToProduct, type ProductRow, type FormatOption, type Product } from "@/lib/products"
 import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
+import { getOriginGradient } from "@/lib/origin-gradients"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -308,7 +309,7 @@ export default function ProductPage() {
             )}
           </Link>
         </nav>
-        <div className="bg-[#34150F] px-6 md:px-10 pt-12 pb-14 animate-pulse">
+        <div className="px-6 md:px-10 pt-12 pb-14 animate-pulse" style={{ background: "linear-gradient(145deg, #C8965A 0%, #7A4028 45%, #2C1008 100%)" }}>
           <div className="h-3 bg-white/10 rounded w-32 mb-6" />
           <div className="h-12 bg-white/10 rounded w-2/3 mb-3" />
           <div className="h-3 bg-white/10 rounded w-24" />
@@ -372,25 +373,30 @@ export default function ProductPage() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#34150F] px-6 md:px-10 pt-12 pb-14">
-        <div className="max-w-4xl">
+      <section
+        className="px-6 md:px-10 pt-12 pb-14 relative"
+        style={{ background: getOriginGradient(product.origin) }}
+      >
+        {/* Subtle dark overlay for text legibility across all gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent pointer-events-none" />
+        <div className="max-w-4xl relative">
           <div className="flex items-center gap-3 mb-6">
-            <p className="text-xs text-stone-500 tracking-wide">{product.roaster} · {product.region}</p>
+            <p className="text-xs text-white/60 tracking-wide">{product.roaster} · {product.region}</p>
             <span
               className={`text-[10px] tracking-widests uppercase px-2.5 py-0.5 rounded-full border ${
                 product.type === "Roastery"
-                  ? "border-[#C8965A] text-[#C8965A]"
-                  : "border-stone-600 text-stone-500"
+                  ? "border-[#C8965A]/70 text-[#F5C880]"
+                  : "border-white/20 text-white/50"
               }`}
             >
               {product.type}
             </span>
           </div>
 
-          <h1 className="font-serif text-4xl md:text-6xl text-white leading-tight mb-3">
+          <h1 className="font-serif text-4xl md:text-6xl text-white leading-tight mb-3 drop-shadow-sm">
             {product.name}
           </h1>
-          <p className="text-stone-500 text-sm">{product.origin}</p>
+          <p className="text-white/50 text-sm">{product.origin}</p>
         </div>
       </section>
 

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { PRODUCTS as MOCK_PRODUCTS, rowToProduct, type ProductRow, type Product, type FormatOption, type RoastLevel } from "@/lib/products"
 import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
+import { getOriginGradient } from "@/lib/origin-gradients"
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
 
@@ -206,24 +207,32 @@ function ProductCard({
       onClick={() => router.push(`/product/${product.id}`)}
       className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
     >
-      <div className={`h-0.5 ${product.type === "Roastery" ? "bg-[#C8965A]" : "bg-stone-400"}`} />
+      {/* Gradient header */}
+      <div
+        className="h-24 w-full relative shrink-0"
+        style={{ background: getOriginGradient(product.origin) }}
+      >
+        {/* Origin label — bottom-left */}
+        <span className="absolute bottom-3 left-4 text-[10px] tracking-widest uppercase text-white/60 font-medium">
+          {product.origin}
+        </span>
+        {/* Type badge — top-right */}
+        <span
+          className={`absolute top-3 right-3 text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-full ${
+            product.type === "Roastery"
+              ? "bg-[#C8965A]/30 text-[#F5C880] border border-[#C8965A]/40"
+              : "bg-white/10 text-white/60 border border-white/20"
+          }`}
+        >
+          {product.type}
+        </span>
+      </div>
 
       <div className="p-5 flex flex-col flex-1 gap-4">
         {/* Header row */}
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="text-xs font-medium text-[#34150F]">{product.roaster}</p>
-            <p className="text-xs text-stone-400 mt-0.5">{product.region}</p>
-          </div>
-          <span
-            className={`text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-full border shrink-0 ${
-              product.type === "Roastery"
-                ? "border-[#C8965A] text-[#C8965A]"
-                : "border-stone-300 text-stone-400"
-            }`}
-          >
-            {product.type}
-          </span>
+        <div>
+          <p className="text-xs font-medium text-[#34150F]">{product.roaster}</p>
+          <p className="text-xs text-stone-400 mt-0.5">{product.region}</p>
         </div>
 
         {/* Product name */}
@@ -231,9 +240,6 @@ function ProductCard({
 
         {/* Meta badges */}
         <div className="flex flex-wrap gap-1.5">
-          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600">
-            {c.origin}: {product.origin}
-          </span>
           <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600">
             {c.process}: {product.process}
           </span>
