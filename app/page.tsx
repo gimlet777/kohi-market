@@ -1,109 +1,12 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { PRODUCTS, type Product, type RoastLevel } from "@/lib/products"
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 type Lang = "EN" | "JP"
-type RoastLevel = "Light" | "Medium" | "Dark"
-type SellerType = "Roastery" | "Café Roaster"
-
-interface Product {
-  id: number
-  roaster: string
-  region: string
-  name: string
-  origin: string
-  process: string
-  roast: RoastLevel
-  notes: string[]
-  price: number
-  formats: string[]
-  type: SellerType
-}
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const PRODUCTS: Product[] = [
-  {
-    id: 1,
-    roaster: "Fuglen Tokyo",
-    region: "Tokyo",
-    name: "Ethiopia Yirgacheffe",
-    origin: "Ethiopia",
-    process: "Natural",
-    roast: "Light",
-    notes: ["Blueberry", "Jasmine", "Bright citrus"],
-    price: 1800,
-    formats: ["Whole Bean", "Drip Bag"],
-    type: "Roastery",
-  },
-  {
-    id: 2,
-    roaster: "Bear Pond Espresso",
-    region: "Tokyo",
-    name: "Colombia El Paraíso",
-    origin: "Colombia",
-    process: "Washed",
-    roast: "Medium",
-    notes: ["Brown sugar", "Stone fruit", "Chocolate"],
-    price: 2200,
-    formats: ["Whole Bean"],
-    type: "Café Roaster",
-  },
-  {
-    id: 3,
-    roaster: "% Arabica",
-    region: "Kyoto",
-    name: "Guatemala Huehuetenango",
-    origin: "Guatemala",
-    process: "Washed",
-    roast: "Light",
-    notes: ["Floral", "Peach", "Honey"],
-    price: 2400,
-    formats: ["Whole Bean", "Drip Bag"],
-    type: "Roastery",
-  },
-  {
-    id: 4,
-    roaster: "Kurasu",
-    region: "Kyoto",
-    name: "Ethiopia Guji",
-    origin: "Ethiopia",
-    process: "Natural",
-    roast: "Light",
-    notes: ["Strawberry", "Peach", "Cream"],
-    price: 1950,
-    formats: ["Whole Bean", "Drip Bag"],
-    type: "Café Roaster",
-  },
-  {
-    id: 5,
-    roaster: "Mameya Kakeru",
-    region: "Tokyo",
-    name: "Kenya Gicherori",
-    origin: "Kenya",
-    process: "Washed",
-    roast: "Medium",
-    notes: ["Blackcurrant", "Grapefruit", "Walnut"],
-    price: 3200,
-    formats: ["Whole Bean"],
-    type: "Roastery",
-  },
-  {
-    id: 6,
-    roaster: "Nishiya Coffee",
-    region: "Osaka",
-    name: "Brazil Cerrado Mineiro",
-    origin: "Brazil",
-    process: "Natural",
-    roast: "Dark",
-    notes: ["Dark chocolate", "Caramel", "Hazelnut"],
-    price: 1600,
-    formats: ["Whole Bean", "Drip Bag"],
-    type: "Café Roaster",
-  },
-]
 
 const REGIONS = ["All", "Tokyo", "Kyoto", "Osaka", "Fukuoka"]
 const ROASTS = ["All", "Light", "Medium", "Dark"]
@@ -173,12 +76,25 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
 
 // ─── ProductCard ──────────────────────────────────────────────────────────────
 
-function ProductCard({ product, lang, onAddToCart }: { product: Product; lang: Lang; onAddToCart: () => void }) {
-  const [selectedFormat, setSelectedFormat] = useState(product.formats[0])
+function ProductCard({
+  product,
+  lang,
+  onAddToCart,
+}: {
+  product: Product
+  lang: Lang
+  onAddToCart: (e: React.MouseEvent) => void
+}) {
+  const router = useRouter()
   const c = copy[lang]
+  const [selectedFormat, setSelectedFormat] = useState(product.formats[0])
+  const basePrice = product.formats[0].price
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col hover:shadow-md transition-shadow">
+    <div
+      onClick={() => router.push(`/product/${product.id}`)}
+      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
+    >
       <div className={`h-0.5 ${product.type === "Roastery" ? "bg-[#c8a96e]" : "bg-stone-200"}`} />
 
       <div className="p-5 flex flex-col flex-1 gap-4">
@@ -231,15 +147,15 @@ function ProductCard({ product, lang, onAddToCart }: { product: Product; lang: L
           <div className="flex gap-1.5">
             {product.formats.map((fmt) => (
               <button
-                key={fmt}
-                onClick={() => setSelectedFormat(fmt)}
+                key={fmt.name}
+                onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt) }}
                 className={`flex-1 text-[11px] py-1.5 rounded-lg border transition-all ${
-                  selectedFormat === fmt
+                  selectedFormat.name === fmt.name
                     ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
                     : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
                 }`}
               >
-                {c.formatLabels[fmt]}
+                {c.formatLabels[fmt.name]}
               </button>
             ))}
           </div>
@@ -248,7 +164,7 @@ function ProductCard({ product, lang, onAddToCart }: { product: Product; lang: L
         {/* Price + CTA */}
         <div className="flex items-center justify-between pt-1">
           <p className="text-lg font-medium text-[#1a1a1a] tracking-tight">
-            ¥{product.price.toLocaleString()}
+            {product.formats.length > 1 ? "From " : ""}¥{basePrice.toLocaleString()}
           </p>
           <button
             onClick={onAddToCart}
@@ -303,7 +219,6 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-5">
-          {/* Language toggle */}
           <div className="flex items-center rounded-full border border-stone-700 overflow-hidden text-xs">
             {(["EN", "JP"] as Lang[]).map((l) => (
               <button
@@ -318,7 +233,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Cart */}
           <button className="relative text-stone-400 hover:text-white transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
@@ -342,7 +256,6 @@ export default function Home() {
         </h1>
         <p className="text-stone-400 text-sm mb-10 max-w-sm leading-relaxed">{c.sub}</p>
 
-        {/* Search bar */}
         <div className="relative max-w-xl">
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
@@ -352,7 +265,7 @@ export default function Home() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={c.placeholder}
-            className="w-full bg-white/8 text-white placeholder-stone-500 text-sm pl-11 pr-4 py-3.5 rounded-full border border-stone-700 focus:outline-none focus:border-[#c8a96e] transition-colors"
+            className="w-full bg-white/10 text-white placeholder-stone-500 text-sm pl-11 pr-4 py-3.5 rounded-full border border-stone-700 focus:outline-none focus:border-[#c8a96e] transition-colors"
           />
         </div>
       </section>
@@ -383,10 +296,7 @@ export default function Home() {
           Showing <span className="font-medium text-[#1a1a1a]">{filtered.length}</span> of {PRODUCTS.length} coffees
         </p>
         {hasActiveFilters && (
-          <button
-            onClick={resetFilters}
-            className="text-xs text-[#c8a96e] hover:text-[#b89860] transition-colors"
-          >
+          <button onClick={resetFilters} className="text-xs text-[#c8a96e] hover:text-[#b89860] transition-colors">
             Reset filters
           </button>
         )}
@@ -403,7 +313,7 @@ export default function Home() {
                 key={product.id}
                 product={product}
                 lang={lang}
-                onAddToCart={() => setCartCount((n) => n + 1)}
+                onAddToCart={(e) => { e.stopPropagation(); setCartCount((n) => n + 1) }}
               />
             ))}
           </div>
