@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import Link from "next/link"
 import { rowToProduct, type ProductRow, type FormatOption, type Product } from "@/lib/products"
 import { supabase } from "@/lib/supabase"
+import { useCart } from "@/context/CartContext"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -130,6 +132,7 @@ function BatchPanel({ product }: { product: Product }) {
 export default function ProductPage() {
   const params = useParams()
   const router = useRouter()
+  const cart = useCart()
 
   const [product, setProduct] = useState<Product | null>(null)
   const [selectedFormat, setSelectedFormat] = useState<FormatOption | null>(null)
@@ -152,6 +155,11 @@ export default function ProductPage() {
       })
   }, [params.id])
 
+  // Reset "Added" feedback when format changes
+  useEffect(() => {
+    setCartAdded(false)
+  }, [selectedFormat])
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
@@ -163,7 +171,16 @@ export default function ProductPage() {
             Marketplace
           </button>
           <span className="font-serif text-xl text-[#C8965A]">KOHĪ</span>
-          <div className="w-20" />
+          <Link href="/cart" className="relative text-stone-400 hover:text-white transition-colors">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+            </svg>
+            {cart.totalCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C8965A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+                {cart.totalCount > 9 ? "9+" : cart.totalCount}
+              </span>
+            )}
+          </Link>
         </nav>
         <div className="bg-[#34150F] px-6 md:px-10 pt-12 pb-14 animate-pulse">
           <div className="h-3 bg-white/10 rounded w-32 mb-6" />
@@ -218,7 +235,16 @@ export default function ProductPage() {
 
         <span className="font-serif text-xl text-[#C8965A] tracking-wide">KOHĪ</span>
 
-        <div className="w-20" />
+        <Link href="/cart" className="relative text-stone-400 hover:text-white transition-colors">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+          </svg>
+          {cart.totalCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-[#C8965A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+              {cart.totalCount > 9 ? "9+" : cart.totalCount}
+            </span>
+          )}
+        </Link>
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
@@ -327,7 +353,18 @@ export default function ProductPage() {
                   </p>
                 )}
                 <button
-                  onClick={() => setCartAdded(true)}
+                  onClick={() => {
+                    if (!selectedFormat || cartAdded) return
+                    cart.addItem({
+                      cartItemId: `${product.id}-${selectedFormat.name}`,
+                      productId: product.id,
+                      productName: product.name,
+                      roasterName: product.roaster,
+                      format: selectedFormat,
+                      price: selectedFormat.price,
+                    })
+                    setCartAdded(true)
+                  }}
                   disabled={cartAdded}
                   className={`w-full py-3.5 rounded-full text-sm font-medium tracking-wide transition-all ${
                     cartAdded

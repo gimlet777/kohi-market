@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { PRODUCTS as MOCK_PRODUCTS, rowToProduct, type ProductRow, type Product, type RoastLevel } from "@/lib/products"
+import Link from "next/link"
+import { PRODUCTS as MOCK_PRODUCTS, rowToProduct, type ProductRow, type Product, type FormatOption, type RoastLevel } from "@/lib/products"
 import { supabase } from "@/lib/supabase"
+import { useCart } from "@/context/CartContext"
 
 // ─── Supabase data layer ──────────────────────────────────────────────────────
 
@@ -127,12 +129,20 @@ function ProductCard({
 }: {
   product: Product
   lang: Lang
-  onAddToCart: (e: React.MouseEvent) => void
+  onAddToCart: (product: Product, format: FormatOption) => void
 }) {
   const router = useRouter()
   const c = copy[lang]
   const [selectedFormat, setSelectedFormat] = useState(product.formats[0])
+  const [justAdded, setJustAdded] = useState(false)
   const basePrice = product.formats[0].price
+
+  function handleAddToCart(e: React.MouseEvent) {
+    e.stopPropagation()
+    onAddToCart(product, selectedFormat)
+    setJustAdded(true)
+    setTimeout(() => setJustAdded(false), 1500)
+  }
 
   return (
     <div
@@ -192,7 +202,7 @@ function ProductCard({
             {product.formats.map((fmt) => (
               <button
                 key={fmt.name}
-                onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt) }}
+                onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setJustAdded(false) }}
                 className={`flex-1 text-[11px] py-1.5 rounded-lg border transition-all ${
                   selectedFormat.name === fmt.name
                     ? "bg-[#34150F] text-white border-[#34150F]"
@@ -211,10 +221,14 @@ function ProductCard({
             {product.formats.length > 1 ? "From " : ""}¥{basePrice.toLocaleString()}
           </p>
           <button
-            onClick={onAddToCart}
-            className="bg-[#C8965A] hover:bg-[#B8854C] text-white text-xs px-4 py-2 rounded-full tracking-wide transition-colors"
+            onClick={handleAddToCart}
+            className={`text-xs px-4 py-2 rounded-full tracking-wide transition-colors ${
+              justAdded
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-[#C8965A] hover:bg-[#B8854C] text-white"
+            }`}
           >
-            {c.addToCart}
+            {justAdded ? "Added ✓" : c.addToCart}
           </button>
         </div>
       </div>
@@ -225,12 +239,12 @@ function ProductCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const cart = useCart()
   const [lang, setLang] = useState<Lang>("EN")
   const [region, setRegion] = useState("All")
   const [roast, setRoast] = useState("All")
   const [sellerType, setSellerType] = useState("All")
   const [search, setSearch] = useState("")
-  const [cartCount, setCartCount] = useState(0)
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS)
   const [isLoading, setIsLoading] = useState(true)
   const [source, setSource] = useState<"live" | "mock">("mock")
@@ -293,16 +307,16 @@ export default function Home() {
             ))}
           </div>
 
-          <button className="relative text-stone-400 hover:text-white transition-colors">
+          <Link href="/cart" className="relative text-stone-400 hover:text-white transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
-            {cartCount > 0 && (
+            {cart.totalCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 bg-[#C8965A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
-                {cartCount}
+                {cart.totalCount > 9 ? "9+" : cart.totalCount}
               </span>
             )}
-          </button>
+          </Link>
         </div>
       </nav>
 
@@ -386,7 +400,16 @@ export default function Home() {
                 key={product.id}
                 product={product}
                 lang={lang}
-                onAddToCart={(e) => { e.stopPropagation(); setCartCount((n) => n + 1) }}
+                onAddToCart={(p, fmt) => {
+                  cart.addItem({
+                    cartItemId: `${p.id}-${fmt.name}`,
+                    productId: p.id,
+                    productName: p.name,
+                    roasterName: p.roaster,
+                    format: fmt,
+                    price: fmt.price,
+                  })
+                }}
               />
             ))}
           </div>
