@@ -13,16 +13,31 @@ interface RoasterProfile {
   seller_type: string
 }
 
+interface OrderItem {
+  productName: string
+  formatName: string
+  grams: number
+  unitPrice: number
+  quantity: number
+}
+
+interface Order {
+  id: string
+  buyer_name: string
+  buyer_email: string
+  shipping_address: Record<string, string> | null
+  items: OrderItem[]
+  total_amount: number
+  status: "pending" | "shipped" | "delivered"
+  stripe_session_id: string
+  created_at: string
+}
+
 const COMING_SOON_CARDS = [
   {
     title: "Batch Schedule",
     description: "Set your upcoming roast dates and manage pre-order availability.",
     icon: "📅",
-  },
-  {
-    title: "Orders",
-    description: "View incoming orders, update fulfilment status, and manage returns.",
-    icon: "📦",
   },
   {
     title: "Analytics",
@@ -40,6 +55,15 @@ function roastBadge(level: string) {
   return map[level] ?? "bg-stone-100 text-stone-500 border-stone-200"
 }
 
+function statusBadge(status: Order["status"]) {
+  const map: Record<Order["status"], string> = {
+    pending: "bg-amber-50 text-amber-700 border-amber-100",
+    shipped: "bg-blue-50 text-blue-700 border-blue-100",
+    delivered: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  }
+  return map[status]
+}
+
 function priceDisplay(product: ProductRow) {
   if (product.formats?.length) {
     const prices = product.formats.map(f => f.price)
@@ -51,15 +75,22 @@ function priceDisplay(product: ProductRow) {
   return `¥${product.price?.toLocaleString() ?? "—"}`
 }
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<RoasterProfile | null>(null)
   const [products, setProducts] = useState<ProductRow[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [confirmShipOrderId, setConfirmShipOrderId] = useState<string | null>(null)
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -72,6 +103,7 @@ export default function DashboardPage() {
       const [
         { data: profileData, error: profileError },
         { data: productsData, error: productsError },
+        { data: ordersData, error: ordersError },
       ] = await Promise.all([
         supabase
           .from("roasters")
@@ -83,6 +115,11 @@ export default function DashboardPage() {
           .select("*")
           .eq("roaster_id", session.user.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("orders")
+          .select("*")
+          .eq("roaster_id", session.user.id)
+          .order("created_at", { ascending: false }),
       ])
 
       if (profileError) console.error("Profile fetch error:", profileError)
@@ -90,9 +127,11 @@ export default function DashboardPage() {
         console.error("Products fetch error:", productsError)
         setFetchError(productsError.message)
       }
+      if (ordersError) console.error("Orders fetch error:", ordersError)
 
       setProfile(profileData)
       setProducts(productsData ?? [])
+      setOrders((ordersData ?? []) as Order[])
       setIsLoading(false)
     }
     load()
@@ -113,6 +152,22 @@ export default function DashboardPage() {
       setProducts(prev => prev.filter(p => p.id !== id))
       setConfirmDeleteId(null)
     }
+  }
+
+  async function handleUpdateStatus(orderId: string, status: Order["status"]) {
+    setUpdatingOrderId(orderId)
+    const { error } = await supabase
+      .from("orders")
+      .update({ status })
+      .eq("id", orderId)
+
+    if (!error) {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
+    } else {
+      console.error("Order status update error:", error)
+    }
+    setUpdatingOrderId(null)
+    setConfirmShipOrderId(null)
   }
 
   return (
@@ -189,6 +244,119 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Orders */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs tracking-widest uppercase text-stone-400">Orders</h2>
+            {orders.length > 0 && (
+              <span className="text-xs text-stone-400">
+                {orders.filter(o => o.status === "pending").length} pending
+              </span>
+            )}
+          </div>
+
+          {isLoading ? (
+            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+              {[1, 2].map(i => (
+                <div key={i} className="flex gap-4 px-6 py-5 border-b border-stone-100 last:border-0 animate-pulse">
+                  <div className="h-4 flex-1 bg-stone-100 rounded" />
+                  <div className="h-4 w-24 bg-stone-100 rounded" />
+                  <div className="h-4 w-20 bg-stone-100 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-stone-200 p-10 shadow-sm text-center">
+              <p className="text-sm text-stone-400 mb-1">No orders yet</p>
+              <p className="text-xs text-stone-300">Orders will appear here when customers purchase your coffee.</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-stone-100">
+                      <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-6 py-3">Date</th>
+                      <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Buyer</th>
+                      <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Items</th>
+                      <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Total</th>
+                      <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Status</th>
+                      <th className="px-4 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map(order => (
+                      <tr key={order.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50/50 transition-colors">
+                        <td className="px-6 py-4 text-stone-500 whitespace-nowrap text-xs">
+                          {formatDate(order.created_at)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <p className="text-[#34150F] font-medium text-sm">{order.buyer_name}</p>
+                          <p className="text-stone-400 text-xs">{order.buyer_email}</p>
+                        </td>
+                        <td className="px-4 py-4 min-w-[180px]">
+                          {order.items.map((item, i) => (
+                            <p key={i} className="text-stone-600 text-xs leading-relaxed">
+                              {item.productName}
+                              {item.formatName && (
+                                <span className="text-stone-400"> · {item.formatName}{item.grams > 0 ? ` ${item.grams}g` : ""}</span>
+                              )}
+                              <span className="text-stone-400"> × {item.quantity}</span>
+                            </p>
+                          ))}
+                        </td>
+                        <td className="px-4 py-4 text-[#34150F] font-medium whitespace-nowrap">
+                          ¥{order.total_amount.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className={`inline-block text-[10px] px-2.5 py-1 rounded-full border font-medium capitalize ${statusBadge(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-right">
+                          {updatingOrderId === order.id ? (
+                            <span className="text-xs text-stone-400">Updating…</span>
+                          ) : confirmShipOrderId === order.id ? (
+                            <div className="flex items-center gap-2 justify-end">
+                              <span className="text-xs text-stone-400">Mark as shipped?</span>
+                              <button
+                                onClick={() => handleUpdateStatus(order.id, "shipped")}
+                                className="text-xs text-[#C8965A] hover:text-[#B8854C] font-medium transition-colors"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => setConfirmShipOrderId(null)}
+                                className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : order.status === "pending" ? (
+                            <button
+                              onClick={() => setConfirmShipOrderId(order.id)}
+                              className="text-xs text-[#C8965A] hover:text-[#B8854C] font-medium transition-colors"
+                            >
+                              Mark shipped
+                            </button>
+                          ) : order.status === "shipped" ? (
+                            <button
+                              onClick={() => handleUpdateStatus(order.id, "pending")}
+                              className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                            >
+                              Undo
+                            </button>
+                          ) : null}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* My Products */}
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -237,7 +405,7 @@ export default function DashboardPage() {
                       <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Origin</th>
                       <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Roast</th>
                       <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Price</th>
-                      <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Type</th>
+                      <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Type</th>
                       <th className="px-4 py-3" />
                     </tr>
                   </thead>
@@ -299,7 +467,7 @@ export default function DashboardPage() {
         {/* Coming soon cards */}
         <div>
           <h2 className="text-xs tracking-widest uppercase text-stone-400 mb-4">Coming Soon</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {COMING_SOON_CARDS.map((card) => (
               <div
                 key={card.title}

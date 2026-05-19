@@ -1,5 +1,6 @@
 import Stripe from "stripe"
 import { NextRequest, NextResponse } from "next/server"
+import { supabaseAdmin } from "@/lib/supabase-admin"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -24,11 +25,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Cart is empty" }, { status: 400 })
   }
 
+  // Look up roaster emails keyed by roaster name
+  const roasterNames = [...new Set(items.map(i => i.roasterName))]
+  const { data: profiles } = await supabaseAdmin
+    .from("roasters")
+    .select("roaster_name, email")
+    .in("roaster_name", roasterNames)
+
+  const roasterEmailMap: Record<string, string> = {}
+  for (const p of profiles ?? []) {
+    if (p.roaster_name && p.email) roasterEmailMap[p.roaster_name] = p.email
+  }
+
   const origin = req.nextUrl.origin
 
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      shipping_address_collection: {
+        allowed_countries: ["JP", "US", "GB", "AU", "CA", "DE", "FR", "NL", "SG", "HK"],
+      },
       line_items: items.map(item => ({
         price_data: {
           currency: "jpy",
@@ -41,6 +57,12 @@ export async function POST(req: NextRequest) {
             ]
               .filter(Boolean)
               .join(" · "),
+            metadata: {
+              roaster_name: item.roasterName,
+              roaster_email: roasterEmailMap[item.roasterName] ?? "",
+              format_name: item.format.name,
+              grams: String(item.format.grams),
+            },
           },
           unit_amount: item.price, // JPY is zero-decimal — ¥1800 = 1800
         },
