@@ -1,65 +1,421 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Lang = "EN" | "JP"
+type RoastLevel = "Light" | "Medium" | "Dark"
+type SellerType = "Roastery" | "Café Roaster"
+
+interface Product {
+  id: number
+  roaster: string
+  region: string
+  name: string
+  origin: string
+  process: string
+  roast: RoastLevel
+  notes: string[]
+  price: number
+  formats: string[]
+  type: SellerType
+}
+
+// ─── Mock data ────────────────────────────────────────────────────────────────
+
+const PRODUCTS: Product[] = [
+  {
+    id: 1,
+    roaster: "Fuglen Tokyo",
+    region: "Tokyo",
+    name: "Ethiopia Yirgacheffe",
+    origin: "Ethiopia",
+    process: "Natural",
+    roast: "Light",
+    notes: ["Blueberry", "Jasmine", "Bright citrus"],
+    price: 1800,
+    formats: ["Whole Bean", "Drip Bag"],
+    type: "Roastery",
+  },
+  {
+    id: 2,
+    roaster: "Bear Pond Espresso",
+    region: "Tokyo",
+    name: "Colombia El Paraíso",
+    origin: "Colombia",
+    process: "Washed",
+    roast: "Medium",
+    notes: ["Brown sugar", "Stone fruit", "Chocolate"],
+    price: 2200,
+    formats: ["Whole Bean"],
+    type: "Café Roaster",
+  },
+  {
+    id: 3,
+    roaster: "% Arabica",
+    region: "Kyoto",
+    name: "Guatemala Huehuetenango",
+    origin: "Guatemala",
+    process: "Washed",
+    roast: "Light",
+    notes: ["Floral", "Peach", "Honey"],
+    price: 2400,
+    formats: ["Whole Bean", "Drip Bag"],
+    type: "Roastery",
+  },
+  {
+    id: 4,
+    roaster: "Kurasu",
+    region: "Kyoto",
+    name: "Ethiopia Guji",
+    origin: "Ethiopia",
+    process: "Natural",
+    roast: "Light",
+    notes: ["Strawberry", "Peach", "Cream"],
+    price: 1950,
+    formats: ["Whole Bean", "Drip Bag"],
+    type: "Café Roaster",
+  },
+  {
+    id: 5,
+    roaster: "Mameya Kakeru",
+    region: "Tokyo",
+    name: "Kenya Gicherori",
+    origin: "Kenya",
+    process: "Washed",
+    roast: "Medium",
+    notes: ["Blackcurrant", "Grapefruit", "Walnut"],
+    price: 3200,
+    formats: ["Whole Bean"],
+    type: "Roastery",
+  },
+  {
+    id: 6,
+    roaster: "Nishiya Coffee",
+    region: "Osaka",
+    name: "Brazil Cerrado Mineiro",
+    origin: "Brazil",
+    process: "Natural",
+    roast: "Dark",
+    notes: ["Dark chocolate", "Caramel", "Hazelnut"],
+    price: 1600,
+    formats: ["Whole Bean", "Drip Bag"],
+    type: "Café Roaster",
+  },
+]
+
+const REGIONS = ["All", "Tokyo", "Kyoto", "Osaka", "Fukuoka"]
+const ROASTS = ["All", "Light", "Medium", "Dark"]
+const TYPES = ["All", "Roastery", "Café Roaster"]
+
+// ─── Translations ─────────────────────────────────────────────────────────────
+
+const copy = {
+  EN: {
+    tagline: "Specialty Coffee Marketplace",
+    headlineTop: "Japan's Finest",
+    headlineBottom: "Specialty Coffee",
+    sub: "Sourced directly from independent roasters across Japan.",
+    placeholder: "Search roasters or origins…",
+    regionLabel: "Region",
+    roastLabel: "Roast",
+    typeLabel: "Type",
+    addToCart: "Add to cart",
+    origin: "Origin",
+    process: "Process",
+    noResults: "No coffees match your filters.",
+    formatLabels: { "Whole Bean": "Whole Bean", "Drip Bag": "Drip Bag" } as Record<string, string>,
+    footerSub: "Specialty Coffee Marketplace",
+  },
+  JP: {
+    tagline: "スペシャルティコーヒーマーケット",
+    headlineTop: "日本最高の",
+    headlineBottom: "スペシャルティコーヒー",
+    sub: "全国の独立ロースターから直接入手。",
+    placeholder: "ロースターや産地を検索…",
+    regionLabel: "地域",
+    roastLabel: "焙煎",
+    typeLabel: "種別",
+    addToCart: "カートに追加",
+    origin: "産地",
+    process: "精製",
+    noResults: "条件に合うコーヒーがありません。",
+    formatLabels: { "Whole Bean": "ホールビーン", "Drip Bag": "ドリップバッグ" } as Record<string, string>,
+    footerSub: "スペシャルティコーヒーマーケット",
+  },
+}
+
+// ─── Roast badge colours ──────────────────────────────────────────────────────
+
+const roastBadge: Record<RoastLevel, string> = {
+  Light: "bg-amber-100 text-amber-700",
+  Medium: "bg-orange-100 text-orange-700",
+  Dark: "bg-stone-800 text-stone-100",
+}
+
+// ─── FilterPill ───────────────────────────────────────────────────────────────
+
+function FilterPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-full text-xs tracking-wide border transition-all whitespace-nowrap ${
+        active
+          ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
+          : "bg-white text-stone-500 border-stone-200 hover:border-stone-400 hover:text-stone-700"
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
+
+// ─── ProductCard ──────────────────────────────────────────────────────────────
+
+function ProductCard({ product, lang, onAddToCart }: { product: Product; lang: Lang; onAddToCart: () => void }) {
+  const [selectedFormat, setSelectedFormat] = useState(product.formats[0])
+  const c = copy[lang]
+
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col hover:shadow-md transition-shadow">
+      <div className={`h-0.5 ${product.type === "Roastery" ? "bg-[#c8a96e]" : "bg-stone-200"}`} />
+
+      <div className="p-5 flex flex-col flex-1 gap-4">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-xs font-medium text-[#1a1a1a]">{product.roaster}</p>
+            <p className="text-xs text-stone-400 mt-0.5">{product.region}</p>
+          </div>
+          <span
+            className={`text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-full border shrink-0 ${
+              product.type === "Roastery"
+                ? "border-[#c8a96e] text-[#c8a96e]"
+                : "border-stone-300 text-stone-400"
+            }`}
+          >
+            {product.type}
+          </span>
+        </div>
+
+        {/* Product name */}
+        <h3 className="font-serif text-[1.1rem] leading-snug text-[#1a1a1a]">{product.name}</h3>
+
+        {/* Meta badges */}
+        <div className="flex flex-wrap gap-1.5">
+          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600">
+            {c.origin}: {product.origin}
+          </span>
+          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600">
+            {c.process}: {product.process}
+          </span>
+          <span className={`text-[11px] px-2.5 py-0.5 rounded-full ${roastBadge[product.roast]}`}>
+            {product.roast}
+          </span>
+        </div>
+
+        {/* Flavour notes */}
+        <div className="flex flex-wrap gap-1">
+          {product.notes.map((note) => (
+            <span key={note} className="text-[11px] px-2.5 py-0.5 border border-stone-200 rounded-full text-stone-400">
+              {note}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex-1" />
+
+        {/* Format toggle */}
+        {product.formats.length > 1 && (
+          <div className="flex gap-1.5">
+            {product.formats.map((fmt) => (
+              <button
+                key={fmt}
+                onClick={() => setSelectedFormat(fmt)}
+                className={`flex-1 text-[11px] py-1.5 rounded-lg border transition-all ${
+                  selectedFormat === fmt
+                    ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
+                    : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
+                }`}
+              >
+                {c.formatLabels[fmt]}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Price + CTA */}
+        <div className="flex items-center justify-between pt-1">
+          <p className="text-lg font-medium text-[#1a1a1a] tracking-tight">
+            ¥{product.price.toLocaleString()}
+          </p>
+          <button
+            onClick={onAddToCart}
+            className="bg-[#c8a96e] hover:bg-[#b89860] text-white text-xs px-4 py-2 rounded-full tracking-wide transition-colors"
+          >
+            {c.addToCart}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const [lang, setLang] = useState<Lang>("EN")
+  const [region, setRegion] = useState("All")
+  const [roast, setRoast] = useState("All")
+  const [sellerType, setSellerType] = useState("All")
+  const [search, setSearch] = useState("")
+  const [cartCount, setCartCount] = useState(0)
+
+  const c = copy[lang]
+
+  const q = search.trim().toLowerCase()
+  const filtered = PRODUCTS.filter((p) => {
+    if (region !== "All" && p.region !== region) return false
+    if (roast !== "All" && p.roast !== roast) return false
+    if (sellerType !== "All" && p.type !== sellerType) return false
+    if (q && !p.roaster.toLowerCase().includes(q) && !p.name.toLowerCase().includes(q) && !p.origin.toLowerCase().includes(q)) return false
+    return true
+  })
+
+  const hasActiveFilters = region !== "All" || roast !== "All" || sellerType !== "All" || q !== ""
+
+  function resetFilters() {
+    setRegion("All")
+    setRoast("All")
+    setSellerType("All")
+    setSearch("")
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
+
+      {/* ── Nav ─────────────────────────────────────────────────────────────── */}
+      <nav className="sticky top-0 z-50 bg-[#1a1a1a] px-6 md:px-10 py-4 flex items-center justify-between">
+        <div className="flex items-baseline gap-2.5">
+          <span className="font-serif text-2xl text-[#c8a96e] tracking-wide">KOHĪ</span>
+          <span className="text-xs text-stone-600 tracking-wider hidden sm:block">珈琲市</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="flex items-center gap-5">
+          {/* Language toggle */}
+          <div className="flex items-center rounded-full border border-stone-700 overflow-hidden text-xs">
+            {(["EN", "JP"] as Lang[]).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className={`px-3 py-1 transition-colors ${
+                  lang === l ? "bg-[#c8a96e] text-white" : "text-stone-400 hover:text-stone-200"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* Cart */}
+          <button className="relative text-stone-400 hover:text-white transition-colors">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+            </svg>
+            {cartCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#c8a96e] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+                {cartCount}
+              </span>
+            )}
+          </button>
         </div>
-      </main>
+      </nav>
+
+      {/* ── Hero ────────────────────────────────────────────────────────────── */}
+      <section className="bg-[#1a1a1a] px-6 md:px-10 pt-16 pb-20">
+        <p className="text-xs tracking-[0.3em] uppercase text-stone-500 mb-6">{c.tagline}</p>
+        <h1 className="font-serif text-5xl md:text-7xl text-white leading-[1.1] mb-4">
+          {c.headlineTop}
+          <br />
+          <span className="text-[#c8a96e]">{c.headlineBottom}</span>
+        </h1>
+        <p className="text-stone-400 text-sm mb-10 max-w-sm leading-relaxed">{c.sub}</p>
+
+        {/* Search bar */}
+        <div className="relative max-w-xl">
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={c.placeholder}
+            className="w-full bg-white/8 text-white placeholder-stone-500 text-sm pl-11 pr-4 py-3.5 rounded-full border border-stone-700 focus:outline-none focus:border-[#c8a96e] transition-colors"
+          />
+        </div>
+      </section>
+
+      {/* ── Filter bar ──────────────────────────────────────────────────────── */}
+      <section className="bg-[#f7f5f2] border-b border-stone-200 px-6 md:px-10 py-4 overflow-x-auto">
+        <div className="flex items-center gap-8 min-w-max">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-stone-400 tracking-widest uppercase">{c.regionLabel}</span>
+            {REGIONS.map((r) => <FilterPill key={r} label={r} active={region === r} onClick={() => setRegion(r)} />)}
+          </div>
+          <div className="w-px h-5 bg-stone-200 shrink-0" />
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-stone-400 tracking-widest uppercase">{c.roastLabel}</span>
+            {ROASTS.map((r) => <FilterPill key={r} label={r} active={roast === r} onClick={() => setRoast(r)} />)}
+          </div>
+          <div className="w-px h-5 bg-stone-200 shrink-0" />
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-stone-400 tracking-widest uppercase">{c.typeLabel}</span>
+            {TYPES.map((t) => <FilterPill key={t} label={t} active={sellerType === t} onClick={() => setSellerType(t)} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Results count ───────────────────────────────────────────────────── */}
+      <div className="px-6 md:px-10 pt-6 pb-2 flex items-center justify-between">
+        <p className="text-xs text-stone-400">
+          Showing <span className="font-medium text-[#1a1a1a]">{filtered.length}</span> of {PRODUCTS.length} coffees
+        </p>
+        {hasActiveFilters && (
+          <button
+            onClick={resetFilters}
+            className="text-xs text-[#c8a96e] hover:text-[#b89860] transition-colors"
+          >
+            Reset filters
+          </button>
+        )}
+      </div>
+
+      {/* ── Product grid ────────────────────────────────────────────────────── */}
+      <section className="flex-1 px-6 md:px-10 py-4">
+        {filtered.length === 0 ? (
+          <p className="text-stone-400 text-sm text-center py-24">{c.noResults}</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                lang={lang}
+                onAddToCart={() => setCartCount((n) => n + 1)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ── Footer ──────────────────────────────────────────────────────────── */}
+      <footer className="bg-[#1a1a1a] px-6 md:px-10 py-10 text-center">
+        <span className="font-serif text-xl text-[#c8a96e]">KOHĪ</span>
+        <p className="text-stone-600 text-xs mt-2 tracking-widest">珈琲市 · {c.footerSub}</p>
+      </footer>
+
     </div>
-  );
+  )
 }
