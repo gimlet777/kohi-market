@@ -31,14 +31,55 @@ export async function POST(req: NextRequest) {
   })
 
   const buyerEmail = session.customer_details?.email
-  const buyerName = session.customer_details?.name ?? "Customer"
-  const rawAddr = session.collected_information?.shipping_details?.address ?? null
 
-  const shippingAddressString = rawAddr
-    ? [rawAddr.line1, rawAddr.line2, rawAddr.city, rawAddr.state, rawAddr.postal_code, rawAddr.country]
-        .filter(Boolean)
-        .join(", ")
-    : "No address provided"
+  // Address preference: our pre-collected form (in metadata) > Stripe-collected fallback
+  let shippingAddressForDb: Record<string, string> | null = null
+  let shippingAddressString = "No address provided"
+  let buyerName = "Customer"
+
+  const metaAddr = session.metadata?.shipping_address
+  if (metaAddr) {
+    // Address came from our /checkout/address page
+    const a = JSON.parse(metaAddr) as {
+      postalCode: string; prefecture: string; city: string
+      district: string; building: string; name: string; phone: string
+    }
+    buyerName = a.name || session.customer_details?.name || "Customer"
+    shippingAddressForDb = {
+      postal_code: a.postalCode,
+      prefecture: a.prefecture,
+      city: a.city,
+      district: a.district,
+      building: a.building,
+      name: a.name,
+      phone: a.phone,
+    }
+    shippingAddressString = [
+      `〒${a.postalCode}`,
+      a.prefecture,
+      a.city,
+      a.district,
+      a.building,
+    ].filter(Boolean).join(" ")
+  } else {
+    // Fallback: Stripe collected the address via shipping_address_collection
+    buyerName = session.customer_details?.name ?? "Customer"
+    const rawAddr = session.collected_information?.shipping_details?.address ?? null
+    if (rawAddr) {
+      shippingAddressForDb = {
+        line1: rawAddr.line1 ?? "",
+        line2: rawAddr.line2 ?? "",
+        city: rawAddr.city ?? "",
+        state: rawAddr.state ?? "",
+        postal_code: rawAddr.postal_code ?? "",
+        country: rawAddr.country ?? "",
+      }
+      shippingAddressString = [
+        rawAddr.line1, rawAddr.line2, rawAddr.city,
+        rawAddr.state, rawAddr.postal_code, rawAddr.country,
+      ].filter(Boolean).join(", ")
+    }
+  }
 
   // Build items grouped by roaster
   const roasterItems: Record<string, {
@@ -101,7 +142,7 @@ export async function POST(req: NextRequest) {
       roaster_id: roasterId,
       buyer_email: buyerEmail ?? "unknown",
       buyer_name: buyerName,
-      shipping_address: rawAddr,
+      shipping_address: shippingAddressForDb,
       items: roaster.items.map(i => ({
         productName: i.productName,
         formatName: i.formatName,

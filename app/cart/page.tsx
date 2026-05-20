@@ -1,33 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { useCart } from "@/context/CartContext"
 
 export default function CartPage() {
   const cart = useCart()
-  const [checkoutLoading, setCheckoutLoading] = useState(false)
-  const [checkoutError, setCheckoutError] = useState<string | null>(null)
-
-  async function handleCheckout() {
-    setCheckoutLoading(true)
-    setCheckoutError(null)
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cart.items }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.url) {
-        throw new Error(data.error || "Failed to create checkout session")
-      }
-      window.location.href = data.url
-    } catch (err) {
-      setCheckoutError(err instanceof Error ? err.message : "Something went wrong")
-      setCheckoutLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
@@ -190,31 +167,16 @@ export default function CartPage() {
                 Shipping calculated at checkout
               </p>
 
-              {checkoutError && (
-                <div className="mt-4 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                  <p className="text-red-600 text-xs leading-relaxed">{checkoutError}</p>
-                </div>
-              )}
-
-              <button
-                onClick={handleCheckout}
-                disabled={checkoutLoading}
-                className="w-full mt-5 bg-[#34150F] hover:bg-[#4a1e12] disabled:opacity-60 text-[#F5ECD7] py-3.5 rounded-full text-sm font-medium tracking-wide transition-colors flex items-center justify-center gap-2"
+              <Link
+                href="/checkout/address"
+                className="block w-full mt-5 bg-[#34150F] hover:bg-[#4a1e12] text-[#F5ECD7] py-3.5 rounded-full text-sm font-medium tracking-wide transition-colors text-center"
               >
-                {checkoutLoading ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-[#F5ECD7]/30 border-t-[#F5ECD7] rounded-full animate-spin" />
-                    Redirecting…
-                  </>
-                ) : (
-                  "Proceed to Checkout"
-                )}
-              </button>
+                Proceed to Checkout
+              </Link>
 
               <button
                 onClick={cart.clearCart}
-                disabled={checkoutLoading}
-                className="w-full mt-3 text-xs text-stone-300 hover:text-stone-500 disabled:opacity-50 transition-colors py-1"
+                className="w-full mt-3 text-xs text-stone-300 hover:text-stone-500 transition-colors py-1"
               >
                 Clear cart
               </button>

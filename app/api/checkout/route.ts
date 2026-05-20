@@ -1,6 +1,7 @@
 import Stripe from "stripe"
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase-admin"
+import type { ShippingAddress } from "@/app/checkout/address/page"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -15,9 +16,12 @@ interface LineItem {
 
 export async function POST(req: NextRequest) {
   let items: LineItem[]
+  let address: ShippingAddress | undefined
+
   try {
     const body = await req.json()
     items = body.items
+    address = body.address
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
   }
@@ -40,12 +44,38 @@ export async function POST(req: NextRequest) {
 
   const origin = req.nextUrl.origin
 
+  // Build the shipping object for Stripe PaymentIntent if address was provided
+  const stripeShipping: Stripe.Checkout.SessionCreateParams["payment_intent_data"] =
+    address
+      ? {
+          shipping: {
+            name: address.name,
+            phone: address.phone,
+            address: {
+              line1: [address.district, address.building]
+                .map(s => s.trim())
+                .filter(Boolean)
+                .join(" "),
+              city: address.city,
+              state: address.prefecture,
+              postal_code: address.postalCode.replace(/\D/g, ""),
+              country: "JP",
+            },
+          },
+        }
+      : undefined
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      shipping_address_collection: {
-        allowed_countries: ["JP", "US", "GB", "AU", "CA", "DE", "FR", "NL", "SG", "HK"],
-      },
+      // Shipping was collected on our address page — don't show Stripe's form
+      ...(address
+        ? {}
+        : {
+            shipping_address_collection: {
+              allowed_countries: ["JP"],
+            },
+          }),
       line_items: items.map(item => ({
         price_data: {
           currency: "jpy",
@@ -70,6 +100,11 @@ export async function POST(req: NextRequest) {
         },
         quantity: item.quantity,
       })),
+      // Store the collected address in session metadata so the webhook can read it
+      metadata: address
+        ? { shipping_address: JSON.stringify(address) }
+        : {},
+      payment_intent_data: stripeShipping,
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout/cancel`,
     })
