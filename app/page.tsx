@@ -50,6 +50,15 @@ const REGIONS = ["All", "Tokyo", "Kyoto", "Osaka", "Fukuoka"]
 const ROASTS = ["All", "Light", "Medium", "Dark"]
 const TYPES = ["All", "Roastery", "Café Roaster"]
 
+const FOUNDING_ROASTERS = [
+  "Glitch Coffee",
+  "Fuglen Tokyo",
+  "Takamura",
+  "Leaves Coffee",
+  "Heart's Light Coffee",
+  "LiLo Coffee Roasters",
+]
+
 // ─── Translations ─────────────────────────────────────────────────────────────
 
 const copy = {
@@ -302,7 +311,7 @@ function ProductCard({
         {/* Price + CTA */}
         <div className="flex items-center justify-between pt-1">
           <p className="text-lg font-medium text-[#34150F] tracking-tight">
-            {product.formats.length > 1 ? "From " : ""}¥{basePrice.toLocaleString()}
+            ¥{basePrice.toLocaleString()}
           </p>
 
           {/* Roastery: Add to cart */}
@@ -497,6 +506,24 @@ export default function Home() {
             placeholder={c.placeholder}
             className="w-full bg-white/10 text-white placeholder-stone-500 text-sm pl-11 pr-4 py-3.5 rounded-full border border-stone-700 focus:outline-none focus:border-[#C8965A] transition-colors"
           />
+        </div>
+      </section>
+
+      {/* ── Founding roasters strip ─────────────────────────────────────────── */}
+      <section className="bg-white border-b border-stone-100 py-6 px-6 md:px-10">
+        <p className="text-[10px] tracking-widest uppercase text-stone-300 text-center mb-5 select-none">
+          Founding Roasters
+        </p>
+        <div className="overflow-x-auto">
+          <ul className="flex items-center gap-10 md:gap-14 w-fit mx-auto list-none">
+            {FOUNDING_ROASTERS.map(name => (
+              <li key={name}>
+                <span className="font-serif text-[15px] text-stone-400 tracking-wide whitespace-nowrap hover:text-[#34150F] transition-colors duration-200 cursor-default select-none">
+                  {name}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
