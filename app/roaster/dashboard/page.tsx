@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import type { ProductRow } from "@/lib/products"
@@ -100,12 +100,15 @@ function formatRoastDate(iso: string) {
 
 export default function DashboardPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [profile, setProfile] = useState<RoasterProfile | null>(null)
   const [products, setProducts] = useState<ProductRow[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [batches, setBatches] = useState<BatchRow[]>([])
   const [userId, setUserId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<Tab>("overview")
+  const [activeTab, setActiveTab] = useState<Tab>(
+    searchParams.get("tab") === "batches" ? "batches" : "overview"
+  )
   const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
@@ -677,7 +680,7 @@ export default function DashboardPage() {
                           <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Origin</th>
                           <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Roast</th>
                           <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Price</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Type</th>
+                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Formats</th>
                           <th className="px-4 py-3" />
                         </tr>
                       </thead>
@@ -692,7 +695,9 @@ export default function DashboardPage() {
                               </span>
                             </td>
                             <td className="px-4 py-4 text-stone-700 whitespace-nowrap">{priceDisplay(p)}</td>
-                            <td className="px-4 py-4 text-stone-400 text-xs whitespace-nowrap">{p.seller_type}</td>
+                            <td className="px-4 py-4 text-stone-400 text-xs whitespace-nowrap">
+                              {p.formats?.length ?? 1} format{(p.formats?.length ?? 1) !== 1 ? "s" : ""}
+                            </td>
                             <td className="px-4 py-4 whitespace-nowrap">
                               {confirmDeleteId === p.id ? (
                                 <div className="flex items-center gap-2 justify-end">

@@ -57,7 +57,7 @@ function FormatCard({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 text-left p-4 rounded-xl border-2 transition-all ${
+      className={`text-left p-4 rounded-xl border-2 transition-all ${
         selected
           ? "border-[#C8965A] bg-[#C8965A]/5"
           : "border-stone-200 bg-white hover:border-stone-300"
@@ -445,7 +445,7 @@ export default function ProductPage() {
             {product.formats.length > 1 ? (
               <div>
                 <p className="text-[11px] tracking-widests uppercase text-stone-400 mb-3">Format</p>
-                <div className="flex gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {product.formats.map((fmt) => (
                     <FormatCard
                       key={fmt.name}

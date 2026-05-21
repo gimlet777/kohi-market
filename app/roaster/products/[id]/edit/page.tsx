@@ -8,6 +8,18 @@ import { supabase } from "@/lib/supabase"
 const ROAST_LEVELS = ["Light", "Medium", "Dark"] as const
 const PROCESSES = ["Washed", "Natural", "Honey", "Anaerobic", "Other"]
 
+const FORMAT_PRESETS: Array<{ name: string; grams: number }> = [
+  { name: "Whole Bean 100g", grams: 100 },
+  { name: "Whole Bean 200g", grams: 200 },
+  { name: "Whole Bean 500g", grams: 500 },
+  { name: "Ground — Espresso", grams: 200 },
+  { name: "Ground — Pour-over", grams: 200 },
+  { name: "Ground — French Press", grams: 200 },
+  { name: "Ground — Moka", grams: 200 },
+  { name: "Drip Bag (single)", grams: 0 },
+  { name: "Drip Bag ×10", grams: 0 },
+]
+
 const inputClass =
   "w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-[#34150F] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C8965A] transition-colors"
 
@@ -74,10 +86,10 @@ export default function EditProductPage() {
   const [formats, setFormats] = useState<Format[]>([{ name: "", grams: "", price: "" }])
   const [notes, setNotes] = useState<string[]>([])
   const [noteInput, setNoteInput] = useState("")
-  const [nextRoastDate, setNextRoastDate] = useState("")
-  const [bagsRemaining, setBagsRemaining] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+  const [savedName, setSavedName] = useState("")
 
   useEffect(() => {
     async function load() {
@@ -113,10 +125,6 @@ export default function EditProductPage() {
             }))
           : [{ name: "", grams: "", price: "" }]
       )
-      if (product.batch_info) {
-        setNextRoastDate(product.batch_info.nextRoastDate ?? "")
-        setBagsRemaining(String(product.batch_info.bagsRemaining ?? ""))
-      }
       setIsLoading(false)
     }
     load()
@@ -150,6 +158,16 @@ export default function EditProductPage() {
 
   function updateFormat(i: number, field: keyof Format, value: string) {
     setFormats(prev => prev.map((f, idx) => idx === i ? { ...f, [field]: value } : f))
+  }
+
+  function addPreset(preset: { name: string; grams: number }) {
+    setFormats(prev => {
+      // Replace the initial empty row; otherwise always append
+      if (prev.length === 1 && !prev[0].name && !prev[0].price) {
+        return [{ name: preset.name, grams: preset.grams ? String(preset.grams) : "", price: "" }]
+      }
+      return [...prev, { name: preset.name, grams: preset.grams ? String(preset.grams) : "", price: "" }]
+    })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -186,10 +204,6 @@ export default function EditProductPage() {
         description: description.trim(),
         price: Math.min(...parsedFormats.map(f => f.price)),
         formats: parsedFormats,
-        batch_info:
-          profile.seller_type === "Café Roaster" && nextRoastDate
-            ? { nextRoastDate, bagsRemaining: Number(bagsRemaining) || 0 }
-            : null,
       })
       .eq("id", productId)
       .eq("roaster_id", session.user.id)
@@ -200,7 +214,55 @@ export default function EditProductPage() {
       return
     }
 
-    router.push("/roaster/dashboard")
+    if (profile.seller_type === "Café Roaster") {
+      setSavedName(productName.trim())
+      setSaved(true)
+      setLoading(false)
+    } else {
+      router.push("/roaster/dashboard")
+    }
+  }
+
+  if (saved) {
+    return (
+      <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
+        <nav className="bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
+          <Link href="/" className="font-serif text-xl text-[#C8965A] tracking-wide">KOHĪ</Link>
+          <span className="text-xs text-stone-500 tracking-widest uppercase hidden sm:block">Roaster Portal</span>
+        </nav>
+        <div className="flex-1 flex items-center justify-center px-6 py-20">
+          <div className="max-w-md w-full text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+              <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-serif text-2xl text-[#34150F] mb-2">Changes saved!</h2>
+              <p className="text-stone-500 text-sm leading-relaxed">
+                <span className="font-medium text-[#34150F]">{savedName}</span> has been updated.
+                Remember to update your <span className="font-medium text-[#34150F]">Batch Schedule</span> in
+                the dashboard if needed.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/roaster/dashboard?tab=batches"
+                className="bg-[#C8965A] hover:bg-[#B8854C] text-white text-sm px-6 py-3 rounded-full font-medium tracking-wide transition-colors"
+              >
+                Go to Batch Schedule →
+              </Link>
+              <Link
+                href="/roaster/dashboard"
+                className="border border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700 text-sm px-6 py-3 rounded-full transition-colors"
+              >
+                Back to dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -249,7 +311,17 @@ export default function EditProductPage() {
 
       {/* Form */}
       <div className="flex-1 px-6 md:px-10 py-10 max-w-2xl mx-auto w-full">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return
+            const t = e.target as HTMLElement
+            if (t.tagName === "TEXTAREA") return
+            if (t.tagName === "BUTTON" && (t as HTMLButtonElement).type === "submit") return
+            e.preventDefault()
+          }}
+          className="space-y-6"
+        >
 
           {/* Basic info */}
           <SectionCard title="Basic Information">
@@ -399,91 +471,90 @@ export default function EditProductPage() {
 
           {/* Formats */}
           <SectionCard title="Formats & Pricing">
-            <div className="space-y-3">
-              {formats.map((fmt, i) => (
-                <div key={i} className="flex gap-3 items-end">
-                  <div className="flex-1 grid grid-cols-3 gap-3">
-                    <Field label={i === 0 ? "Format name *" : ""}>
-                      <input
-                        type="text"
-                        required
-                        value={fmt.name}
-                        onChange={e => updateFormat(i, "name", e.target.value)}
-                        placeholder="Whole Bean"
-                        className={inputClass}
-                      />
-                    </Field>
-                    <Field label={i === 0 ? "Weight (g)" : ""}>
-                      <input
-                        type="number"
-                        min="0"
-                        value={fmt.grams}
-                        onChange={e => updateFormat(i, "grams", e.target.value)}
-                        placeholder="200"
-                        className={inputClass}
-                      />
-                    </Field>
-                    <Field label={i === 0 ? "Price (¥) *" : ""}>
-                      <input
-                        type="number"
-                        min="0"
-                        required
-                        value={fmt.price}
-                        onChange={e => updateFormat(i, "price", e.target.value)}
-                        placeholder="1800"
-                        className={inputClass}
-                      />
-                    </Field>
-                  </div>
-                  {formats.length > 1 && (
+            <div className="space-y-5">
+
+              {/* Quick-add presets */}
+              <div>
+                <p className="text-[11px] text-stone-400 mb-2.5">Quick-add common formats:</p>
+                <div className="flex flex-wrap gap-2">
+                  {FORMAT_PRESETS.map(preset => (
                     <button
+                      key={preset.name}
                       type="button"
-                      onClick={() => removeFormat(i)}
-                      className="text-stone-300 hover:text-red-400 transition-colors text-xl leading-none pb-3"
+                      onClick={() => addPreset(preset)}
+                      className="text-[11px] px-3 py-1.5 rounded-full border border-stone-200 text-stone-500 hover:border-[#C8965A] hover:text-[#C8965A] transition-colors bg-white"
                     >
-                      ×
+                      + {preset.name}
                     </button>
-                  )}
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Format rows */}
+              {formats.length > 0 && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-[1fr_80px_90px_24px] gap-3">
+                    <p className="text-[11px] text-stone-400 uppercase tracking-widest">Format name *</p>
+                    <p className="text-[11px] text-stone-400 uppercase tracking-widest">Grams</p>
+                    <p className="text-[11px] text-stone-400 uppercase tracking-widest">Price ¥ *</p>
+                    <span />
+                  </div>
+                  {formats.map((fmt, i) => {
+                    const drip = fmt.name.toLowerCase().includes("drip")
+                    return (
+                      <div key={i} className="grid grid-cols-[1fr_80px_90px_24px] gap-3 items-center">
+                        <input
+                          type="text"
+                          required
+                          value={fmt.name}
+                          onChange={e => updateFormat(i, "name", e.target.value)}
+                          placeholder="e.g. Whole Bean"
+                          className={inputClass}
+                        />
+                        {drip ? (
+                          <span className="text-stone-300 text-xs px-4 py-3 text-center">—</span>
+                        ) : (
+                          <input
+                            type="number"
+                            min="0"
+                            value={fmt.grams}
+                            onChange={e => updateFormat(i, "grams", e.target.value)}
+                            placeholder="200"
+                            className={inputClass}
+                          />
+                        )}
+                        <input
+                          type="number"
+                          min="0"
+                          required
+                          value={fmt.price}
+                          onChange={e => updateFormat(i, "price", e.target.value)}
+                          placeholder="1800"
+                          className={inputClass}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFormat(i)}
+                          disabled={formats.length === 1}
+                          className="text-stone-300 hover:text-red-400 transition-colors text-xl leading-none disabled:opacity-30"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={addFormat}
                 className="text-xs text-[#C8965A] hover:text-[#B8854C] transition-colors"
               >
-                + Add another format
+                + Add custom format
               </button>
             </div>
           </SectionCard>
-
-          {/* Batch info — Café Roasters only */}
-          {profile?.seller_type === "Café Roaster" && (
-            <SectionCard title="Batch Information">
-              <p className="text-xs text-stone-400 mb-4 -mt-2">
-                Customers will see these details and can pre-order before you roast.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Next Roast Date">
-                  <input
-                    type="date"
-                    value={nextRoastDate}
-                    onChange={e => setNextRoastDate(e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-                <Field label="Bags Available">
-                  <input
-                    type="number"
-                    min="0"
-                    value={bagsRemaining}
-                    onChange={e => setBagsRemaining(e.target.value)}
-                    placeholder="e.g. 12"
-                    className={inputClass}
-                  />
-                </Field>
-              </div>
-            </SectionCard>
-          )}
 
           {error && (
             <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">

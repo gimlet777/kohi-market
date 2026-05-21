@@ -178,7 +178,6 @@ function ProductCard({
   const [showWaitlist, setShowWaitlist] = useState(false)
   const [waitlistEmail, setWaitlistEmail] = useState("")
   const [waitlistDone, setWaitlistDone] = useState(false)
-  const basePrice = product.formats[0].price
 
   const isCafe = product.type === "Café Roaster"
   const soldOut = isCafe && batch !== null && batch.bagsRemaining === 0
@@ -291,27 +290,51 @@ function ProductCard({
 
         {/* Format toggle */}
         {product.formats.length > 1 && (
-          <div className="flex gap-1.5">
-            {product.formats.map((fmt) => (
-              <button
-                key={fmt.name}
-                onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setJustAdded(false) }}
-                className={`flex-1 text-[11px] py-2 rounded-lg border transition-all ${
-                  selectedFormat.name === fmt.name
-                    ? "bg-[#34150F] text-white border-[#34150F]"
-                    : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
-                }`}
+          product.formats.length <= 3 ? (
+            <div className="flex gap-1.5">
+              {product.formats.map((fmt) => (
+                <button
+                  key={fmt.name}
+                  onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setJustAdded(false) }}
+                  className={`flex-1 text-[11px] py-2 rounded-lg border transition-all ${
+                    selectedFormat.name === fmt.name
+                      ? "bg-[#34150F] text-white border-[#34150F]"
+                      : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
+                  }`}
+                >
+                  {c.formatLabels[fmt.name] ?? fmt.name}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="relative">
+              <select
+                value={selectedFormat.name}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => {
+                  e.stopPropagation()
+                  const fmt = product.formats.find(f => f.name === e.target.value)
+                  if (fmt) { setSelectedFormat(fmt); setJustAdded(false) }
+                }}
+                className="w-full text-[11px] py-2 pl-3 pr-8 rounded-lg border border-stone-200 bg-white text-stone-600 focus:outline-none focus:border-[#C8965A] appearance-none"
               >
-                {c.formatLabels[fmt.name] ?? fmt.name}
-              </button>
-            ))}
-          </div>
+                {product.formats.map((fmt) => (
+                  <option key={fmt.name} value={fmt.name}>
+                    {c.formatLabels[fmt.name] ?? fmt.name}
+                  </option>
+                ))}
+              </select>
+              <svg className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          )
         )}
 
         {/* Price + CTA */}
         <div className="flex items-center justify-between pt-1">
           <p className="text-lg font-medium text-[#34150F] tracking-tight">
-            ¥{basePrice.toLocaleString()}
+            ¥{selectedFormat.price.toLocaleString()}
           </p>
 
           {/* Roastery: Add to cart */}
