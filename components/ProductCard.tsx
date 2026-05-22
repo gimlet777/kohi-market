@@ -194,7 +194,7 @@ export function ProductCard({
             <div className="flex gap-1.5">
               {product.formats.map((fmt) => (
                 <button
-                  key={fmt.name}
+                  key={`${fmt.name}-${fmt.price}`}
                   onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setFormatPicked(true); setJustAdded(false) }}
                   className={`flex-1 text-[11px] py-2 rounded-lg border transition-all ${
                     selectedFormat.name === fmt.name
@@ -219,7 +219,7 @@ export function ProductCard({
                 className="w-full text-[11px] py-2 pl-3 pr-8 rounded-lg border border-stone-200 bg-white text-stone-600 focus:outline-none focus:border-[#C8965A] appearance-none"
               >
                 {product.formats.map((fmt) => (
-                  <option key={fmt.name} value={fmt.name}>
+                  <option key={`${fmt.name}-${fmt.price}`} value={fmt.name}>
                     {c.formatLabels[fmt.name] ?? fmt.name}
                   </option>
                 ))}

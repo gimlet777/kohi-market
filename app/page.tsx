@@ -46,7 +46,7 @@ async function fetchOpenBatches(): Promise<LiveBatch[]> {
 
 type Lang = "EN" | "JP"
 
-const REGIONS = ["All", "Tokyo", "Kyoto", "Osaka", "Fukuoka"]
+const REGIONS = ["All", "Tokyo", "Kyoto", "Osaka", "Fukuoka", "Hokkaido"]
 const ROASTS = ["All", "Light", "Medium", "Dark"]
 const TYPES = ["All", "Roastery", "Café Roaster"]
 
