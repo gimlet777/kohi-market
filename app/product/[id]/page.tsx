@@ -7,6 +7,7 @@ import { rowToProduct, type ProductRow, type FormatOption, type Product } from "
 import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
 import { getOriginGradient } from "@/lib/origin-gradients"
+import { slugify } from "@/lib/slugify"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -233,6 +234,7 @@ export default function ProductPage() {
         .select("id, roast_date, total_bags, bags_remaining, status")
         .eq("product_id", productId)
         .eq("status", "open")
+        .gte("roast_date", new Date().toISOString().split("T")[0])
         .order("roast_date", { ascending: true })
         .limit(1)
         .maybeSingle(),
@@ -382,15 +384,12 @@ export default function ProductPage() {
         <div className="max-w-4xl relative">
           <div className="flex items-center gap-3 mb-6">
             <p className="text-xs text-white/60 tracking-wide">{product.roaster} · {product.region}</p>
-            <span
-              className={`text-[10px] tracking-widests uppercase px-2.5 py-0.5 rounded-full border ${
-                product.type === "Roastery"
-                  ? "border-[#C8965A]/70 text-[#F5C880]"
-                  : "border-white/20 text-white/50"
-              }`}
+            <Link
+              href={`/roaster/${slugify(product.roaster)}`}
+              className="text-[10px] text-white/50 hover:text-white/80 transition-colors tracking-wide"
             >
-              {product.type}
-            </span>
+              View all from {product.roaster} →
+            </Link>
           </div>
 
           <h1 className="font-serif text-4xl md:text-6xl text-white leading-tight mb-3 drop-shadow-sm">

@@ -117,11 +117,13 @@ export default function RoasterProfilePage() {
       // 3. Fetch open batches for this roaster's products
       if (prods.length > 0) {
         const productIds = prods.map(p => p.id)
+        const today = new Date().toISOString().split("T")[0]
         const { data: batchRows } = await supabase
           .from("batches")
           .select("id, product_id, roast_date, total_bags, bags_remaining, products(product_name)")
           .in("product_id", productIds)
           .eq("status", "open")
+          .gte("roast_date", today)
           .order("roast_date", { ascending: true })
 
         const map: Record<number, LiveBatch> = {}

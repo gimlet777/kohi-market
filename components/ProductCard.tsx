@@ -62,6 +62,7 @@ export function ProductCard({
   const cart = useCart()
   const c = copy[lang]
   const [selectedFormat, setSelectedFormat] = useState(product.formats[0])
+  const [formatPicked, setFormatPicked] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
   const [showWaitlist, setShowWaitlist] = useState(false)
   const [waitlistEmail, setWaitlistEmail] = useState("")
@@ -108,6 +109,11 @@ export function ProductCard({
     setWaitlistDone(true)
   }
 
+  const prices = product.formats.map(f => f.price)
+  const minPrice = Math.min(...prices)
+  const allSamePrice = prices.every(p => p === prices[0])
+  const showFrom = product.formats.length > 1 && !allSamePrice && !formatPicked
+
   return (
     <div
       onClick={() => router.push(`/product/${product.id}`)}
@@ -121,31 +127,22 @@ export function ProductCard({
         <span className="absolute bottom-3 left-4 text-[10px] tracking-widest uppercase text-white/60 font-medium">
           {product.origin}
         </span>
-        <span
-          className={`absolute top-3 right-3 text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-full ${
-            product.type === "Roastery"
-              ? "bg-[#C8965A]/30 text-[#F5C880] border border-[#C8965A]/40"
-              : "bg-white/10 text-white/60 border border-white/20"
-          }`}
-        >
-          {product.type}
-        </span>
       </div>
 
       <div className="p-5 flex flex-col flex-1 gap-4">
         {/* Header row */}
         <div>
-          <p className="text-xs font-medium text-[#34150F]">{product.roaster}</p>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <p className="text-xs text-stone-400">{product.region}</p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs font-medium text-[#34150F]">{product.roaster}</p>
             <Link
               href={`/roaster/${slugify(product.roaster)}`}
               onClick={e => e.stopPropagation()}
-              className="text-[10px] text-[#C8965A] hover:text-[#B8854C] transition-colors"
+              className="text-[10px] text-[#C8965A] hover:text-[#B8854C] transition-colors whitespace-nowrap shrink-0"
             >
-              Visit roaster →
+              Visit →
             </Link>
           </div>
+          <p className="text-xs text-stone-400 mt-0.5">{product.region}</p>
         </div>
 
         {/* Product name */}
@@ -198,7 +195,7 @@ export function ProductCard({
               {product.formats.map((fmt) => (
                 <button
                   key={fmt.name}
-                  onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setJustAdded(false) }}
+                  onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setFormatPicked(true); setJustAdded(false) }}
                   className={`flex-1 text-[11px] py-2 rounded-lg border transition-all ${
                     selectedFormat.name === fmt.name
                       ? "bg-[#34150F] text-white border-[#34150F]"
@@ -217,7 +214,7 @@ export function ProductCard({
                 onChange={(e) => {
                   e.stopPropagation()
                   const fmt = product.formats.find(f => f.name === e.target.value)
-                  if (fmt) { setSelectedFormat(fmt); setJustAdded(false) }
+                  if (fmt) { setSelectedFormat(fmt); setFormatPicked(true); setJustAdded(false) }
                 }}
                 className="w-full text-[11px] py-2 pl-3 pr-8 rounded-lg border border-stone-200 bg-white text-stone-600 focus:outline-none focus:border-[#C8965A] appearance-none"
               >
@@ -237,7 +234,8 @@ export function ProductCard({
         {/* Price + CTA */}
         <div className="flex items-center justify-between pt-1">
           <p className="text-lg font-medium text-[#34150F] tracking-tight">
-            ¥{selectedFormat.price.toLocaleString()}
+            {showFrom && <span className="text-sm font-normal text-stone-400 mr-0.5">From </span>}
+            ¥{(showFrom ? minPrice : selectedFormat.price).toLocaleString()}
           </p>
 
           {!isCafe && (

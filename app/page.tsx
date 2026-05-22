@@ -6,6 +6,7 @@ import { PRODUCTS as MOCK_PRODUCTS, rowToProduct, type ProductRow, type Product 
 import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
 import { ProductCard, type LiveBatch } from "@/components/ProductCard"
+import { slugify } from "@/lib/slugify"
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
 
@@ -19,10 +20,18 @@ async function fetchProducts(): Promise<Product[]> {
 }
 
 async function fetchOpenBatches(): Promise<LiveBatch[]> {
+  const today = new Date().toISOString().split("T")[0]
+  // Mark any past-due open batches as complete before fetching
+  await supabase
+    .from("batches")
+    .update({ status: "complete" })
+    .eq("status", "open")
+    .lt("roast_date", today)
   const { data } = await supabase
     .from("batches")
     .select("id, product_id, roast_date, total_bags, bags_remaining")
     .eq("status", "open")
+    .gte("roast_date", today)
     .order("roast_date", { ascending: true })
   return (data ?? []).map(r => ({
     id: r.id,
@@ -261,9 +270,12 @@ export default function Home() {
           <ul className="flex items-center gap-10 md:gap-14 w-fit mx-auto list-none">
             {FOUNDING_ROASTERS.map(name => (
               <li key={name}>
-                <span className="font-serif text-[15px] text-stone-400 tracking-wide whitespace-nowrap hover:text-[#34150F] transition-colors duration-200 cursor-default select-none">
+                <Link
+                  href={`/roaster/${slugify(name)}`}
+                  className="font-serif text-[15px] text-stone-400 tracking-wide whitespace-nowrap hover:text-[#34150F] transition-colors duration-200 select-none"
+                >
                   {name}
-                </span>
+                </Link>
               </li>
             ))}
           </ul>
