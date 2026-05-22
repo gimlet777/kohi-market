@@ -51,10 +51,10 @@ const ROASTS = ["All", "Light", "Medium", "Dark"]
 const TYPES = ["All", "Roastery", "Café Roaster"]
 
 const FOUNDING_ROASTERS = [
-  "Glitch Coffee",
+  "Glitch Coffee & Roasters",
   "Fuglen Tokyo",
-  "Takamura",
-  "Leaves Coffee",
+  "Takamura Wine & Coffee Roasters",
+  "Leaves Coffee Roasters",
   "Heart's Light Coffee",
   "LiLo Coffee Roasters",
 ]
