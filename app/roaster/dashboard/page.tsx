@@ -11,7 +11,11 @@ interface RoasterProfile {
   email: string
   region: string
   seller_type: string
+  bio?: string
+  website?: string
 }
+
+const REGIONS = ["Tokyo", "Kyoto", "Osaka", "Fukuoka", "Hokkaido"]
 
 interface OrderItem {
   productName: string
@@ -44,7 +48,7 @@ interface BatchRow {
   products: { product_name: string } | null
 }
 
-type Tab = "overview" | "batches"
+type Tab = "overview" | "batches" | "settings"
 
 const COMING_SOON_CARDS = [
   {
@@ -100,7 +104,7 @@ function formatRoastDate(iso: string) {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#f7f5f2]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#FAFAF8]" />}>
       <DashboardContent />
     </Suspense>
   )
@@ -125,6 +129,15 @@ function DashboardContent() {
   const [confirmShipOrderId, setConfirmShipOrderId] = useState<string | null>(null)
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
 
+  // Settings form
+  const [settingsName, setSettingsName] = useState("")
+  const [settingsRegion, setSettingsRegion] = useState("")
+  const [settingsBio, setSettingsBio] = useState("")
+  const [settingsWebsite, setSettingsWebsite] = useState("")
+  const [settingsSaving, setSettingsSaving] = useState(false)
+  const [settingsSaved, setSettingsSaved] = useState(false)
+  const [settingsError, setSettingsError] = useState<string | null>(null)
+
   // Add batch form
   const [showAddBatch, setShowAddBatch] = useState(false)
   const [batchForm, setBatchForm] = useState({ productId: "", roastDate: "", totalBags: "" })
@@ -148,7 +161,7 @@ function DashboardContent() {
       ] = await Promise.all([
         supabase
           .from("roasters")
-          .select("roaster_name, email, region, seller_type")
+          .select("roaster_name, email, region, seller_type, bio, website")
           .eq("id", session.user.id)
           .single(),
         supabase
@@ -174,6 +187,12 @@ function DashboardContent() {
       if (batchesError) console.error("Batches fetch error:", batchesError)
 
       setProfile(profileData)
+      if (profileData) {
+        setSettingsName(profileData.roaster_name ?? "")
+        setSettingsRegion(profileData.region ?? "")
+        setSettingsBio(profileData.bio ?? "")
+        setSettingsWebsite(profileData.website ?? "")
+      }
       setProducts(productsData ?? [])
       setOrders((ordersData ?? []) as Order[])
       setBatches((batchesData ?? []) as unknown as BatchRow[])
@@ -209,6 +228,35 @@ function DashboardContent() {
     }
     setUpdatingOrderId(null)
     setConfirmShipOrderId(null)
+  }
+
+  async function handleSaveSettings(e: React.FormEvent) {
+    e.preventDefault()
+    setSettingsSaving(true)
+    setSettingsError(null)
+    setSettingsSaved(false)
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { router.replace("/roaster/login"); return }
+
+    const { error } = await supabase
+      .from("roasters")
+      .update({
+        roaster_name: settingsName.trim(),
+        region: settingsRegion,
+        bio: settingsBio.trim() || null,
+        website: settingsWebsite.trim() || null,
+      })
+      .eq("id", session.user.id)
+
+    if (error) {
+      setSettingsError(error.message)
+    } else {
+      setProfile(prev => prev ? { ...prev, roaster_name: settingsName.trim(), region: settingsRegion, bio: settingsBio.trim() || undefined, website: settingsWebsite.trim() || undefined } : prev)
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 3000)
+    }
+    setSettingsSaving(false)
   }
 
   async function handleAddBatch(e: React.FormEvent) {
@@ -264,19 +312,20 @@ function DashboardContent() {
   const isCafeRoaster = profile?.seller_type === "Café Roaster"
 
   return (
-    <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* Nav */}
-      <nav className="bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-        <Link href="/" className="font-serif text-xl text-[#C8965A] tracking-wide">
-          KOHĪ
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </Link>
         <div className="flex items-center gap-6">
-          <span className="hidden sm:block text-xs text-stone-500 tracking-widests uppercase">Roaster Portal</span>
+          <span className="hidden sm:block text-xs text-stone-400 tracking-widest uppercase">Roaster Portal</span>
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="text-xs text-stone-400 hover:text-white transition-colors disabled:opacity-50"
+            className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors disabled:opacity-50"
           >
             {loggingOut ? "Signing out…" : "Sign out"}
           </button>
@@ -284,42 +333,39 @@ function DashboardContent() {
       </nav>
 
       {/* Hero */}
-      <div className="bg-[#34150F] px-6 md:px-10 py-12 md:py-16">
+      <div className="bg-[#FAFAF8] border-b border-[#E8E2D8] px-6 md:px-10 pt-10 pb-8">
         {isLoading ? (
           <div className="max-w-5xl mx-auto space-y-3">
-            <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
-            <div className="h-9 w-64 bg-white/10 rounded animate-pulse" />
-            <div className="h-4 w-48 bg-white/10 rounded animate-pulse mt-2" />
+            <div className="h-3 w-24 bg-stone-100 rounded animate-pulse" />
+            <div className="h-8 w-64 bg-stone-100 rounded animate-pulse" />
+            <div className="h-3 w-48 bg-stone-100 rounded animate-pulse mt-2" />
           </div>
         ) : (
           <div className="max-w-5xl mx-auto">
-            <p className="text-xs tracking-widests uppercase text-stone-500 mb-2">Dashboard</p>
-            <h1 className="font-serif text-3xl md:text-4xl text-white mb-1">
-              Welcome back,{" "}
-              <span className="text-[#C8965A]">{profile?.roaster_name ?? "Roaster"}</span>
+            <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-2">Dashboard</p>
+            <h1 className="font-serif text-3xl text-[#2A1A0E] mb-1">
+              Welcome back, <span className="text-[#C4714A]">{profile?.roaster_name ?? "Roaster"}</span>
             </h1>
-            <p className="text-sm text-stone-400">
-              {profile?.seller_type} · {profile?.region}
-            </p>
+            <p className="text-sm text-stone-400 font-light">{profile?.seller_type} · {profile?.region}</p>
           </div>
         )}
       </div>
 
-      {/* Tab bar — only for Café Roasters */}
-      {!isLoading && isCafeRoaster && (
+      {/* Tab bar */}
+      {!isLoading && (
         <div className="bg-white border-b border-stone-200 px-6 md:px-10">
           <div className="max-w-5xl mx-auto flex gap-0">
-            {(["overview", "batches"] as Tab[]).map(tab => (
+            {(["overview", ...(isCafeRoaster ? ["batches"] : []), "settings"] as Tab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-5 py-3.5 text-xs tracking-widests uppercase font-medium border-b-2 transition-colors ${
+                className={`px-5 py-3.5 text-xs tracking-widest uppercase font-medium border-b-2 transition-colors ${
                   activeTab === tab
-                    ? "border-[#34150F] text-[#34150F]"
+                    ? "border-[#2A1A0E] text-[#2A1A0E]"
                     : "border-transparent text-stone-400 hover:text-stone-600"
                 }`}
               >
-                {tab === "overview" ? "Overview" : "Batch Schedule"}
+                {tab === "overview" ? "Overview" : tab === "batches" ? "Batch Schedule" : "Settings"}
               </button>
             ))}
           </div>
@@ -336,7 +382,7 @@ function DashboardContent() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xs tracking-widests uppercase text-stone-400">Batch Schedule</h2>
+                <h2 className="text-xs tracking-widest uppercase text-stone-400">Batch Schedule</h2>
                 {batches.length > 0 && (
                   <p className="text-xs text-stone-400 mt-1">
                     {batches.filter(b => b.status === "open").length} open batch{batches.filter(b => b.status === "open").length !== 1 ? "es" : ""}
@@ -346,7 +392,7 @@ function DashboardContent() {
               {!showAddBatch && (
                 <button
                   onClick={() => setShowAddBatch(true)}
-                  className="bg-[#C8965A] hover:bg-[#B8854C] text-white text-xs font-medium px-4 py-2 rounded-full transition-colors"
+                  className="bg-[#C4714A] hover:bg-[#B05E3C] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
                 >
                   + Add Batch
                 </button>
@@ -355,19 +401,19 @@ function DashboardContent() {
 
             {/* Add Batch form */}
             {showAddBatch && (
-              <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-                <h3 className="text-xs tracking-widests uppercase text-stone-400 mb-5">Schedule New Batch</h3>
+              <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-6">
+                <h3 className="text-xs tracking-widest uppercase text-stone-400 mb-5">Schedule New Batch</h3>
                 <form onSubmit={handleAddBatch} className="space-y-4">
                   <div>
                     <label className="block text-xs text-stone-500 mb-1.5">Product</label>
                     {products.length === 0 ? (
-                      <p className="text-xs text-stone-400">No products yet — <Link href="/roaster/products/new" className="text-[#C8965A] hover:underline">add one first</Link>.</p>
+                      <p className="text-xs text-stone-400">No products yet — <Link href="/roaster/products/new" className="text-[#C4714A] hover:underline">add one first</Link>.</p>
                     ) : (
                       <select
                         required
                         value={batchForm.productId}
                         onChange={e => setBatchForm(f => ({ ...f, productId: e.target.value }))}
-                        className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#C8965A] bg-white"
+                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A] bg-white"
                       >
                         <option value="">Select a product…</option>
                         {products.map(p => (
@@ -386,7 +432,7 @@ function DashboardContent() {
                         value={batchForm.roastDate}
                         min={new Date().toISOString().split("T")[0]}
                         onChange={e => setBatchForm(f => ({ ...f, roastDate: e.target.value }))}
-                        className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#C8965A]"
+                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A]"
                       />
                     </div>
                     <div>
@@ -398,7 +444,7 @@ function DashboardContent() {
                         placeholder="e.g. 20"
                         value={batchForm.totalBags}
                         onChange={e => setBatchForm(f => ({ ...f, totalBags: e.target.value }))}
-                        className="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#C8965A]"
+                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A]"
                       />
                     </div>
                   </div>
@@ -411,7 +457,7 @@ function DashboardContent() {
                     <button
                       type="submit"
                       disabled={batchSubmitting || products.length === 0}
-                      className="bg-[#34150F] hover:bg-[#4a1e12] disabled:opacity-60 text-[#F5ECD7] text-sm px-6 py-2.5 rounded-full transition-colors"
+                      className="bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] transition-colors"
                     >
                       {batchSubmitting ? "Scheduling…" : "Schedule Batch"}
                     </button>
@@ -429,22 +475,22 @@ function DashboardContent() {
 
             {/* Batches table */}
             {batches.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-stone-200 p-10 shadow-sm text-center">
+              <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-10 text-center">
                 <p className="text-sm text-stone-400 mb-1">No batches yet</p>
                 <p className="text-xs text-stone-300">Schedule a roast batch to open pre-orders on the marketplace.</p>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+              <div className="bg-white border border-[#E8E2D8] rounded-[2px] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[640px] text-sm">
                     <thead>
                       <tr className="border-b border-stone-100">
-                        <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-6 py-3">Roast date</th>
-                        <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Product</th>
-                        <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Total bags</th>
-                        <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Remaining</th>
-                        <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Pre-orders</th>
-                        <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Status</th>
+                        <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-6 py-3">Roast date</th>
+                        <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Product</th>
+                        <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Total bags</th>
+                        <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Remaining</th>
+                        <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Pre-orders</th>
+                        <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -455,7 +501,7 @@ function DashboardContent() {
                             <td className="px-6 py-4 text-stone-600 whitespace-nowrap text-sm font-medium">
                               {formatRoastDate(batch.roast_date)}
                             </td>
-                            <td className="px-4 py-4 text-[#34150F] whitespace-nowrap">
+                            <td className="px-4 py-4 text-[#2A1A0E] whitespace-nowrap">
                               {batch.products?.product_name ?? "—"}
                             </td>
                             <td className="px-4 py-4 text-stone-600 whitespace-nowrap">
@@ -474,13 +520,13 @@ function DashboardContent() {
                             </td>
                             <td className="px-4 py-4 text-stone-600 whitespace-nowrap">
                               {preorders > 0 ? (
-                                <span className="font-medium text-[#34150F]">{preorders}</span>
+                                <span className="font-medium text-[#2A1A0E]">{preorders}</span>
                               ) : (
                                 <span className="text-stone-300">—</span>
                               )}
                             </td>
                             <td className="px-4 py-4">
-                              <span className={`inline-block text-[10px] px-2.5 py-1 rounded-full border font-medium capitalize ${batchStatusBadge(batch.status)}`}>
+                              <span className={`inline-block text-[10px] px-2.5 py-1 rounded-[2px] border font-medium capitalize ${batchStatusBadge(batch.status)}`}>
                                 {batch.status}
                               </span>
                             </td>
@@ -501,7 +547,7 @@ function DashboardContent() {
 
             {/* Profile card */}
             {isLoading ? (
-              <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm animate-pulse">
+              <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-6 animate-pulse">
                 <div className="h-4 w-24 bg-stone-100 rounded mb-4" />
                 <div className="space-y-2">
                   <div className="h-3 w-48 bg-stone-100 rounded" />
@@ -510,8 +556,8 @@ function DashboardContent() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-                <h2 className="text-xs tracking-widests uppercase text-stone-400 mb-4">Your Profile</h2>
+              <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-6">
+                <h2 className="text-xs tracking-widest uppercase text-stone-400 mb-4">Your Profile</h2>
                 <dl className="space-y-2">
                   {[
                     ["Roaster name", profile?.roaster_name],
@@ -521,7 +567,7 @@ function DashboardContent() {
                   ].map(([label, value]) => (
                     <div key={label} className="flex gap-4 text-sm">
                       <dt className="w-28 text-stone-400 shrink-0">{label}</dt>
-                      <dd className="text-[#34150F] font-medium">{value}</dd>
+                      <dd className="text-[#2A1A0E] font-medium">{value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -531,7 +577,7 @@ function DashboardContent() {
             {/* Orders */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xs tracking-widests uppercase text-stone-400">Orders</h2>
+                <h2 className="text-[10px] tracking-[0.2em] uppercase text-stone-400">Orders</h2>
                 {orders.length > 0 && (
                   <span className="text-xs text-stone-400">
                     {orders.filter(o => o.status === "pending").length} pending
@@ -540,7 +586,7 @@ function DashboardContent() {
               </div>
 
               {isLoading ? (
-                <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <div className="bg-white border border-[#E8E2D8] rounded-[2px] overflow-hidden">
                   {[1, 2].map(i => (
                     <div key={i} className="flex gap-4 px-6 py-5 border-b border-stone-100 last:border-0 animate-pulse">
                       <div className="h-4 flex-1 bg-stone-100 rounded" />
@@ -550,21 +596,21 @@ function DashboardContent() {
                   ))}
                 </div>
               ) : orders.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-stone-200 p-10 shadow-sm text-center">
+                <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-10 text-center">
                   <p className="text-sm text-stone-400 mb-1">No orders yet</p>
                   <p className="text-xs text-stone-300">Orders will appear here when customers purchase your coffee.</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <div className="bg-white border border-[#E8E2D8] rounded-[2px] overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[640px] text-sm">
                       <thead>
                         <tr className="border-b border-stone-100">
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-6 py-3">Date</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Buyer</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Items</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Total</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Status</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-6 py-3">Date</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Buyer</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Items</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Total</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Status</th>
                           <th className="px-4 py-3" />
                         </tr>
                       </thead>
@@ -575,7 +621,7 @@ function DashboardContent() {
                               {formatDate(order.created_at)}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">
-                              <p className="text-[#34150F] font-medium text-sm">{order.buyer_name}</p>
+                              <p className="text-[#2A1A0E] font-medium text-sm">{order.buyer_name}</p>
                               <p className="text-stone-400 text-xs">{order.buyer_email}</p>
                             </td>
                             <td className="px-4 py-4 min-w-[180px]">
@@ -589,11 +635,11 @@ function DashboardContent() {
                                 </p>
                               ))}
                             </td>
-                            <td className="px-4 py-4 text-[#34150F] font-medium whitespace-nowrap">
+                            <td className="px-4 py-4 text-[#2A1A0E] font-medium whitespace-nowrap">
                               ¥{order.total_amount.toLocaleString()}
                             </td>
                             <td className="px-4 py-4">
-                              <span className={`inline-block text-[10px] px-2.5 py-1 rounded-full border font-medium capitalize ${statusBadge(order.status)}`}>
+                              <span className={`inline-block text-[10px] px-2.5 py-1 rounded-[2px] border font-medium capitalize ${statusBadge(order.status)}`}>
                                 {order.status}
                               </span>
                             </td>
@@ -605,7 +651,7 @@ function DashboardContent() {
                                   <span className="text-xs text-stone-400">Mark as shipped?</span>
                                   <button
                                     onClick={() => handleUpdateStatus(order.id, "shipped")}
-                                    className="text-xs text-[#C8965A] hover:text-[#B8854C] font-medium transition-colors"
+                                    className="text-xs text-[#C4714A] hover:text-[#B05E3C] font-medium transition-colors"
                                   >
                                     Confirm
                                   </button>
@@ -619,7 +665,7 @@ function DashboardContent() {
                               ) : order.status === "pending" ? (
                                 <button
                                   onClick={() => setConfirmShipOrderId(order.id)}
-                                  className="text-xs text-[#C8965A] hover:text-[#B8854C] font-medium transition-colors"
+                                  className="text-xs text-[#C4714A] hover:text-[#B05E3C] font-medium transition-colors"
                                 >
                                   Mark shipped
                                 </button>
@@ -644,17 +690,17 @@ function DashboardContent() {
             {/* My Products */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xs tracking-widests uppercase text-stone-400">My Products</h2>
+                <h2 className="text-xs tracking-widest uppercase text-stone-400">My Products</h2>
                 <Link
                   href="/roaster/products/new"
-                  className="bg-[#C8965A] hover:bg-[#B8854C] text-white text-xs font-medium px-4 py-2 rounded-full transition-colors"
+                  className="bg-[#C4714A] hover:bg-[#B05E3C] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
                 >
                   + Add Product
                 </Link>
               </div>
 
               {isLoading ? (
-                <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <div className="bg-white border border-[#E8E2D8] rounded-[2px] overflow-hidden">
                   {[1, 2, 3].map(i => (
                     <div key={i} className="flex gap-4 px-6 py-4 border-b border-stone-100 last:border-0 animate-pulse">
                       <div className="h-4 flex-1 bg-stone-100 rounded" />
@@ -664,17 +710,17 @@ function DashboardContent() {
                   ))}
                 </div>
               ) : fetchError ? (
-                <div className="bg-red-50 border border-red-100 rounded-2xl p-6 shadow-sm">
+                <div className="bg-red-50 border border-red-100 rounded-[2px] p-6">
                   <p className="text-sm text-red-600 font-medium mb-1">Could not load products</p>
                   <p className="text-xs text-red-400 leading-relaxed">{fetchError}</p>
                 </div>
               ) : products.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-stone-200 p-10 shadow-sm text-center">
+                <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-10 text-center">
                   <p className="text-sm text-stone-400 mb-1">No products yet</p>
                   <p className="text-xs text-stone-300">Add your first listing to appear on the marketplace.</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <div className="bg-white border border-[#E8E2D8] rounded-[2px] overflow-hidden">
                   {deleteError && (
                     <div className="px-6 py-3 bg-red-50 border-b border-red-100">
                       <p className="text-red-600 text-xs">{deleteError}</p>
@@ -684,21 +730,21 @@ function DashboardContent() {
                     <table className="w-full min-w-[640px] text-sm">
                       <thead>
                         <tr className="border-b border-stone-100">
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-6 py-3">Product</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Origin</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Roast</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Price</th>
-                          <th className="text-left text-[10px] tracking-widests uppercase text-stone-400 font-medium px-4 py-3">Formats</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-6 py-3">Product</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Origin</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Roast</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Price</th>
+                          <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Formats</th>
                           <th className="px-4 py-3" />
                         </tr>
                       </thead>
                       <tbody>
                         {products.map(p => (
                           <tr key={p.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50/50 transition-colors">
-                            <td className="px-6 py-4 font-medium text-[#34150F] whitespace-nowrap">{p.product_name}</td>
+                            <td className="px-6 py-4 font-medium text-[#2A1A0E] whitespace-nowrap">{p.product_name}</td>
                             <td className="px-4 py-4 text-stone-500 whitespace-nowrap">{p.origin}</td>
                             <td className="px-4 py-4">
-                              <span className={`inline-block text-[10px] px-2.5 py-1 rounded-full border font-medium ${roastBadge(p.roast_level)}`}>
+                              <span className={`inline-block text-[10px] px-2.5 py-1 rounded-[2px] border font-medium ${roastBadge(p.roast_level)}`}>
                                 {p.roast_level}
                               </span>
                             </td>
@@ -727,7 +773,7 @@ function DashboardContent() {
                                 <div className="flex items-center gap-3 justify-end">
                                   <Link
                                     href={`/roaster/products/${p.id}/edit`}
-                                    className="text-xs text-stone-400 hover:text-[#C8965A] transition-colors"
+                                    className="text-xs text-stone-400 hover:text-[#C4714A] transition-colors"
                                   >
                                     Edit
                                   </Link>
@@ -751,21 +797,21 @@ function DashboardContent() {
 
             {/* Coming soon */}
             <div>
-              <h2 className="text-xs tracking-widests uppercase text-stone-400 mb-4">Coming Soon</h2>
+              <h2 className="text-xs tracking-widest uppercase text-stone-400 mb-4">Coming Soon</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {COMING_SOON_CARDS.map((card) => (
                   <div
                     key={card.title}
-                    className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm flex flex-col gap-3"
+                    className="bg-white border border-[#E8E2D8] rounded-[2px] p-6 flex flex-col gap-3"
                   >
                     <div className="flex items-start justify-between">
                       <span className="text-2xl">{card.icon}</span>
-                      <span className="text-[10px] tracking-widests uppercase text-stone-300 border border-stone-200 rounded-full px-2.5 py-1">
+                      <span className="text-[10px] tracking-widest uppercase text-stone-300 border border-stone-200 rounded-[2px] px-2.5 py-1">
                         Soon
                       </span>
                     </div>
                     <div>
-                      <h3 className="font-medium text-[#34150F] text-sm mb-1">{card.title}</h3>
+                      <h3 className="font-medium text-[#2A1A0E] text-sm mb-1">{card.title}</h3>
                       <p className="text-xs text-stone-400 leading-relaxed">{card.description}</p>
                     </div>
                   </div>
@@ -777,7 +823,7 @@ function DashboardContent() {
             <div className="text-center pb-4">
               <Link
                 href="/"
-                className="text-xs text-stone-400 hover:text-[#C8965A] transition-colors tracking-wide"
+                className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors tracking-wide"
               >
                 ← View marketplace
               </Link>
@@ -786,7 +832,127 @@ function DashboardContent() {
           </>
         )}
 
+        {/* ── SETTINGS TAB ───────────────────────────────────────────────────── */}
+        {activeTab === "settings" && (
+          <div className="max-w-lg space-y-6">
+
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+
+              {/* Profile details */}
+              <div className="space-y-5">
+                <h2 className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Account Settings</h2>
+
+                {/* Display name */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={settingsName}
+                    onChange={e => setSettingsName(e.target.value)}
+                    placeholder="Your roastery name"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors font-light"
+                  />
+                </div>
+
+                {/* Region */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    Region
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={settingsRegion}
+                      onChange={e => setSettingsRegion(e.target.value)}
+                      className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] bg-white focus:outline-none focus:border-[#C4714A] transition-colors font-light appearance-none pr-10"
+                    >
+                      <option value="">Select region…</option>
+                      {REGIONS.map(r => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                    <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    Bio
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={settingsBio}
+                    onChange={e => setSettingsBio(e.target.value)}
+                    placeholder="Tell customers about your roastery, your philosophy, and what makes your coffee special…"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors font-light resize-none"
+                  />
+                </div>
+
+                {/* Website */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    Website URL
+                  </label>
+                  <input
+                    type="url"
+                    value={settingsWebsite}
+                    onChange={e => setSettingsWebsite(e.target.value)}
+                    placeholder="https://yourroastery.com"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors font-light"
+                  />
+                </div>
+
+                {/* Email — read only */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    disabled
+                    value={profile?.email ?? ""}
+                    className="w-full px-4 py-3 border border-stone-100 rounded-[2px] text-sm text-stone-400 bg-stone-50 font-light cursor-not-allowed"
+                  />
+                  <p className="text-[11px] text-stone-300 mt-1.5 font-light">
+                    To change your email address, contact support.
+                  </p>
+                </div>
+              </div>
+
+              {settingsError && (
+                <p className="text-xs text-red-500 font-light">{settingsError}</p>
+              )}
+
+              <div className="flex items-center gap-4 pt-1">
+                <button
+                  type="submit"
+                  disabled={settingsSaving}
+                  className="bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] font-light transition-colors"
+                >
+                  {settingsSaving ? "Saving…" : "Save changes"}
+                </button>
+                {settingsSaved && (
+                  <span className="text-sm text-[#C4714A] font-light">Changes saved ✓</span>
+                )}
+              </div>
+
+            </form>
+
+          </div>
+        )}
+
       </div>
+
+      {/* Footer */}
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-8 text-center mt-auto">
+        <span className="font-serif text-lg text-[#C4714A]">珈琲市</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">KOHĪ · Roaster Portal</p>
+      </footer>
     </div>
   )
 }

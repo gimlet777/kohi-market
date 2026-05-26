@@ -20,7 +20,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputClass =
-  "w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-[#34150F] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C8965A] transition-colors"
+  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors"
 
 export default function SignupPage() {
   const router = useRouter()
@@ -81,14 +81,15 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* Nav */}
-      <nav className="bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-        <Link href="/" className="font-serif text-xl text-[#C8965A] tracking-wide">
-          KOHĪ
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </Link>
-        <span className="text-xs text-stone-500 tracking-widest uppercase">Roaster Portal</span>
+        <span className="text-xs text-stone-400">Roaster Portal</span>
       </nav>
 
       {/* Body */}
@@ -96,13 +97,13 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
 
           <div className="mb-8">
-            <h1 className="font-serif text-3xl text-[#34150F] mb-2">Join KOHĪ</h1>
+            <h1 className="font-serif text-3xl text-[#2A1A0E] mb-2">Join KOHĪ</h1>
             <p className="text-sm text-stone-400">Create your seller account to list your coffees.</p>
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-2xl border border-stone-200 p-8 shadow-sm space-y-5"
+            className="bg-white rounded border border-[#E8E2D8] p-8 space-y-5"
           >
             <Field label="Roaster Name">
               <input
@@ -168,9 +169,9 @@ export default function SignupPage() {
                     key={t}
                     type="button"
                     onClick={() => setSellerType(t)}
-                    className={`flex-1 py-2.5 px-4 rounded-xl border text-sm transition-all ${
+                    className={`flex-1 py-2.5 px-4 rounded-[2px] border text-sm transition-all ${
                       sellerType === t
-                        ? "border-[#C8965A] bg-amber-50 text-[#34150F] font-medium"
+                        ? "border-[#C4714A] bg-amber-50 text-[#2A1A0E] font-medium"
                         : "border-stone-200 text-stone-500 hover:border-stone-300 bg-white"
                     }`}
                   >
@@ -181,7 +182,7 @@ export default function SignupPage() {
             </Field>
 
             {error && (
-              <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <div className="bg-red-50 border border-red-100 rounded-[2px] px-4 py-3">
                 <p className="text-red-600 text-xs leading-relaxed">{error}</p>
               </div>
             )}
@@ -189,7 +190,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#C8965A] hover:bg-[#B8854C] disabled:opacity-60 text-white py-3.5 rounded-full text-sm font-medium tracking-wide transition-colors"
+              className="w-full bg-[#C4714A] hover:bg-[#B05E3C] disabled:opacity-60 text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors"
             >
               {loading ? "Creating account…" : "Create account"}
             </button>
@@ -197,7 +198,7 @@ export default function SignupPage() {
 
           <p className="text-center text-xs text-stone-400 mt-6">
             Already have an account?{" "}
-            <Link href="/roaster/login" className="text-[#C8965A] hover:text-[#B8854C] transition-colors">
+            <Link href="/roaster/login" className="text-[#C4714A] hover:text-[#B05E3C] transition-colors">
               Sign in
             </Link>
           </p>

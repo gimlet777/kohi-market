@@ -21,7 +21,7 @@ const FORMAT_PRESETS: Array<{ name: string; grams: number }> = [
 ]
 
 const inputClass =
-  "w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-[#34150F] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C8965A] transition-colors"
+  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors"
 
 interface Format {
   name: string
@@ -37,8 +37,8 @@ interface Profile {
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-      <h2 className="text-xs tracking-widest uppercase text-stone-400 mb-5">{title}</h2>
+    <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-6">
+      <h2 className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-5">{title}</h2>
       {children}
     </div>
   )
@@ -218,36 +218,39 @@ export default function NewProductPage() {
 
   if (saved) {
     return (
-      <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
-        <nav className="bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-          <Link href="/" className="font-serif text-xl text-[#C8965A] tracking-wide">KOHĪ</Link>
-          <span className="text-xs text-stone-500 tracking-widest uppercase hidden sm:block">Roaster Portal</span>
+      <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+            <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+          </Link>
+          <span className="text-xs text-stone-400 tracking-widest uppercase hidden sm:block">Roaster Portal</span>
         </nav>
         <div className="flex-1 flex items-center justify-center px-6 py-20">
           <div className="max-w-md w-full text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 rounded-[2px] bg-emerald-100 flex items-center justify-center mx-auto">
               <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h2 className="font-serif text-2xl text-[#34150F] mb-2">Product listed!</h2>
+              <h2 className="font-serif text-2xl text-[#2A1A0E] mb-2">Product listed!</h2>
               <p className="text-stone-500 text-sm leading-relaxed">
-                <span className="font-medium text-[#34150F]">{savedName}</span> is now on the marketplace.
-                Go to <span className="font-medium text-[#34150F]">Batch Schedule</span> in your dashboard
+                <span className="font-medium text-[#2A1A0E]">{savedName}</span> is now on the marketplace.
+                Go to <span className="font-medium text-[#2A1A0E]">Batch Schedule</span> in your dashboard
                 to schedule your first roast date and open pre-orders.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/roaster/dashboard?tab=batches"
-                className="bg-[#C8965A] hover:bg-[#B8854C] text-white text-sm px-6 py-3 rounded-full font-medium tracking-wide transition-colors"
+                className="bg-[#C4714A] hover:bg-[#B05E3C] text-white text-sm px-6 py-3 rounded-[2px] font-medium tracking-wide transition-colors"
               >
                 Go to Batch Schedule →
               </Link>
               <button
                 onClick={resetForm}
-                className="border border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700 text-sm px-6 py-3 rounded-full transition-colors"
+                className="border border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700 text-sm px-6 py-3 rounded-[2px] transition-colors"
               >
                 Add another product
               </button>
@@ -260,36 +263,30 @@ export default function NewProductPage() {
 
   if (isLoadingProfile) {
     return (
-      <div className="min-h-screen bg-[#f7f5f2] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#C8965A] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#C4714A] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* Nav */}
-      <nav className="bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-        <Link href="/" className="font-serif text-xl text-[#C8965A] tracking-wide">
-          KOHĪ
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </Link>
-        <span className="text-xs text-stone-500 tracking-widest uppercase">Roaster Portal</span>
+        <span className="text-xs text-stone-400 tracking-widest uppercase">Roaster Portal</span>
       </nav>
 
       {/* Header */}
-      <div className="bg-[#34150F] px-6 md:px-10 py-10">
+      <div className="bg-[#FAFAF8] border-b border-[#E8E2D8] px-6 md:px-10 pt-10 pb-8">
         <div className="max-w-2xl mx-auto">
-          <Link
-            href="/roaster/dashboard"
-            className="text-xs text-stone-500 hover:text-stone-300 transition-colors mb-4 inline-block"
-          >
-            ← Back to dashboard
-          </Link>
-          <h1 className="font-serif text-3xl text-white">Add a Product</h1>
-          <p className="text-sm text-stone-400 mt-1">
-            Your listing will appear on the public marketplace once saved.
-          </p>
+          <Link href="/roaster/dashboard" className="text-xs text-stone-400 hover:text-[#C4714A] transition-colors mb-4 inline-block">← Back to dashboard</Link>
+          <h1 className="font-serif text-3xl text-[#2A1A0E]">Add a Product</h1>
+          <p className="text-sm text-stone-400 font-light mt-1">Your listing will appear on the public marketplace once saved.</p>
         </div>
       </div>
 
@@ -374,9 +371,9 @@ export default function NewProductPage() {
                         key={level}
                         type="button"
                         onClick={() => setRoastLevel(level)}
-                        className={`flex-1 py-2.5 rounded-xl border text-sm transition-all ${
+                        className={`flex-1 py-2.5 rounded-[2px] border text-sm transition-all ${
                           roastLevel === level
-                            ? "border-[#C8965A] bg-amber-50 text-[#34150F] font-medium"
+                            ? "border-[#C4714A] bg-amber-50 text-[#2A1A0E] font-medium"
                             : "border-stone-200 text-stone-500 hover:border-stone-300 bg-white"
                         }`}
                       >
@@ -407,13 +404,13 @@ export default function NewProductPage() {
               hint="Press Enter or comma to add each note — e.g. Blueberry, Jasmine, Citrus"
             >
               <div
-                className="flex flex-wrap gap-2 px-3 py-2 border border-stone-200 rounded-xl bg-white focus-within:border-[#C8965A] transition-colors min-h-[52px] cursor-text"
+                className="flex flex-wrap gap-2 px-3 py-2 border border-stone-200 rounded-[2px] bg-white focus-within:border-[#C4714A] transition-colors min-h-[52px] cursor-text"
                 onClick={() => document.getElementById("note-input")?.focus()}
               >
                 {notes.map(note => (
                   <span
                     key={note}
-                    className="inline-flex items-center gap-1 bg-amber-50 border border-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full"
+                    className="inline-flex items-center gap-1 bg-amber-50 border border-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-[2px]"
                   >
                     {note}
                     <button
@@ -433,7 +430,7 @@ export default function NewProductPage() {
                   onKeyDown={handleNoteKeyDown}
                   onBlur={commitNote}
                   placeholder={notes.length === 0 ? "Type a note and press Enter…" : ""}
-                  className="flex-1 min-w-[140px] text-sm text-[#34150F] placeholder-stone-300 outline-none bg-transparent py-1"
+                  className="flex-1 min-w-[140px] text-sm text-[#2A1A0E] placeholder-stone-300 outline-none bg-transparent py-1"
                 />
               </div>
             </Field>
@@ -466,7 +463,7 @@ export default function NewProductPage() {
                       key={preset.name}
                       type="button"
                       onClick={() => addPreset(preset)}
-                      className="text-[11px] px-3 py-1.5 rounded-full border border-stone-200 text-stone-500 hover:border-[#C8965A] hover:text-[#C8965A] transition-colors bg-white"
+                      className="text-[11px] px-3 py-1.5 rounded-[2px] border border-stone-200 text-stone-500 hover:border-[#C4714A] hover:text-[#C4714A] transition-colors bg-white"
                     >
                       + {preset.name}
                     </button>
@@ -485,45 +482,57 @@ export default function NewProductPage() {
                   </div>
                   {formats.map((fmt, i) => {
                     const drip = fmt.name.toLowerCase().includes("drip")
+                    const priceVal = parseInt(fmt.price, 10)
+                    const hasPrice = !isNaN(priceVal) && priceVal > 0
+                    const commissionRate = profile?.seller_type === "Café Roaster" ? 0.10 : 0.12
+                    const commissionPct = Math.round(commissionRate * 100)
+                    const payout = hasPrice ? priceVal - Math.round(priceVal * commissionRate) : null
                     return (
-                      <div key={i} className="grid grid-cols-[1fr_80px_90px_24px] gap-3 items-center">
-                        <input
-                          type="text"
-                          required
-                          value={fmt.name}
-                          onChange={e => updateFormat(i, "name", e.target.value)}
-                          placeholder="e.g. Whole Bean"
-                          className={inputClass}
-                        />
-                        {drip ? (
-                          <span className="text-stone-300 text-xs px-4 py-3 text-center">—</span>
-                        ) : (
+                      <div key={i} className="space-y-1">
+                        <div className="grid grid-cols-[1fr_80px_90px_24px] gap-3 items-center">
+                          <input
+                            type="text"
+                            required
+                            value={fmt.name}
+                            onChange={e => updateFormat(i, "name", e.target.value)}
+                            placeholder="e.g. Whole Bean"
+                            className={inputClass}
+                          />
+                          {drip ? (
+                            <span className="text-stone-300 text-xs px-4 py-3 text-center">—</span>
+                          ) : (
+                            <input
+                              type="number"
+                              min="0"
+                              value={fmt.grams}
+                              onChange={e => updateFormat(i, "grams", e.target.value)}
+                              placeholder="200"
+                              className={inputClass}
+                            />
+                          )}
                           <input
                             type="number"
                             min="0"
-                            value={fmt.grams}
-                            onChange={e => updateFormat(i, "grams", e.target.value)}
-                            placeholder="200"
+                            required
+                            value={fmt.price}
+                            onChange={e => updateFormat(i, "price", e.target.value)}
+                            placeholder="1800"
                             className={inputClass}
                           />
+                          <button
+                            type="button"
+                            onClick={() => removeFormat(i)}
+                            disabled={formats.length === 1}
+                            className="text-stone-300 hover:text-red-400 transition-colors text-xl leading-none disabled:opacity-30"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        {payout !== null && (
+                          <p className="text-[10px] text-[#C4714A] font-light text-right pr-9">
+                            You receive ¥{payout.toLocaleString()} after {commissionPct}% commission
+                          </p>
                         )}
-                        <input
-                          type="number"
-                          min="0"
-                          required
-                          value={fmt.price}
-                          onChange={e => updateFormat(i, "price", e.target.value)}
-                          placeholder="1800"
-                          className={inputClass}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeFormat(i)}
-                          disabled={formats.length === 1}
-                          className="text-stone-300 hover:text-red-400 transition-colors text-xl leading-none disabled:opacity-30"
-                        >
-                          ×
-                        </button>
                       </div>
                     )
                   })}
@@ -533,7 +542,7 @@ export default function NewProductPage() {
               <button
                 type="button"
                 onClick={addFormat}
-                className="text-xs text-[#C8965A] hover:text-[#B8854C] transition-colors"
+                className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors"
               >
                 + Add custom format
               </button>
@@ -541,7 +550,7 @@ export default function NewProductPage() {
           </SectionCard>
 
           {error && (
-            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+            <div className="bg-red-50 border border-red-100 rounded-[2px] px-4 py-3">
               <p className="text-red-600 text-xs leading-relaxed">{error}</p>
             </div>
           )}
@@ -549,14 +558,14 @@ export default function NewProductPage() {
           <div className="flex gap-4 pb-6">
             <Link
               href="/roaster/dashboard"
-              className="flex-1 text-center py-3.5 rounded-full text-sm text-stone-400 border border-stone-200 hover:border-stone-300 hover:text-stone-600 transition-colors"
+              className="flex-1 text-center py-3.5 rounded-[2px] text-sm text-stone-400 border border-stone-200 hover:border-stone-300 hover:text-stone-600 transition-colors"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-[#C8965A] hover:bg-[#B8854C] disabled:opacity-60 text-white py-3.5 rounded-full text-sm font-medium tracking-wide transition-colors"
+              className="flex-1 bg-[#C4714A] hover:bg-[#B05E3C] disabled:opacity-60 text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors"
             >
               {loading ? "Saving…" : "Save product"}
             </button>
@@ -564,6 +573,12 @@ export default function NewProductPage() {
 
         </form>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-8 text-center mt-auto">
+        <span className="font-serif text-lg text-[#C4714A]">珈琲市</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">KOHĪ · Roaster Portal</p>
+      </footer>
     </div>
   )
 }

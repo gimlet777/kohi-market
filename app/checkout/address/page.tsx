@@ -122,45 +122,48 @@ export default function AddressPage() {
   }
 
   const inputCls =
-    "w-full text-sm border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[#C8965A] bg-white"
+    "w-full text-sm border border-stone-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4714A] bg-white"
 
   // Applied to the three zipcloud-populated fields while autoFilled is true
   const autoFilledInputCls =
-    "w-full text-sm border border-emerald-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[#C8965A] bg-emerald-50/60 transition-colors"
+    "w-full text-sm border border-emerald-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4714A] bg-emerald-50/60 transition-colors"
 
   return (
-    <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
         <Link
           href="/cart"
-          className="flex items-center gap-2 text-stone-400 hover:text-white transition-colors text-sm"
+          className="flex items-center gap-2 text-[#2A1A0E] hover:text-[#C4714A] transition-colors text-sm"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
           Cart
         </Link>
-        <span className="font-serif text-xl text-[#C8965A] tracking-wide">KOHĪ</span>
+        <Link href="/" className="flex items-center gap-3">
+          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+        </Link>
         {/* Step indicator */}
         <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
-          <span className="w-5 h-5 rounded-full bg-[#C8965A] text-white flex items-center justify-center text-[10px] font-medium">1</span>
-          <span className="w-8 h-px bg-stone-600" />
-          <span className="w-5 h-5 rounded-full bg-stone-700 text-stone-500 flex items-center justify-center text-[10px] font-medium">2</span>
+          <span className="w-5 h-5 rounded-full bg-[#C4714A] text-white flex items-center justify-center text-[10px] font-medium">1</span>
+          <span className="w-8 h-px bg-stone-200" />
+          <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-400 flex items-center justify-center text-[10px] font-medium">2</span>
         </div>
       </nav>
 
       {/* Hero */}
-      <div className="bg-[#34150F] px-6 md:px-10 py-10">
+      <section className="bg-[#FAFAF8] border-b border-[#E8E2D8] px-6 md:px-10 pt-12 pb-10">
         <div className="max-w-xl mx-auto">
-          <p className="text-xs tracking-widest uppercase text-stone-500 mb-2">Step 1 of 2</p>
-          <h1 className="font-serif text-3xl text-[#F5ECD7]">Shipping address</h1>
-          <p className="text-stone-500 text-xs mt-2 leading-relaxed">
+          <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-3">Step 1 of 2</p>
+          <h1 className="font-serif text-3xl text-[#2A1A0E] mb-2">Shipping address</h1>
+          <p className="text-stone-400 text-xs mt-2 leading-relaxed">
             Enter your delivery address. You'll confirm payment on the next screen.
           </p>
         </div>
-      </div>
+      </section>
 
       {/* Form */}
       <div className="flex-1 px-6 md:px-10 py-10 max-w-xl mx-auto w-full">
@@ -185,7 +188,7 @@ export default function AddressPage() {
                   value={form.postalCode}
                   onChange={handlePostcodeChange}
                   placeholder="1500001"
-                  className="w-full text-sm border border-stone-200 rounded-xl pl-9 pr-4 py-3 focus:outline-none focus:border-[#C8965A] bg-white"
+                  className="w-full text-sm border border-stone-200 rounded-[2px] pl-9 pr-4 py-3 focus:outline-none focus:border-[#C4714A] bg-white"
                 />
               </div>
               <div className="text-xs min-h-[1rem]">
@@ -259,7 +262,7 @@ export default function AddressPage() {
 
           {/* ── Japanese auto-fill note ───────────────────────────────────── */}
           {autoFilled && (
-            <div className="flex items-start gap-3 bg-stone-50 border border-stone-200 rounded-xl px-4 py-3">
+            <div className="flex items-start gap-3 bg-stone-50 border border-stone-200 rounded-[2px] px-4 py-3">
               <svg className="h-4 w-4 text-stone-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
               </svg>
@@ -275,7 +278,7 @@ export default function AddressPage() {
           )}
 
           {/* ── Building — highlighted as important ──────────────────────── */}
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5">
+          <div className="bg-amber-50 border border-amber-100 rounded-[2px] p-5">
             <label htmlFor="building" className="block text-xs font-medium text-amber-800 mb-1.5">
               建物名・部屋番号{" "}
               <span className="font-normal text-amber-700">(Building name & room number)</span>
@@ -286,7 +289,7 @@ export default function AddressPage() {
               value={form.building}
               onChange={set("building")}
               placeholder="e.g. コーヒービル 301 / Kohī Building Apt. 301"
-              className="w-full text-sm border border-amber-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[#C8965A] bg-white"
+              className="w-full text-sm border border-amber-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4714A] bg-white"
             />
             <p className="text-[11px] text-amber-700 mt-2 leading-relaxed">
               For apartments and buildings, include the building name and room number.
@@ -331,7 +334,7 @@ export default function AddressPage() {
 
           {/* ── Error ─────────────────────────────────────────────────────── */}
           {error && (
-            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+            <div className="bg-red-50 border border-red-100 rounded-[2px] px-4 py-3">
               <p className="text-red-600 text-xs leading-relaxed">{error}</p>
             </div>
           )}
@@ -340,11 +343,11 @@ export default function AddressPage() {
           <button
             type="submit"
             disabled={submitting || lookup === "loading"}
-            className="w-full mt-2 bg-[#34150F] hover:bg-[#4a1e12] disabled:opacity-60 text-[#F5ECD7] py-4 rounded-full text-sm font-medium tracking-wide transition-colors flex items-center justify-center gap-2"
+            className="w-full mt-2 bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white py-4 rounded-[2px] text-sm font-medium tracking-wide transition-colors flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>
-                <span className="w-4 h-4 border-2 border-[#F5ECD7]/30 border-t-[#F5ECD7] rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Redirecting to payment…
               </>
             ) : (
@@ -360,9 +363,9 @@ export default function AddressPage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#34150F] px-6 md:px-10 py-8 text-center mt-10">
-        <span className="font-serif text-lg text-[#C8965A]">KOHĪ</span>
-        <p className="text-stone-600 text-xs mt-1 tracking-widest">珈琲市 · Specialty Coffee Marketplace</p>
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
+        <span className="font-serif text-xl text-[#C4714A]">珈琲市</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">KOHĪ · Specialty Coffee Marketplace</p>
       </footer>
 
     </div>

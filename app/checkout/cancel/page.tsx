@@ -2,14 +2,14 @@ import Link from "next/link"
 
 export default function CheckoutCancelPage() {
   return (
-    <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* Nav */}
-      <nav className="bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-        <Link href="/" className="font-serif text-xl text-[#C8965A] tracking-wide">
-          KOHĪ
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </Link>
-        <span className="text-xs text-stone-500 tracking-widest uppercase">Checkout</span>
       </nav>
 
       {/* Body */}
@@ -23,7 +23,7 @@ export default function CheckoutCancelPage() {
             </svg>
           </div>
 
-          <h1 className="font-serif text-3xl text-[#34150F] mb-3">
+          <h1 className="font-serif text-3xl text-[#2A1A0E] mb-3">
             Order cancelled
           </h1>
           <p className="text-stone-500 text-sm leading-relaxed mb-10">
@@ -32,7 +32,7 @@ export default function CheckoutCancelPage() {
 
           <Link
             href="/cart"
-            className="inline-block bg-[#34150F] hover:bg-[#4a1e12] text-[#F5ECD7] text-sm px-8 py-3 rounded-full transition-colors"
+            className="inline-block bg-[#2A1A0E] hover:bg-[#3a2010] text-white text-sm px-8 py-3 rounded-[2px] transition-colors"
           >
             Back to cart
           </Link>
@@ -40,9 +40,9 @@ export default function CheckoutCancelPage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#34150F] px-6 md:px-10 py-8 text-center">
-        <span className="font-serif text-lg text-[#C8965A]">KOHĪ</span>
-        <p className="text-stone-600 text-xs mt-1 tracking-widest">珈琲市 · Specialty Coffee Marketplace</p>
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
+        <span className="font-serif text-xl text-[#C4714A]">珈琲市</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">KOHĪ · Specialty Coffee Marketplace</p>
       </footer>
 
     </div>

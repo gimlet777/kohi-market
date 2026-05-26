@@ -161,25 +161,32 @@ export default function RoasterProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
-        <nav className="sticky top-0 z-50 bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-          <Link href="/" className="font-serif text-2xl text-[#C8965A] tracking-wide">KOHĪ</Link>
-          <span className="text-xs text-stone-600 tracking-wider hidden sm:block">珈琲市</span>
+      <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+            <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+          </Link>
+          <div className="flex items-center gap-5">
+            <Link href="/" className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors">
+              ← Marketplace
+            </Link>
+          </div>
         </nav>
-        <div className="bg-[#f7f5f2] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10 animate-pulse">
+        <div className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10 animate-pulse">
           <div className="max-w-4xl mx-auto flex items-start gap-8 md:gap-12">
-            <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-stone-200" />
+            <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-[2px] bg-stone-100" />
             <div className="flex-1 pt-1 space-y-3">
-              <div className="h-2.5 w-24 bg-stone-200 rounded" />
-              <div className="h-10 w-64 bg-stone-200 rounded" />
-              <div className="h-3 w-32 bg-stone-200 rounded" />
+              <div className="h-2.5 w-24 bg-stone-100 rounded" />
+              <div className="h-10 w-64 bg-stone-100 rounded" />
+              <div className="h-3 w-32 bg-stone-100 rounded" />
             </div>
           </div>
         </div>
         <div className="flex-1 px-6 md:px-10 py-10 max-w-6xl mx-auto w-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl overflow-hidden border border-stone-100 animate-pulse">
+              <div key={i} className="bg-white rounded-[2px] overflow-hidden border border-stone-100 animate-pulse">
                 <div className="h-24 bg-stone-100" />
                 <div className="p-5 space-y-3">
                   <div className="h-3 bg-stone-100 rounded w-1/2" />
@@ -198,15 +205,17 @@ export default function RoasterProfilePage() {
 
   if (notFound) {
     return (
-      <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
-        <nav className="sticky top-0 z-50 bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-          <Link href="/" className="font-serif text-2xl text-[#C8965A] tracking-wide">KOHĪ</Link>
-          <span className="text-xs text-stone-600 tracking-wider hidden sm:block">珈琲市</span>
+      <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+            <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+          </Link>
         </nav>
         <div className="flex-1 flex items-center justify-center py-24">
           <div className="text-center">
             <p className="text-stone-400 text-sm mb-4">Roaster not found.</p>
-            <Link href="/" className="text-[#C8965A] text-sm hover:underline">
+            <Link href="/" className="text-[#C4714A] text-sm hover:underline">
               ← Back to marketplace
             </Link>
           </div>
@@ -218,24 +227,24 @@ export default function RoasterProfilePage() {
   const isCafe = sellerType === "Café Roaster"
 
   return (
-    <div className="min-h-screen bg-[#f7f5f2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-        <div className="flex items-baseline gap-2.5">
-          <Link href="/" className="font-serif text-2xl text-[#C8965A] tracking-wide">KOHĪ</Link>
-          <span className="text-xs text-stone-600 tracking-wider hidden sm:block">珈琲市</span>
-        </div>
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+        </Link>
         <div className="flex items-center gap-5">
-          <Link href="/" className="text-xs text-stone-400 hover:text-white transition-colors">
+          <Link href="/" className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors">
             ← Marketplace
           </Link>
-          <Link href="/cart" className="relative text-stone-400 hover:text-white transition-colors">
+          <Link href="/cart" className="relative text-stone-400 hover:text-[#2A1A0E] transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
             {cart.totalCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#C8965A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C4714A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
                 {cart.totalCount > 9 ? "9+" : cart.totalCount}
               </span>
             )}
@@ -243,13 +252,12 @@ export default function RoasterProfilePage() {
         </div>
       </nav>
 
-
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#f7f5f2] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10">
+      <section className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10">
         <div className="max-w-4xl mx-auto flex items-start gap-8 md:gap-12">
 
           {/* Logo placeholder */}
-          <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-2xl border-2 border-dashed border-stone-300 flex flex-col items-center justify-center gap-1.5 text-stone-300 bg-white">
+          <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-[2px] border border-dashed border-[#E8E2D8] flex flex-col items-center justify-center gap-1.5 text-stone-300 bg-white">
             <svg className="w-6 h-6 md:w-7 md:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
@@ -262,7 +270,7 @@ export default function RoasterProfilePage() {
             <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-3">
               Roaster Profile
             </p>
-            <h1 className="font-serif text-4xl md:text-5xl text-[#34150F] leading-tight mb-3">
+            <h1 className="font-serif text-4xl md:text-5xl text-[#2A1A0E] leading-tight mb-3">
               {roasterName}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
@@ -276,7 +284,7 @@ export default function RoasterProfilePage() {
         {/* Bio */}
         <div className="max-w-4xl mx-auto mt-8 pl-0 md:pl-[calc(7rem+3rem)]">
           {roaster?.bio ? (
-            <p className="text-stone-600 text-sm leading-relaxed max-w-xl">{roaster.bio}</p>
+            <p className="text-[#2A1A0E] font-light text-sm leading-relaxed max-w-xl">{roaster.bio}</p>
           ) : (
             <p className="text-stone-400 text-sm italic">This roaster hasn't added a bio yet.</p>
           )}
@@ -285,7 +293,7 @@ export default function RoasterProfilePage() {
         {/* Claim notice — only for unclaimed (no roaster row) */}
         {!roaster && (
           <div className="max-w-4xl mx-auto mt-5 pl-0 md:pl-[calc(7rem+3rem)]">
-            <Link href="/roaster/signup" className="text-[11px] text-stone-400 hover:text-[#C8965A] transition-colors">
+            <Link href="/roaster/signup" className="text-[11px] text-stone-400 hover:text-[#C4714A] transition-colors">
               Are you this roaster? Claim your page →
             </Link>
           </div>
@@ -295,7 +303,7 @@ export default function RoasterProfilePage() {
       {/* ── Products grid ───────────────────────────────────────────────────── */}
       <section className="flex-1 px-6 md:px-10 py-10">
         <div className="max-w-6xl mx-auto">
-          <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-6">
+          <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-6">
             {products.length} product{products.length !== 1 ? "s" : ""}
           </p>
           {products.length === 0 ? (
@@ -316,7 +324,7 @@ export default function RoasterProfilePage() {
 
       {/* ── Batch schedule — Café Roasters only ─────────────────────────────── */}
       {isCafe && upcomingBatches.length > 0 && (
-        <section className="bg-white border-t border-stone-100 px-6 md:px-10 py-10">
+        <section className="bg-[#FAFAF8] border-t border-[#E8E2D8] px-6 md:px-10 py-10">
           <div className="max-w-4xl mx-auto">
             <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-6">
               Upcoming Batch Schedule
@@ -325,10 +333,10 @@ export default function RoasterProfilePage() {
               {upcomingBatches.map(b => (
                 <div
                   key={b.id}
-                  className="flex items-center justify-between gap-6 rounded-xl border border-stone-100 bg-stone-50 px-5 py-4"
+                  className="flex items-center justify-between gap-6 rounded-[2px] border border-[#E8E2D8] bg-white px-5 py-4"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#34150F] truncate">{b.productName}</p>
+                    <p className="text-sm font-medium text-[#2A1A0E] truncate">{b.productName}</p>
                     <p className="text-xs text-stone-400 mt-0.5">Roasting {formatDate(b.roast_date)}</p>
                   </div>
                   <div className="text-right shrink-0">
@@ -353,9 +361,9 @@ export default function RoasterProfilePage() {
       )}
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#34150F] px-6 md:px-10 py-8 text-center mt-auto">
-        <span className="font-serif text-lg text-[#C8965A]">KOHĪ</span>
-        <p className="text-stone-600 text-xs mt-1 tracking-widest">珈琲市 · Specialty Coffee Marketplace</p>
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
+        <span className="font-serif text-xl text-[#C4714A]">珈琲市</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">KOHĪ · Specialty Coffee Marketplace</p>
       </footer>
 
     </div>
