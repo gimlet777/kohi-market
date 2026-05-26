@@ -13,6 +13,9 @@ interface RoasterProfile {
   seller_type: string
   bio?: string
   website?: string
+  is_pro?: boolean
+  hero_photo_url?: string | null
+  gallery_urls?: string[] | null
 }
 
 const REGIONS = ["Tokyo", "Kyoto", "Osaka", "Fukuoka", "Hokkaido"]
@@ -138,6 +141,13 @@ function DashboardContent() {
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [settingsError, setSettingsError] = useState<string | null>(null)
 
+  // Pro media
+  const [heroUrl, setHeroUrl] = useState("")
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([])
+  const [heroUploading, setHeroUploading] = useState(false)
+  const [galleryUploading, setGalleryUploading] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
+
   // Add batch form
   const [showAddBatch, setShowAddBatch] = useState(false)
   const [batchForm, setBatchForm] = useState({ productId: "", roastDate: "", totalBags: "" })
@@ -161,7 +171,7 @@ function DashboardContent() {
       ] = await Promise.all([
         supabase
           .from("roasters")
-          .select("roaster_name, email, region, seller_type, bio, website")
+          .select("roaster_name, email, region, seller_type, bio, website, is_pro, hero_photo_url, gallery_urls")
           .eq("id", session.user.id)
           .single(),
         supabase
@@ -192,6 +202,8 @@ function DashboardContent() {
         setSettingsRegion(profileData.region ?? "")
         setSettingsBio(profileData.bio ?? "")
         setSettingsWebsite(profileData.website ?? "")
+        setHeroUrl(profileData.hero_photo_url ?? "")
+        setGalleryUrls(profileData.gallery_urls ?? [])
       }
       setProducts(productsData ?? [])
       setOrders((ordersData ?? []) as Order[])
@@ -257,6 +269,72 @@ function DashboardContent() {
       setTimeout(() => setSettingsSaved(false), 3000)
     }
     setSettingsSaving(false)
+  }
+
+  async function handleHeroUpload(file: File) {
+    if (!userId) return
+    setHeroUploading(true)
+    setImageError(null)
+    const ext = file.name.split(".").pop() ?? "jpg"
+    const path = `${userId}/hero.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from("roaster-hero")
+      .upload(path, file, { upsert: true })
+    if (uploadError) {
+      setImageError("Upload failed: " + uploadError.message)
+      setHeroUploading(false)
+      return
+    }
+    const { data: { publicUrl } } = supabase.storage.from("roaster-hero").getPublicUrl(path)
+    const { error: dbError } = await supabase.from("roasters").update({ hero_photo_url: publicUrl }).eq("id", userId)
+    if (dbError) {
+      setImageError("Upload saved but profile update failed: " + dbError.message)
+    } else {
+      setHeroUrl(publicUrl)
+      setProfile(prev => prev ? { ...prev, hero_photo_url: publicUrl } : prev)
+    }
+    setHeroUploading(false)
+  }
+
+  async function handleHeroRemove() {
+    if (!userId) return
+    const { error } = await supabase.from("roasters").update({ hero_photo_url: null }).eq("id", userId)
+    if (!error) {
+      setHeroUrl("")
+      setProfile(prev => prev ? { ...prev, hero_photo_url: null } : prev)
+    }
+  }
+
+  async function handleGalleryAdd(file: File) {
+    if (!userId || galleryUrls.length >= 6) return
+    setGalleryUploading(true)
+    setImageError(null)
+    const ext = file.name.split(".").pop() ?? "jpg"
+    const path = `${userId}/gallery-${Date.now()}.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from("roaster-gallery")
+      .upload(path, file, { upsert: true })
+    if (uploadError) {
+      setImageError("Upload failed: " + uploadError.message)
+      setGalleryUploading(false)
+      return
+    }
+    const { data: { publicUrl } } = supabase.storage.from("roaster-gallery").getPublicUrl(path)
+    const newUrls = [...galleryUrls, publicUrl]
+    const { error: dbError } = await supabase.from("roasters").update({ gallery_urls: newUrls }).eq("id", userId)
+    if (dbError) {
+      setImageError("Upload saved but profile update failed: " + dbError.message)
+    } else {
+      setGalleryUrls(newUrls)
+    }
+    setGalleryUploading(false)
+  }
+
+  async function handleGalleryRemove(url: string) {
+    if (!userId) return
+    const newUrls = galleryUrls.filter(u => u !== url)
+    const { error } = await supabase.from("roasters").update({ gallery_urls: newUrls }).eq("id", userId)
+    if (!error) setGalleryUrls(newUrls)
   }
 
   async function handleAddBatch(e: React.FormEvent) {
@@ -942,6 +1020,100 @@ function DashboardContent() {
               </div>
 
             </form>
+
+            {/* Pro Media — only shown for Pro roasters, auto-saves on upload */}
+            {profile?.is_pro && (
+              <div className="border-t border-[#E8E2D8] pt-6 space-y-5">
+                <h2 className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Pro Profile Media</h2>
+
+                {/* Hero photo */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    Hero Photo
+                  </label>
+                  {heroUrl ? (
+                    <div className="relative">
+                      <img src={heroUrl} alt="Hero" className="w-full h-36 object-cover rounded-[2px] border border-[#E8E2D8]" />
+                      <button
+                        type="button"
+                        onClick={handleHeroRemove}
+                        className="absolute top-2 right-2 bg-white/90 hover:bg-white text-stone-500 hover:text-red-500 text-[11px] px-2.5 py-1 rounded-[2px] border border-stone-200 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-[#E8E2D8] rounded-[2px] bg-white cursor-pointer hover:border-[#C4714A] transition-colors">
+                      {heroUploading ? (
+                        <span className="text-xs text-stone-400">Uploading…</span>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 text-stone-300 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                          </svg>
+                          <span className="text-xs text-stone-400">Click to upload hero photo</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        disabled={heroUploading}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handleHeroUpload(f) }}
+                      />
+                    </label>
+                  )}
+                  <p className="text-[11px] text-stone-300 mt-1.5 font-light">Shown as a full-width banner on your public profile.</p>
+                </div>
+
+                {/* Gallery */}
+                <div>
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400">
+                      Photo Gallery
+                    </label>
+                    <span className="text-[11px] text-stone-300 font-light">{galleryUrls.length} / 6</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {galleryUrls.map((url, i) => (
+                      <div key={url} className="relative group aspect-square">
+                        <img src={url} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover rounded-[2px] border border-[#E8E2D8]" />
+                        <button
+                          type="button"
+                          onClick={() => handleGalleryRemove(url)}
+                          className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 rounded-[2px] transition-all"
+                        >
+                          <span className="opacity-0 group-hover:opacity-100 text-white text-[11px] font-medium transition-opacity">Remove</span>
+                        </button>
+                      </div>
+                    ))}
+                    {galleryUrls.length < 6 && (
+                      <label className="aspect-square flex items-center justify-center border border-dashed border-[#E8E2D8] rounded-[2px] bg-white cursor-pointer hover:border-[#C4714A] transition-colors">
+                        {galleryUploading ? (
+                          <span className="text-xs text-stone-400">…</span>
+                        ) : (
+                          <svg className="w-5 h-5 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                          </svg>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          disabled={galleryUploading || galleryUrls.length >= 6}
+                          onChange={e => { const f = e.target.files?.[0]; if (f) handleGalleryAdd(f) }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-stone-300 mt-1.5 font-light">Up to 6 images shown in a grid on your public profile.</p>
+                </div>
+
+                {imageError && (
+                  <p className="text-xs text-red-500 font-light">{imageError}</p>
+                )}
+              </div>
+            )}
 
           </div>
         )}

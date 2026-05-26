@@ -18,6 +18,10 @@ interface RoasterProfile {
   seller_type: string
   bio: string | null
   slug: string | null
+  is_pro?: boolean
+  hero_photo_url?: string | null
+  gallery_urls?: string[] | null
+  website?: string | null
 }
 
 interface UpcomingBatch {
@@ -61,7 +65,7 @@ export default function RoasterProfilePage() {
       // 1. Try claimed roaster account by slug column
       const { data: roasterData } = await supabase
         .from("roasters")
-        .select("id, roaster_name, region, seller_type, bio, slug")
+        .select("id, roaster_name, region, seller_type, bio, slug, is_pro, hero_photo_url, gallery_urls, website")
         .eq("slug", slug)
         .maybeSingle()
 
@@ -253,52 +257,111 @@ export default function RoasterProfilePage() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10">
-        <div className="max-w-4xl mx-auto flex items-start gap-8 md:gap-12">
+      {roaster?.is_pro ? (
+        <>
+          {/* Pro: full-width hero photo */}
+          {roaster.hero_photo_url && (
+            <div className="relative w-full h-56 md:h-80 overflow-hidden">
+              <img
+                src={roaster.hero_photo_url}
+                alt={roasterName}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#2A1A0E]/60 via-[#2A1A0E]/10 to-transparent" />
+            </div>
+          )}
 
-          {/* Logo placeholder */}
-          <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-[2px] border border-dashed border-[#E8E2D8] flex flex-col items-center justify-center gap-1.5 text-stone-300 bg-white">
-            <svg className="w-6 h-6 md:w-7 md:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-            </svg>
-            <span className="text-[10px] tracking-wide">Logo</span>
-          </div>
+          {/* Pro: name, badge, meta, bio, website */}
+          <section className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 pt-10 pb-10">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center gap-3 flex-wrap mb-4">
+                <span className="inline-flex items-center gap-1.5 text-[10px] tracking-widest uppercase text-[#C4714A] font-medium">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Verified Roaster
+                </span>
+                {region && <span className="text-stone-300 text-sm">·</span>}
+                {region && <span className="text-sm text-stone-400">{region}</span>}
+                <span className="text-stone-300 text-sm">·</span>
+                <span className="text-sm text-stone-400">{sellerType}</span>
+              </div>
 
-          {/* Name + meta */}
-          <div className="flex-1 min-w-0 pt-1">
-            <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-3">
-              Roaster Profile
-            </p>
-            <h1 className="font-serif text-4xl md:text-5xl text-[#2A1A0E] leading-tight mb-3">
-              {roasterName}
-            </h1>
-            <div className="flex items-center gap-3 flex-wrap">
-              {region && <span className="text-sm text-stone-500">{region}</span>}
-              {region && <span className="text-stone-300">·</span>}
-              <span className="text-sm text-stone-500">{sellerType}</span>
+              <h1 className="font-serif text-4xl md:text-5xl text-[#2A1A0E] leading-tight mb-6">
+                {roasterName}
+              </h1>
+
+              {roaster.bio && (
+                <p className="text-[#2A1A0E] font-light text-sm leading-relaxed max-w-2xl mb-5">
+                  {roaster.bio}
+                </p>
+              )}
+
+              {roaster.website && (
+                <a
+                  href={roaster.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[11px] tracking-wide text-[#C4714A] hover:text-[#B05E3C] transition-colors"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  {roaster.website.replace(/^https?:\/\//, "")}
+                </a>
+              )}
+            </div>
+          </section>
+        </>
+      ) : (
+        /* Free profile */
+        <section className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10">
+          <div className="max-w-4xl mx-auto flex items-start gap-8 md:gap-12">
+
+            {/* Logo placeholder */}
+            <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-[2px] border border-dashed border-[#E8E2D8] flex flex-col items-center justify-center gap-1.5 text-stone-300 bg-white">
+              <svg className="w-6 h-6 md:w-7 md:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+              </svg>
+              <span className="text-[10px] tracking-wide">Logo</span>
+            </div>
+
+            {/* Name + meta */}
+            <div className="flex-1 min-w-0 pt-1">
+              <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-3">
+                Roaster Profile
+              </p>
+              <h1 className="font-serif text-4xl md:text-5xl text-[#2A1A0E] leading-tight mb-3">
+                {roasterName}
+              </h1>
+              <div className="flex items-center gap-3 flex-wrap">
+                {region && <span className="text-sm text-stone-500">{region}</span>}
+                {region && <span className="text-stone-300">·</span>}
+                <span className="text-sm text-stone-500">{sellerType}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Bio */}
-        <div className="max-w-4xl mx-auto mt-8 pl-0 md:pl-[calc(7rem+3rem)]">
-          {roaster?.bio ? (
-            <p className="text-[#2A1A0E] font-light text-sm leading-relaxed max-w-xl">{roaster.bio}</p>
-          ) : (
-            <p className="text-stone-400 text-sm italic">This roaster hasn't added a bio yet.</p>
-          )}
-        </div>
-
-        {/* Claim notice — only for unclaimed (no roaster row) */}
-        {!roaster && (
-          <div className="max-w-4xl mx-auto mt-5 pl-0 md:pl-[calc(7rem+3rem)]">
-            <Link href="/roaster/signup" className="text-[11px] text-stone-400 hover:text-[#C4714A] transition-colors">
-              Are you this roaster? Claim your page →
-            </Link>
+          {/* Bio */}
+          <div className="max-w-4xl mx-auto mt-8 pl-0 md:pl-[calc(7rem+3rem)]">
+            {roaster?.bio ? (
+              <p className="text-[#2A1A0E] font-light text-sm leading-relaxed max-w-xl">{roaster.bio}</p>
+            ) : (
+              <p className="text-stone-400 text-sm italic">This roaster hasn't added a bio yet.</p>
+            )}
           </div>
-        )}
-      </section>
+
+          {/* Claim notice — only for unclaimed (no roaster row) */}
+          {!roaster && (
+            <div className="max-w-4xl mx-auto mt-5 pl-0 md:pl-[calc(7rem+3rem)]">
+              <Link href="/roaster/signup" className="text-[11px] text-stone-400 hover:text-[#C4714A] transition-colors">
+                Are you this roaster? Claim your page →
+              </Link>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ── Products grid ───────────────────────────────────────────────────── */}
       <section className="flex-1 px-6 md:px-10 py-10">
@@ -321,6 +384,26 @@ export default function RoasterProfilePage() {
           )}
         </div>
       </section>
+
+      {/* ── Gallery — Pro roasters only ─────────────────────────────────────── */}
+      {roaster?.is_pro && roaster.gallery_urls && roaster.gallery_urls.length > 0 && (
+        <section className="bg-white border-t border-[#E8E2D8] px-6 md:px-10 py-10">
+          <div className="max-w-6xl mx-auto">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-6">Gallery</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {roaster.gallery_urls.map((url, i) => (
+                <div key={i} className="aspect-square overflow-hidden rounded-[2px]">
+                  <img
+                    src={url}
+                    alt={`${roasterName} gallery ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Batch schedule — Café Roasters only ─────────────────────────────── */}
       {isCafe && upcomingBatches.length > 0 && (
