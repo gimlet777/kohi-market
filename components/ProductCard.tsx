@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useCart } from "@/context/CartContext"
-import { getOriginGradient } from "@/lib/origin-gradients"
 import { slugify } from "@/lib/slugify"
 import type { Product, RoastLevel } from "@/lib/products"
 
@@ -38,9 +37,9 @@ const copy = {
 }
 
 const roastBadge: Record<RoastLevel, string> = {
-  Light: "bg-amber-100 text-amber-700",
-  Medium: "bg-orange-100 text-orange-700",
-  Dark: "bg-stone-800 text-stone-100",
+  Light: "bg-amber-50 text-amber-700 border border-amber-100",
+  Medium: "bg-orange-50 text-orange-700 border border-orange-100",
+  Dark: "bg-stone-100 text-stone-600 border border-stone-200",
 }
 
 function formatShortDate(iso: string) {
@@ -61,8 +60,10 @@ export function ProductCard({
   const router = useRouter()
   const cart = useCart()
   const c = copy[lang]
-  const [selectedFormat, setSelectedFormat] = useState(product.formats[0])
-  const [formatPicked, setFormatPicked] = useState(false)
+
+  // Guard: formats can be null/empty for legacy rows
+  const formats = product.formats?.length ? product.formats : []
+  const [selectedFormat, setSelectedFormat] = useState(formats[0] ?? { name: "", grams: 0, price: 0 })
   const [justAdded, setJustAdded] = useState(false)
   const [showWaitlist, setShowWaitlist] = useState(false)
   const [waitlistEmail, setWaitlistEmail] = useState("")
@@ -71,6 +72,7 @@ export function ProductCard({
   const isCafe = product.type === "Café Roaster"
   const soldOut = isCafe && batch !== null && batch.bagsRemaining === 0
   const noBatch = isCafe && batch === null
+  const hasFormats = formats.length > 1
 
   function handleAddToCart(e: React.MouseEvent) {
     e.stopPropagation()
@@ -105,100 +107,82 @@ export function ProductCard({
   function handleWaitlistSubmit(e: React.FormEvent) {
     e.preventDefault()
     e.stopPropagation()
-    // TODO: persist waitlist email to a waitlist table
     setWaitlistDone(true)
   }
 
-  const prices = product.formats.map(f => f.price)
-  const minPrice = Math.min(...prices)
-  const allSamePrice = prices.every(p => p === prices[0])
-  const showFrom = product.formats.length > 1 && !allSamePrice && !formatPicked
-
   return (
-    <div
-      onClick={() => router.push(`/product/${product.id}`)}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col hover:shadow-md transition-shadow cursor-pointer"
-    >
-      {/* Gradient header */}
-      <div
-        className="h-24 w-full relative shrink-0"
-        style={{ background: getOriginGradient(product.origin) }}
+    <div className="bg-white rounded border border-stone-100 flex flex-col hover:border-stone-200 transition-all overflow-hidden">
+
+      {/* ── Zone 1: Roaster — navigates to roaster profile ─────────────────── */}
+      <Link
+        href={`/roaster/${slugify(product.roaster)}`}
+        className="px-5 pt-4 pb-3.5 border-b border-[#E8E2D8] hover:bg-[#FAFAF6] transition-colors block"
       >
-        <span className="absolute bottom-3 left-4 text-[10px] tracking-widest uppercase text-white/60 font-medium">
-          {product.origin}
-        </span>
-      </div>
-
-      <div className="p-5 flex flex-col flex-1 gap-4">
-        {/* Header row */}
-        <div>
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-xs font-medium text-[#34150F]">{product.roaster}</p>
-            <Link
-              href={`/roaster/${slugify(product.roaster)}`}
-              onClick={e => e.stopPropagation()}
-              className="text-[10px] text-[#C8965A] hover:text-[#B8854C] transition-colors whitespace-nowrap shrink-0"
-            >
-              Visit →
-            </Link>
-          </div>
-          <p className="text-xs text-stone-400 mt-0.5">{product.region}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] tracking-widest uppercase text-[#C4714A] font-normal leading-none">
+            {product.roaster}
+          </p>
+          <span className="text-[10px] text-[#C4714A] font-light leading-none">→</span>
         </div>
+        <p className="text-[11px] text-stone-400 font-light mt-1">{product.region}</p>
+      </Link>
 
+      {/* ── Zone 2: Product — navigates to product detail ──────────────────── */}
+      <div
+        onClick={() => router.push(`/product/${product.id}`)}
+        className="p-5 flex flex-col flex-1 gap-3 cursor-pointer hover:bg-[#FDFCFB] transition-colors"
+      >
         {/* Product name */}
-        <h3 className="font-serif text-[1.1rem] leading-snug text-[#34150F]">{product.name}</h3>
+        <h3 className="font-serif text-[1.05rem] leading-snug text-[#2A1A0E]">{product.name}</h3>
 
-        {/* Meta badges */}
+        {/* Meta tags: origin, process, roast */}
         <div className="flex flex-wrap gap-1.5">
-          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600">
-            {c.process}: {product.process}
+          <span className="text-[10px] px-2 py-0.5 rounded-[2px] bg-stone-100 text-stone-500 border border-stone-200 font-light">
+            {product.origin}
           </span>
-          <span className={`text-[11px] px-2.5 py-0.5 rounded-full ${roastBadge[product.roast]}`}>
+          <span className="text-[10px] px-2 py-0.5 rounded-[2px] bg-stone-100 text-stone-500 border border-stone-200 font-light">
+            {product.process}
+          </span>
+          <span className={`text-[10px] px-2 py-0.5 rounded-[2px] font-light ${roastBadge[product.roast]}`}>
             {product.roast}
           </span>
         </div>
 
-        {/* Flavour notes */}
-        <div className="flex flex-wrap gap-1">
-          {product.notes.map((note) => (
-            <span key={note} className="text-[11px] px-2.5 py-0.5 border border-stone-200 rounded-full text-stone-400">
-              {note}
-            </span>
-          ))}
-        </div>
+        {/* Flavour notes — Cormorant Garamond italic */}
+        <p className="font-editorial italic text-[13px] text-stone-400 leading-snug">
+          {product.notes.join(" · ")}
+        </p>
 
         {/* Batch info strip — Café Roasters only */}
         {isCafe && batch && (
-          <div className="flex items-center justify-between bg-stone-50 rounded-lg px-3 py-2 text-[11px]">
-            <span className="text-stone-500">Roasts {formatShortDate(batch.roastDate)}</span>
+          <div className="flex items-center justify-between bg-stone-50 border border-stone-100 rounded-[2px] px-3 py-2 text-[11px]">
+            <span className="text-stone-500 font-light">Roasts {formatShortDate(batch.roastDate)}</span>
             {batch.bagsRemaining > 0 ? (
-              <span className={`font-medium ${batch.bagsRemaining <= 5 ? "text-red-500" : "text-emerald-600"}`}>
+              <span className={`font-normal ${batch.bagsRemaining <= 5 ? "text-red-500" : "text-emerald-600"}`}>
                 {batch.bagsRemaining} bag{batch.bagsRemaining !== 1 ? "s" : ""} left
               </span>
             ) : (
-              <span className="font-medium text-stone-400">Sold out</span>
+              <span className="font-light text-stone-400">Sold out</span>
             )}
           </div>
         )}
         {isCafe && !batch && (
-          <div className="bg-stone-50 rounded-lg px-3 py-2 text-[11px] text-stone-400">
+          <div className="bg-stone-50 border border-stone-100 rounded-[2px] px-3 py-2 text-[11px] text-stone-400 font-light">
             No batches scheduled
           </div>
         )}
 
-        <div className="flex-1" />
-
-        {/* Format toggle */}
-        {product.formats.length > 1 && (
-          product.formats.length <= 3 ? (
+        {/* Format toggle — always rendered when >1 format */}
+        {hasFormats && (
+          formats.length <= 3 ? (
             <div className="flex gap-1.5">
-              {product.formats.map((fmt) => (
+              {formats.map((fmt) => (
                 <button
                   key={`${fmt.name}-${fmt.price}`}
-                  onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setFormatPicked(true); setJustAdded(false) }}
-                  className={`flex-1 text-[11px] py-2 rounded-lg border transition-all ${
-                    selectedFormat.name === fmt.name
-                      ? "bg-[#34150F] text-white border-[#34150F]"
+                  onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setJustAdded(false) }}
+                  className={`flex-1 text-[11px] py-1.5 rounded-[2px] border transition-all font-light ${
+                    selectedFormat.name === fmt.name && selectedFormat.price === fmt.price
+                      ? "bg-[#2A1A0E] text-white border-[#2A1A0E]"
                       : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
                   }`}
                 >
@@ -209,17 +193,17 @@ export function ProductCard({
           ) : (
             <div className="relative">
               <select
-                value={selectedFormat.name}
+                value={`${selectedFormat.name}-${selectedFormat.price}`}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => {
                   e.stopPropagation()
-                  const fmt = product.formats.find(f => f.name === e.target.value)
-                  if (fmt) { setSelectedFormat(fmt); setFormatPicked(true); setJustAdded(false) }
+                  const fmt = formats.find(f => `${f.name}-${f.price}` === e.target.value)
+                  if (fmt) { setSelectedFormat(fmt); setJustAdded(false) }
                 }}
-                className="w-full text-[11px] py-2 pl-3 pr-8 rounded-lg border border-stone-200 bg-white text-stone-600 focus:outline-none focus:border-[#C8965A] appearance-none"
+                className="w-full text-[11px] py-2 pl-3 pr-8 rounded-[2px] border border-stone-200 bg-white text-stone-600 focus:outline-none focus:border-[#C4714A] appearance-none font-light"
               >
-                {product.formats.map((fmt) => (
-                  <option key={`${fmt.name}-${fmt.price}`} value={fmt.name}>
+                {formats.map((fmt) => (
+                  <option key={`${fmt.name}-${fmt.price}`} value={`${fmt.name}-${fmt.price}`}>
                     {c.formatLabels[fmt.name] ?? fmt.name}
                   </option>
                 ))}
@@ -231,20 +215,19 @@ export function ProductCard({
           )
         )}
 
-        {/* Price + CTA */}
-        <div className="flex items-center justify-between pt-1">
-          <p className="text-lg font-medium text-[#34150F] tracking-tight">
-            {showFrom && <span className="text-sm font-normal text-stone-400 mr-0.5">From </span>}
-            ¥{(showFrom ? minPrice : selectedFormat.price).toLocaleString()}
+        {/* Price + CTA — mt-auto keeps it at bottom without mid-card gap */}
+        <div className="flex items-center justify-between mt-auto pt-1">
+          <p className="text-base font-normal text-[#2A1A0E] tracking-tight">
+            ¥{selectedFormat.price.toLocaleString()}
           </p>
 
           {!isCafe && (
             <button
               onClick={handleAddToCart}
-              className={`text-xs px-4 py-2.5 rounded-full tracking-wide transition-colors ${
+              className={`text-[11px] px-3 py-1.5 rounded-[2px] tracking-wide transition-colors font-light ${
                 justAdded
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-[#C8965A] hover:bg-[#B8854C] text-white"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-[#BD6B44] hover:bg-[#A85C38] text-white"
               }`}
             >
               {justAdded ? "Added ✓" : c.addToCart}
@@ -254,10 +237,10 @@ export function ProductCard({
           {isCafe && !soldOut && !noBatch && (
             <button
               onClick={handlePreorder}
-              className={`text-xs px-4 py-2.5 rounded-full tracking-wide transition-colors ${
+              className={`text-[11px] px-3 py-1.5 rounded-[2px] tracking-wide transition-colors font-light ${
                 justAdded
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-[#34150F] hover:bg-[#4a1e12] text-[#F5ECD7]"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-[#2A1A0E] hover:bg-[#3a2010] text-white"
               }`}
             >
               {justAdded ? "Added ✓" : c.preorder}
@@ -265,11 +248,11 @@ export function ProductCard({
           )}
 
           {isCafe && soldOut && (
-            <span className="text-xs px-4 py-2 rounded-full bg-stone-100 text-stone-400">Sold out</span>
+            <span className="text-[11px] px-3 py-1.5 rounded-[2px] bg-stone-100 text-stone-400 border border-stone-200 font-light">Sold out</span>
           )}
 
           {isCafe && noBatch && (
-            <span className="text-xs px-4 py-2 rounded-full bg-stone-100 text-stone-400">Coming soon</span>
+            <span className="text-[11px] px-3 py-1.5 rounded-[2px] bg-stone-100 text-stone-400 border border-stone-200 font-light">Coming soon</span>
           )}
         </div>
 
@@ -277,7 +260,7 @@ export function ProductCard({
         {isCafe && soldOut && (
           <div onClick={e => e.stopPropagation()}>
             {waitlistDone ? (
-              <p className="text-[11px] text-emerald-600 text-center">You're on the list ✓</p>
+              <p className="text-[11px] text-emerald-600 text-center font-light">You're on the list ✓</p>
             ) : showWaitlist ? (
               <form onSubmit={handleWaitlistSubmit} className="flex gap-2">
                 <input
@@ -286,11 +269,11 @@ export function ProductCard({
                   placeholder="your@email.com"
                   value={waitlistEmail}
                   onChange={e => setWaitlistEmail(e.target.value)}
-                  className="flex-1 text-[11px] px-3 py-1.5 rounded-full border border-stone-200 focus:outline-none focus:border-[#C8965A] min-w-0"
+                  className="flex-1 text-[11px] px-3 py-1.5 rounded-[2px] border border-stone-200 focus:outline-none focus:border-[#C4714A] min-w-0 font-light"
                 />
                 <button
                   type="submit"
-                  className="text-[11px] px-3 py-1.5 rounded-full bg-[#34150F] text-[#F5ECD7] whitespace-nowrap"
+                  className="text-[11px] px-3 py-1.5 rounded-[2px] bg-[#2A1A0E] text-white whitespace-nowrap font-light"
                 >
                   Notify me
                 </button>
@@ -298,7 +281,7 @@ export function ProductCard({
             ) : (
               <button
                 onClick={() => setShowWaitlist(true)}
-                className="w-full text-[11px] text-[#C8965A] hover:text-[#B8854C] transition-colors text-center"
+                className="w-full text-[11px] text-[#C4714A] hover:text-[#B05E3C] transition-colors text-center font-light"
               >
                 Join waitlist →
               </button>

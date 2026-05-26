@@ -21,7 +21,6 @@ async function fetchProducts(): Promise<Product[]> {
 
 async function fetchOpenBatches(): Promise<LiveBatch[]> {
   const today = new Date().toISOString().split("T")[0]
-  // Mark any past-due open batches as complete before fetching
   await supabase
     .from("batches")
     .update({ status: "complete" })
@@ -64,36 +63,22 @@ const FOUNDING_ROASTERS = [
 const copy = {
   EN: {
     tagline: "Specialty Coffee Marketplace",
-    headlineTop: "Japan's Finest",
-    headlineBottom: "Specialty Coffee",
-    sub: "Sourced directly from independent roasters across Japan.",
+    heroSub: "Japan's finest specialty coffee, from independent roasters.",
     placeholder: "Search roasters or origins…",
     regionLabel: "Region",
     roastLabel: "Roast",
     typeLabel: "Type",
-    addToCart: "Add to cart",
-    preorder: "Pre-order",
-    origin: "Origin",
-    process: "Process",
     noResults: "No coffees match your filters.",
-    formatLabels: { "Whole Bean": "Whole Bean", "Drip Bag": "Drip Bag" } as Record<string, string>,
     footerSub: "Specialty Coffee Marketplace",
   },
   JP: {
     tagline: "スペシャルティコーヒーマーケット",
-    headlineTop: "日本最高の",
-    headlineBottom: "スペシャルティコーヒー",
-    sub: "全国の独立ロースターから直接入手。",
+    heroSub: "全国の独立ロースターから、日本最高のスペシャルティコーヒーを。",
     placeholder: "ロースターや産地を検索…",
     regionLabel: "地域",
     roastLabel: "焙煎",
     typeLabel: "種別",
-    addToCart: "カートに追加",
-    preorder: "先行予約",
-    origin: "産地",
-    process: "精製",
     noResults: "条件に合うコーヒーがありません。",
-    formatLabels: { "Whole Bean": "ホールビーン", "Drip Bag": "ドリップバッグ" } as Record<string, string>,
     footerSub: "スペシャルティコーヒーマーケット",
   },
 }
@@ -102,27 +87,24 @@ const copy = {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-stone-100 animate-pulse">
-      <div className="h-0.5 bg-stone-100" />
+    <div className="bg-white border border-stone-100 animate-pulse rounded">
+      <div className="px-5 pt-4 pb-3 border-b border-stone-100">
+        <div className="h-2.5 bg-stone-100 rounded w-1/3" />
+      </div>
       <div className="p-5 space-y-4">
         <div className="space-y-1.5">
-          <div className="h-3 bg-stone-100 rounded w-1/3" />
+          <div className="h-3 bg-stone-100 rounded w-1/2" />
           <div className="h-3 bg-stone-100 rounded w-1/4" />
         </div>
         <div className="h-5 bg-stone-100 rounded w-3/4" />
         <div className="flex gap-1.5">
-          <div className="h-5 bg-stone-100 rounded-full w-24" />
-          <div className="h-5 bg-stone-100 rounded-full w-20" />
-          <div className="h-5 bg-stone-100 rounded-full w-14" />
+          <div className="h-5 bg-stone-100 rounded w-24" />
+          <div className="h-5 bg-stone-100 rounded w-16" />
         </div>
-        <div className="flex gap-1">
-          <div className="h-5 bg-stone-100 rounded-full w-16" />
-          <div className="h-5 bg-stone-100 rounded-full w-20" />
-          <div className="h-5 bg-stone-100 rounded-full w-14" />
-        </div>
+        <div className="h-4 bg-stone-100 rounded w-2/3" />
         <div className="flex justify-between items-center pt-1">
           <div className="h-6 bg-stone-100 rounded w-16" />
-          <div className="h-8 bg-stone-100 rounded-full w-24" />
+          <div className="h-8 bg-stone-100 rounded w-24" />
         </div>
       </div>
     </div>
@@ -135,9 +117,9 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 rounded-full text-xs tracking-wide border transition-all whitespace-nowrap ${
+      className={`px-3.5 py-1.5 rounded-[2px] text-xs tracking-wide border transition-all whitespace-nowrap ${
         active
-          ? "bg-[#34150F] text-white border-[#34150F]"
+          ? "bg-[#2A1A0E] text-white border-[#2A1A0E]"
           : "bg-white text-stone-500 border-stone-200 hover:border-stone-400 hover:text-stone-700"
       }`}
     >
@@ -169,7 +151,6 @@ export default function Home() {
         setProducts(MOCK_PRODUCTS)
         setSource("mock")
       }
-      // First open batch per product (batches already sorted by roast_date asc)
       const map: Record<number, LiveBatch> = {}
       for (const b of batches) {
         if (!(b.productId in map)) map[b.productId] = b
@@ -200,36 +181,38 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f7f5f2]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-[#34150F] px-6 md:px-10 py-4 flex items-center justify-between">
-        <div className="flex items-baseline gap-2.5">
-          <span className="font-serif text-2xl text-[#C8965A] tracking-wide">KOHĪ</span>
-          <span className="text-xs text-stone-600 tracking-wider hidden sm:block">珈琲市</span>
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
+          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </div>
 
         <div className="flex items-center gap-5">
-          <div className="flex items-center rounded-full border border-stone-700 overflow-hidden text-xs">
-            {(["EN", "JP"] as Lang[]).map((l) => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                className={`px-3 py-1 transition-colors ${
-                  lang === l ? "bg-[#C8965A] text-white" : "text-stone-400 hover:text-stone-200"
-                }`}
-              >
-                {l}
-              </button>
-            ))}
+          <div className="flex items-center gap-1.5 text-xs">
+            <button
+              onClick={() => setLang("EN")}
+              className={`transition-colors ${lang === "EN" ? "text-[#2A1A0E] font-semibold" : "text-[#A08060] font-normal hover:text-[#2A1A0E]"}`}
+            >
+              EN
+            </button>
+            <span className="text-[#A08060] select-none">·</span>
+            <button
+              onClick={() => setLang("JP")}
+              className={`transition-colors ${lang === "JP" ? "text-[#2A1A0E] font-semibold" : "text-[#A08060] font-normal hover:text-[#2A1A0E]"}`}
+            >
+              JP
+            </button>
           </div>
 
-          <Link href="/cart" className="relative text-stone-400 hover:text-white transition-colors">
+          <Link href="/cart" className="relative text-stone-500 hover:text-[#2A1A0E] transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
             {cart.totalCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#C8965A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C4714A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
                 {cart.totalCount > 9 ? "9+" : cart.totalCount}
               </span>
             )}
@@ -238,41 +221,47 @@ export default function Home() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#34150F] px-6 md:px-10 pt-16 pb-20">
-        <p className="text-xs tracking-[0.3em] uppercase text-stone-500 mb-6">{c.tagline}</p>
-        <h1 className="font-serif text-5xl md:text-7xl text-[#F5ECD7] leading-[1.1] mb-4">
-          {c.headlineTop}
-          <br />
-          <span className="text-[#C8965A]">{c.headlineBottom}</span>
-        </h1>
-        <p className="text-stone-400 text-sm mb-10 max-w-sm leading-relaxed">{c.sub}</p>
+      <section className="bg-[#FAFAF8] px-6 md:px-10 pt-14 pb-16 border-b border-stone-100">
+        <div className="max-w-3xl">
+          <div className="border-l-[3px] border-[#C4714A] pl-7">
+            <p className="text-[10px] tracking-[0.35em] uppercase text-stone-400 mb-5 font-light">
+              {c.tagline}
+            </p>
+            <h1 className="font-serif text-7xl md:text-[7rem] text-[#2A1A0E] leading-none tracking-tight mb-4">
+              珈琲市
+            </h1>
+            <p className="font-editorial italic text-xl md:text-2xl text-stone-400 leading-snug mb-10">
+              {c.heroSub}
+            </p>
 
-        <div className="relative max-w-xl">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
-          </svg>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={c.placeholder}
-            className="w-full bg-white/10 text-white placeholder-stone-500 text-sm pl-11 pr-4 py-3.5 rounded-full border border-stone-700 focus:outline-none focus:border-[#C8965A] transition-colors"
-          />
+            <div className="relative max-w-lg">
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={c.placeholder}
+                className="w-full bg-white text-[#2A1A0E] placeholder-stone-300 text-sm pl-10 pr-4 py-3 rounded-[2px] border border-stone-200 focus:outline-none focus:border-[#C4714A] transition-colors"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── Founding roasters strip ─────────────────────────────────────────── */}
-      <section className="bg-white border-b border-stone-100 py-6 px-6 md:px-10">
-        <p className="text-[10px] tracking-widest uppercase text-stone-300 text-center mb-5 select-none">
+      <section className="bg-white border-b border-stone-100 py-5 px-6 md:px-10">
+        <p className="text-[9px] tracking-[0.3em] uppercase text-stone-300 text-center mb-4 select-none">
           Founding Roasters
         </p>
         <div className="overflow-x-auto">
-          <ul className="flex items-center gap-10 md:gap-14 w-fit mx-auto list-none">
+          <ul className="flex items-center gap-8 md:gap-12 w-fit mx-auto list-none">
             {FOUNDING_ROASTERS.map(name => (
               <li key={name}>
                 <Link
                   href={`/roaster/${slugify(name)}`}
-                  className="font-serif text-[15px] text-stone-400 tracking-wide whitespace-nowrap hover:text-[#34150F] transition-colors duration-200 select-none"
+                  className="font-serif text-sm text-stone-400 tracking-wide whitespace-nowrap hover:text-[#2A1A0E] transition-colors duration-200 select-none"
                 >
                   {name}
                 </Link>
@@ -283,39 +272,39 @@ export default function Home() {
       </section>
 
       {/* ── Filter bar ──────────────────────────────────────────────────────── */}
-      <section className="bg-[#f7f5f2] border-b border-stone-200 px-6 md:px-10 py-4 overflow-x-auto">
-        <div className="flex items-center gap-8 min-w-max">
+      <section className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 overflow-x-auto">
+        <div className="flex items-center gap-6 min-w-max">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-stone-400 tracking-widest uppercase">{c.regionLabel}</span>
+            <span className="text-[10px] text-stone-400 tracking-widest uppercase font-light">{c.regionLabel}</span>
             {REGIONS.map((r) => <FilterPill key={r} label={r} active={region === r} onClick={() => setRegion(r)} />)}
           </div>
-          <div className="w-px h-5 bg-stone-200 shrink-0" />
+          <div className="w-px h-4 bg-stone-200 shrink-0" />
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-stone-400 tracking-widests uppercase">{c.roastLabel}</span>
+            <span className="text-[10px] text-stone-400 tracking-widest uppercase font-light">{c.roastLabel}</span>
             {ROASTS.map((r) => <FilterPill key={r} label={r} active={roast === r} onClick={() => setRoast(r)} />)}
           </div>
-          <div className="w-px h-5 bg-stone-200 shrink-0" />
+          <div className="w-px h-4 bg-stone-200 shrink-0" />
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-stone-400 tracking-widests uppercase">{c.typeLabel}</span>
+            <span className="text-[10px] text-stone-400 tracking-widest uppercase font-light">{c.typeLabel}</span>
             {TYPES.map((t) => <FilterPill key={t} label={t} active={sellerType === t} onClick={() => setSellerType(t)} />)}
           </div>
         </div>
       </section>
 
       {/* ── Results count ───────────────────────────────────────────────────── */}
-      <div className="px-6 md:px-10 pt-6 pb-2 flex items-center justify-between">
-        <p className="text-xs text-stone-400">
+      <div className="px-6 md:px-10 pt-5 pb-2 flex items-center justify-between">
+        <p className="text-xs text-stone-400 font-light">
           {isLoading ? (
             "Loading…"
           ) : (
             <>
-              Showing <span className="font-medium text-[#34150F]">{filtered.length}</span> of {products.length} coffees
-              {source === "mock" && <span className="ml-2 text-[#C8965A]">(demo data)</span>}
+              Showing <span className="font-normal text-[#2A1A0E]">{filtered.length}</span> of {products.length} coffees
+              {source === "mock" && <span className="ml-2 text-[#C4714A]">(demo data)</span>}
             </>
           )}
         </p>
         {!isLoading && hasActiveFilters && (
-          <button onClick={resetFilters} className="text-xs text-[#C8965A] hover:text-[#B8854C] transition-colors">
+          <button onClick={resetFilters} className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors font-light">
             Reset filters
           </button>
         )}
@@ -324,13 +313,13 @@ export default function Home() {
       {/* ── Product grid ────────────────────────────────────────────────────── */}
       <section className="flex-1 px-6 md:px-10 py-4">
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : filtered.length === 0 ? (
-          <p className="text-stone-400 text-sm text-center py-24">{c.noResults}</p>
+          <p className="text-stone-400 text-sm text-center py-24 font-light">{c.noResults}</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((product) => (
               <ProductCard
                 key={product.id}
@@ -344,9 +333,9 @@ export default function Home() {
       </section>
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#34150F] px-6 md:px-10 py-10 text-center">
-        <span className="font-serif text-xl text-[#C8965A]">KOHĪ</span>
-        <p className="text-stone-600 text-xs mt-2 tracking-widest">珈琲市 · {c.footerSub}</p>
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
+        <span className="font-serif text-xl text-[#C4714A]">珈琲市</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">KOHĪ · {c.footerSub}</p>
       </footer>
 
     </div>
