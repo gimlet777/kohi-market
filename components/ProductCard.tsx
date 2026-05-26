@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useCart } from "@/context/CartContext"
 import { slugify } from "@/lib/slugify"
 import type { Product, RoastLevel } from "@/lib/products"
+import type { FormatPreference } from "@/components/TasteQuiz"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,18 +53,52 @@ export function ProductCard({
   product,
   lang = "EN",
   batch,
+  preferredFormat = null,
 }: {
   product: Product
   lang?: Lang
   batch: LiveBatch | null
+  preferredFormat?: FormatPreference | null
 }) {
   const router = useRouter()
   const cart = useCart()
   const c = copy[lang]
 
-  // Guard: formats can be null/empty for legacy rows
-  const formats = product.formats?.length ? product.formats : []
-  const [selectedFormat, setSelectedFormat] = useState(formats[0] ?? { name: "", grams: 0, price: 0 })
+  // Guard: formats can be null/empty for legacy rows; deduplicate by name
+  const rawFormats = product.formats?.length ? product.formats : []
+  const allFormats = rawFormats.filter((f, i) => rawFormats.findIndex(x => x.name === f.name) === i)
+
+  // Note when the preferred format isn't stocked — but always show all formats so the selector is consistent
+  const formatNote: string | null = (() => {
+    if (!preferredFormat) return null
+    if (preferredFormat.type === "whole-bean" && !allFormats.some(f => f.name === "Whole Bean")) {
+      return `Available in ${allFormats.map(f => f.name).join(", ")} only`
+    }
+    if (preferredFormat.type === "drip-bag" && !allFormats.some(f => f.name === "Drip Bag")) {
+      return "Available in Whole Bean only — no drip bags"
+    }
+    if (preferredFormat.type === "pre-ground" && !allFormats.some(f => f.name.toLowerCase().includes("ground"))) {
+      return "Not available pre-ground — Whole Bean only"
+    }
+    return null
+  })()
+
+  // Pre-select the preferred format if available, otherwise first
+  const defaultFormat = (() => {
+    if (!preferredFormat) return allFormats[0] ?? { name: "", grams: 0, price: 0 }
+    if (preferredFormat.type === "whole-bean") {
+      return allFormats.find(f => f.name === "Whole Bean") ?? allFormats[0] ?? { name: "", grams: 0, price: 0 }
+    }
+    if (preferredFormat.type === "drip-bag") {
+      return allFormats.find(f => f.name === "Drip Bag") ?? allFormats[0] ?? { name: "", grams: 0, price: 0 }
+    }
+    if (preferredFormat.type === "pre-ground") {
+      return allFormats.find(f => f.name.toLowerCase().includes("ground")) ?? allFormats[0] ?? { name: "", grams: 0, price: 0 }
+    }
+    return allFormats[0] ?? { name: "", grams: 0, price: 0 }
+  })()
+
+  const [selectedFormat, setSelectedFormat] = useState(defaultFormat)
   const [justAdded, setJustAdded] = useState(false)
   const [showWaitlist, setShowWaitlist] = useState(false)
   const [waitlistEmail, setWaitlistEmail] = useState("")
@@ -72,7 +107,7 @@ export function ProductCard({
   const isCafe = product.type === "Café Roaster"
   const soldOut = isCafe && batch !== null && batch.bagsRemaining === 0
   const noBatch = isCafe && batch === null
-  const hasFormats = formats.length > 1
+  const hasFormats = allFormats.length > 1
 
   function handleAddToCart(e: React.MouseEvent) {
     e.stopPropagation()
@@ -172,11 +207,11 @@ export function ProductCard({
           </div>
         )}
 
-        {/* Format toggle — always rendered when >1 format */}
+        {/* Format toggle — shows preferred format(s) only when quiz is active */}
         {hasFormats && (
-          formats.length <= 3 ? (
+          allFormats.length <= 3 ? (
             <div className="flex gap-1.5">
-              {formats.map((fmt) => (
+              {allFormats.map((fmt) => (
                 <button
                   key={`${fmt.name}-${fmt.price}`}
                   onClick={(e) => { e.stopPropagation(); setSelectedFormat(fmt); setJustAdded(false) }}
@@ -197,12 +232,12 @@ export function ProductCard({
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => {
                   e.stopPropagation()
-                  const fmt = formats.find(f => `${f.name}-${f.price}` === e.target.value)
+                  const fmt = allFormats.find(f => `${f.name}-${f.price}` === e.target.value)
                   if (fmt) { setSelectedFormat(fmt); setJustAdded(false) }
                 }}
                 className="w-full text-[11px] py-2 pl-3 pr-8 rounded-[2px] border border-stone-200 bg-white text-stone-600 focus:outline-none focus:border-[#C4714A] appearance-none font-light"
               >
-                {formats.map((fmt) => (
+                {allFormats.map((fmt) => (
                   <option key={`${fmt.name}-${fmt.price}`} value={`${fmt.name}-${fmt.price}`}>
                     {c.formatLabels[fmt.name] ?? fmt.name}
                   </option>
@@ -213,6 +248,11 @@ export function ProductCard({
               </svg>
             </div>
           )
+        )}
+
+        {/* Format availability note — shown when preferred format isn't stocked */}
+        {formatNote && (
+          <p className="text-[10px] text-stone-400 font-light italic -mt-1">{formatNote}</p>
         )}
 
         {/* Price + CTA — mt-auto keeps it at bottom without mid-card gap */}

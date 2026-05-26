@@ -6,6 +6,7 @@ import { PRODUCTS as MOCK_PRODUCTS, rowToProduct, type ProductRow, type Product 
 import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
 import { ProductCard, type LiveBatch } from "@/components/ProductCard"
+import { TasteQuiz, type QuizResults, type FormatPreference } from "@/components/TasteQuiz"
 import { slugify } from "@/lib/slugify"
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
@@ -141,6 +142,28 @@ export default function Home() {
   const [batchMap, setBatchMap] = useState<Record<number, LiveBatch>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [source, setSource] = useState<"live" | "mock">("mock")
+  const [quizOpen, setQuizOpen] = useState(false)
+  const [quizResultIds, setQuizResultIds] = useState<number[] | null>(null)
+  const [quizBroadened, setQuizBroadened] = useState(false)
+  const [quizMatchReasons, setQuizMatchReasons] = useState<Record<number, string[]>>({})
+  const [quizMatchSummary, setQuizMatchSummary] = useState("")
+  const [quizFormatPref, setQuizFormatPref] = useState<FormatPreference | null>(null)
+
+  // Restore quiz state after back-navigation
+  useEffect(() => {
+    const saved = sessionStorage.getItem("kohi_quiz_results")
+    if (!saved) return
+    try {
+      const { ids, broadened, reasons, summary, formatPref } = JSON.parse(saved)
+      setQuizResultIds(ids)
+      setQuizBroadened(broadened)
+      setQuizMatchReasons(reasons)
+      setQuizMatchSummary(summary)
+      setQuizFormatPref(formatPref ?? null)
+    } catch {
+      sessionStorage.removeItem("kohi_quiz_results")
+    }
+  }, [])
 
   useEffect(() => {
     Promise.all([fetchProducts(), fetchOpenBatches()]).then(([prods, batches]) => {
@@ -164,6 +187,7 @@ export default function Home() {
 
   const q = search.trim().toLowerCase()
   const filtered = products.filter((p) => {
+    if (quizResultIds !== null && !quizResultIds.includes(p.id)) return false
     if (region !== "All" && p.region !== region) return false
     if (roast !== "All" && p.roast !== roast) return false
     if (sellerType !== "All" && p.type !== sellerType) return false
@@ -180,8 +204,37 @@ export default function Home() {
     setSearch("")
   }
 
+  function handleQuizResults({ ids, broadened, reasons, summary, formatPreference }: QuizResults) {
+    setQuizResultIds(ids)
+    setQuizBroadened(broadened)
+    setQuizMatchReasons(reasons)
+    setQuizMatchSummary(summary)
+    setQuizFormatPref(formatPreference)
+    setQuizOpen(false)
+    sessionStorage.setItem("kohi_quiz_results", JSON.stringify({
+      ids, broadened, reasons, summary, formatPref: formatPreference,
+    }))
+  }
+
+  function clearQuizResults() {
+    setQuizResultIds(null)
+    setQuizBroadened(false)
+    setQuizMatchReasons({})
+    setQuizMatchSummary("")
+    setQuizFormatPref(null)
+    sessionStorage.removeItem("kohi_quiz_results")
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
+
+      {/* ── Quiz modal ──────────────────────────────────────────────────────── */}
+      <TasteQuiz
+        products={products}
+        isOpen={quizOpen}
+        onClose={() => setQuizOpen(false)}
+        onResults={(r) => handleQuizResults(r)}
+      />
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
@@ -250,6 +303,20 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Quiz entry point ────────────────────────────────────────────────── */}
+      <button
+        onClick={() => setQuizOpen(true)}
+        className="w-full bg-[#C4714A] hover:bg-[#B05E3C] transition-colors duration-200 px-6 py-7 flex flex-col items-center justify-center gap-1.5 group"
+      >
+        <span className="font-serif text-xl text-white leading-tight">
+          Not sure where to start?
+        </span>
+        <span className="text-[13px] text-white/80 font-light tracking-wide flex items-center gap-1.5">
+          Answer 6 quick questions and we&apos;ll find your perfect match
+          <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
+        </span>
+      </button>
+
       {/* ── Founding roasters strip ─────────────────────────────────────────── */}
       <section className="bg-white border-b border-stone-100 py-5 px-6 md:px-10">
         <p className="text-[9px] tracking-[0.3em] uppercase text-stone-300 text-center mb-4 select-none">
@@ -291,21 +358,49 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Quiz results banner ─────────────────────────────────────────────── */}
+      {quizResultIds !== null && (
+        <div className="px-6 md:px-10 pt-5 pb-1 flex items-start justify-between gap-4">
+          <div className="space-y-0.5">
+            <span className="text-[10px] tracking-widest uppercase text-[#C4714A]">Quiz matches</span>
+            {quizMatchSummary && !quizBroadened && (
+              <p className="text-xs text-stone-500 font-light">
+                Matched on: {quizMatchSummary}
+              </p>
+            )}
+            {quizBroadened && (
+              <p className="text-xs text-stone-400 font-light italic">
+                We relaxed the filters to show our closest picks.
+              </p>
+            )}
+          </div>
+          <button
+            onClick={clearQuizResults}
+            className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors font-light shrink-0 mt-0.5 border border-[#C4714A]/30 hover:border-[#B05E3C]/50 px-2.5 py-1 rounded-[2px]"
+          >
+            Show all coffees →
+          </button>
+        </div>
+      )}
+
       {/* ── Results count ───────────────────────────────────────────────────── */}
       <div className="px-6 md:px-10 pt-5 pb-2 flex items-center justify-between">
         <p className="text-xs text-stone-400 font-light">
           {isLoading ? (
             "Loading…"
-          ) : (
+          ) : quizResultIds !== null ? null : (
             <>
               Showing <span className="font-normal text-[#2A1A0E]">{filtered.length}</span> of {products.length} coffees
               {source === "mock" && <span className="ml-2 text-[#C4714A]">(demo data)</span>}
             </>
           )}
         </p>
-        {!isLoading && hasActiveFilters && (
-          <button onClick={resetFilters} className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors font-light">
-            Reset filters
+        {!isLoading && (hasActiveFilters || quizResultIds !== null) && (
+          <button
+            onClick={() => { resetFilters(); clearQuizResults() }}
+            className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors font-light"
+          >
+            Reset all
           </button>
         )}
       </div>
@@ -320,14 +415,27 @@ export default function Home() {
           <p className="text-stone-400 text-sm text-center py-24 font-light">{c.noResults}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                lang={lang}
-                batch={batchMap[product.id] ?? null}
-              />
-            ))}
+            {filtered.map((product) => {
+              const matchReasons = quizResultIds !== null ? (quizMatchReasons[product.id] ?? []) : []
+              return (
+                <div key={`${product.id}-${quizFormatPref?.type ?? 'none'}`} className="flex flex-col">
+                  <ProductCard
+                    product={product}
+                    lang={lang}
+                    batch={batchMap[product.id] ?? null}
+                    preferredFormat={quizFormatPref}
+                  />
+                  {quizResultIds !== null && (
+                    <p className="mt-1 px-0.5 text-[10px] text-[#C4714A] font-light">
+                      ✓ Matches your taste
+                      {matchReasons.length > 0 && (
+                        <span className="text-stone-400"> · {matchReasons.slice(0, 2).join(", ")}</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </section>
