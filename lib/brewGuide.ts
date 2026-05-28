@@ -39,7 +39,7 @@ const DEFAULTS: Record<BrewMethodKey, Record<RoastLevel, BrewInstructions>> = {
       grind: "Coarse",
       ratio: "1 : 15",
       temp: "94–96°C",
-      time: "4:00",
+      time: "4 min",
       tips: [
         "Steep 4 minutes, then plunge slowly",
         "Light roasts respond well to higher water temperatures",
@@ -50,7 +50,7 @@ const DEFAULTS: Record<BrewMethodKey, Record<RoastLevel, BrewInstructions>> = {
       grind: "Medium-coarse",
       ratio: "1 : 15",
       temp: "93°C",
-      time: "4:00",
+      time: "4 min",
       tips: [
         "Classic French press territory — plunge gently to avoid sediment",
         "Skim the crust before plunging for a cleaner cup",
@@ -60,7 +60,7 @@ const DEFAULTS: Record<BrewMethodKey, Record<RoastLevel, BrewInstructions>> = {
       grind: "Medium-coarse",
       ratio: "1 : 14",
       temp: "91°C",
-      time: "3:30",
+      time: "3–4 min",
       tips: [
         "Dark roasts extract quickly — a shorter steep avoids bitterness",
         "Lower temperature preserves sweetness and body",
@@ -72,7 +72,7 @@ const DEFAULTS: Record<BrewMethodKey, Record<RoastLevel, BrewInstructions>> = {
       grind: "Medium-fine",
       ratio: "1 : 16",
       temp: "94–96°C",
-      time: "3:30–4:00",
+      time: "3½–4 min",
       tips: [
         "Bloom 30s with twice the coffee weight in water, then pour in slow steady circles",
         "High temperature helps extract the brighter, more delicate flavours",
@@ -83,7 +83,7 @@ const DEFAULTS: Record<BrewMethodKey, Record<RoastLevel, BrewInstructions>> = {
       grind: "Medium",
       ratio: "1 : 15",
       temp: "92–94°C",
-      time: "3:00–3:30",
+      time: "3–3½ min",
       tips: [
         "Bloom 30s, then pour in 3–4 stages",
         "Keep the flow rate steady to ensure even extraction",
@@ -93,7 +93,7 @@ const DEFAULTS: Record<BrewMethodKey, Record<RoastLevel, BrewInstructions>> = {
       grind: "Medium",
       ratio: "1 : 14",
       temp: "90–92°C",
-      time: "2:30–3:00",
+      time: "2½–3 min",
       tips: [
         "Lower temperature avoids extracting bitter compounds",
         "Faster pours work well — dark roasts flow through the bed more easily",

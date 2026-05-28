@@ -674,7 +674,7 @@ export default function EditProductPage() {
                               type="text"
                               value={entry?.time ?? ""}
                               onChange={e => updateBrewNote(method.key, "time", e.target.value)}
-                              placeholder="e.g. 3:30"
+                              placeholder="e.g. 3–4 min"
                               className={inputClass}
                             />
                           </Field>
