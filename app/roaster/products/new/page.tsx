@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { BREW_METHODS, type BrewMethodKey } from "@/lib/brewGuide"
 
 const ROAST_LEVELS = ["Light", "Medium", "Dark"] as const
 const PROCESSES = ["Washed", "Natural", "Honey", "Anaerobic", "Other"]
@@ -82,6 +83,8 @@ export default function NewProductPage() {
   const [formats, setFormats] = useState<Format[]>([{ name: "", grams: "", price: "" }])
   const [notes, setNotes] = useState<string[]>([])
   const [noteInput, setNoteInput] = useState("")
+  const [brewNotes, setBrewNotes] = useState<Partial<Record<BrewMethodKey, { grind: string; ratio: string; temp: string; time: string; tips: string }>>>({})
+  const [brewNotesOpen, setBrewNotesOpen] = useState<BrewMethodKey | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -142,6 +145,10 @@ export default function NewProductPage() {
     })
   }
 
+  function updateBrewNote(method: BrewMethodKey, field: string, value: string) {
+    setBrewNotes(prev => ({ ...prev, [method]: { ...prev[method], [field]: value } }))
+  }
+
   function resetForm() {
     setProductName("")
     setProductNameJp("")
@@ -153,6 +160,8 @@ export default function NewProductPage() {
     setFormats([{ name: "", grams: "", price: "" }])
     setNotes([])
     setNoteInput("")
+    setBrewNotes({})
+    setBrewNotesOpen(null)
     setError(null)
     setSaved(false)
     setSavedName("")
@@ -179,6 +188,19 @@ export default function NewProductPage() {
       price: Number(f.price),
     }))
 
+    // Serialise brew notes — only keep methods that have at least one field filled
+    const parsedBrewNotes = Object.fromEntries(
+      Object.entries(brewNotes)
+        .filter(([, v]) => v && Object.values(v).some(s => s.trim()))
+        .map(([k, v]) => [k, {
+          ...(v?.grind?.trim() ? { grind: v.grind.trim() } : {}),
+          ...(v?.ratio?.trim() ? { ratio: v.ratio.trim() } : {}),
+          ...(v?.temp?.trim()  ? { temp:  v.temp.trim()  } : {}),
+          ...(v?.time?.trim()  ? { time:  v.time.trim()  } : {}),
+          ...(v?.tips?.trim()  ? { tips:  v.tips.trim().split("\n").map(s => s.trim()).filter(Boolean) } : {}),
+        }])
+    )
+
     const payload = {
       roaster_id: session.user.id,
       roaster_name: profile.roaster_name,
@@ -195,6 +217,7 @@ export default function NewProductPage() {
       price: Math.min(...parsedFormats.map(f => f.price)),
       formats: parsedFormats,
       batch_info: null,
+      brew_notes: Object.keys(parsedBrewNotes).length ? parsedBrewNotes : null,
     }
 
     console.log("Inserting product:", payload)
@@ -546,6 +569,91 @@ export default function NewProductPage() {
               >
                 + Add custom format
               </button>
+            </div>
+          </SectionCard>
+
+          {/* Brew Guide Notes */}
+          <SectionCard title="Brew Guide Notes (optional)">
+            <div className="space-y-3">
+              <p className="text-[11px] text-stone-400 leading-relaxed">
+                Add specific brewing instructions for this coffee. Leave blank and sensible defaults based on roast and process will be shown to customers.
+              </p>
+              {BREW_METHODS.map(method => {
+                const isOpen = brewNotesOpen === method.key
+                const entry = brewNotes[method.key]
+                const hasSomething = entry && Object.values(entry).some(s => s.trim())
+                return (
+                  <div key={method.key} className="border border-stone-200 rounded-[2px] overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setBrewNotesOpen(isOpen ? null : method.key)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-stone-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-sm text-[#2A1A0E] font-medium">{method.label}</span>
+                        <span className="text-[11px] text-stone-400 font-light">{method.devices}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {hasSomething && <span className="text-[10px] text-[#C4714A] font-medium">Notes added</span>}
+                        <svg className={`h-4 w-4 text-stone-400 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-4 pt-2 bg-stone-50 border-t border-stone-100 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <Field label="Grind size">
+                            <input
+                              type="text"
+                              value={entry?.grind ?? ""}
+                              onChange={e => updateBrewNote(method.key, "grind", e.target.value)}
+                              placeholder="e.g. Medium-fine"
+                              className={inputClass}
+                            />
+                          </Field>
+                          <Field label="Ratio">
+                            <input
+                              type="text"
+                              value={entry?.ratio ?? ""}
+                              onChange={e => updateBrewNote(method.key, "ratio", e.target.value)}
+                              placeholder="e.g. 1 : 15"
+                              className={inputClass}
+                            />
+                          </Field>
+                          <Field label="Water temperature">
+                            <input
+                              type="text"
+                              value={entry?.temp ?? ""}
+                              onChange={e => updateBrewNote(method.key, "temp", e.target.value)}
+                              placeholder="e.g. 93°C"
+                              className={inputClass}
+                            />
+                          </Field>
+                          <Field label="Brew time">
+                            <input
+                              type="text"
+                              value={entry?.time ?? ""}
+                              onChange={e => updateBrewNote(method.key, "time", e.target.value)}
+                              placeholder="e.g. 3:30"
+                              className={inputClass}
+                            />
+                          </Field>
+                        </div>
+                        <Field label="Tips" hint="One tip per line — shown as bullet points on the product page">
+                          <textarea
+                            rows={3}
+                            value={entry?.tips ?? ""}
+                            onChange={e => updateBrewNote(method.key, "tips", e.target.value)}
+                            placeholder={"Bloom 30s before pouring\nAim for a flat coffee bed at draw-down"}
+                            className={`${inputClass} resize-none`}
+                          />
+                        </Field>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </SectionCard>
 

@@ -6,8 +6,9 @@ import Link from "next/link"
 import { rowToProduct, type ProductRow, type FormatOption, type Product } from "@/lib/products"
 import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
-
 import { slugify } from "@/lib/slugify"
+import { BrewGuide } from "@/components/BrewGuide"
+import type { BrewMethodKey } from "@/lib/brewGuide"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -224,21 +225,33 @@ export default function ProductPage() {
   const [cartAdded, setCartAdded] = useState(false)
   const [preordered, setPreordered] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [consumerId, setConsumerId] = useState<string | null>(null)
+  const [savedBrewMethod, setSavedBrewMethod] = useState<BrewMethodKey | null>(null)
+  const [isSavingMethod, setIsSavingMethod] = useState(false)
 
   useEffect(() => {
     const productId = Number(params.id)
-    Promise.all([
-      supabase.from("products").select("*").eq("id", productId).single(),
-      supabase
-        .from("batches")
-        .select("id, roast_date, total_bags, bags_remaining, status")
-        .eq("product_id", productId)
-        .eq("status", "open")
-        .gte("roast_date", new Date().toISOString().split("T")[0])
-        .order("roast_date", { ascending: true })
-        .limit(1)
-        .maybeSingle(),
-    ]).then(([{ data: productData, error: productError }, { data: batchData }]) => {
+    async function load() {
+      // Check consumer auth session in parallel with product/batch fetch
+      const [
+        [{ data: productData, error: productError }, { data: batchData }],
+        { data: { session } },
+      ] = await Promise.all([
+        Promise.all([
+          supabase.from("products").select("*").eq("id", productId).single(),
+          supabase
+            .from("batches")
+            .select("id, roast_date, total_bags, bags_remaining, status")
+            .eq("product_id", productId)
+            .eq("status", "open")
+            .gte("roast_date", new Date().toISOString().split("T")[0])
+            .order("roast_date", { ascending: true })
+            .limit(1)
+            .maybeSingle(),
+        ]),
+        supabase.auth.getSession(),
+      ])
+
       if (!productError && productData) {
         const p = rowToProduct(productData as ProductRow)
         setProduct(p)
@@ -253,8 +266,26 @@ export default function ProductPage() {
           status: batchData.status,
         })
       }
+
+      // Load consumer's saved brew method if logged in and not a roaster
+      if (session?.user) {
+        const isRoaster = !!(await supabase.from("roasters").select("id").eq("id", session.user.id).maybeSingle()).data
+        if (!isRoaster) {
+          setConsumerId(session.user.id)
+          const { data: profile } = await supabase
+            .from("consumer_profiles")
+            .select("preferred_brew_method")
+            .eq("id", session.user.id)
+            .maybeSingle()
+          if (profile?.preferred_brew_method) {
+            setSavedBrewMethod(profile.preferred_brew_method as BrewMethodKey)
+          }
+        }
+      }
+
       setIsLoading(false)
-    })
+    }
+    load()
   }, [params.id])
 
   useEffect(() => {
@@ -273,6 +304,16 @@ export default function ProductPage() {
       price: selectedFormat.price,
     })
     setCartAdded(true)
+  }
+
+  async function handleSaveBrewMethod(method: BrewMethodKey) {
+    if (!consumerId) return
+    setIsSavingMethod(true)
+    await supabase
+      .from("consumer_profiles")
+      .upsert({ id: consumerId, preferred_brew_method: method, updated_at: new Date().toISOString() })
+    setSavedBrewMethod(method)
+    setIsSavingMethod(false)
   }
 
   function handlePreorder() {
@@ -504,6 +545,17 @@ export default function ProductPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Brew Guide ──────────────────────────────────────────────────────── */}
+      <BrewGuide
+        roast={product.roast}
+        process={product.process}
+        brewNotes={product.brewNotes}
+        savedMethod={savedBrewMethod}
+        isLoggedIn={!!consumerId}
+        onSaveMethod={handleSaveBrewMethod}
+        isSavingMethod={isSavingMethod}
+      />
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
       <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">

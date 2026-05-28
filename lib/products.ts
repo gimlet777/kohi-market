@@ -28,6 +28,7 @@ export interface Product {
   formats: FormatOption[]
   type: SellerType
   batchInfo?: BatchInfo
+  brewNotes?: Record<string, Partial<import("@/lib/brewGuide").BrewInstructions>>
 }
 
 // ─── Supabase row shape & mapper ─────────────────────────────────────────────
@@ -49,6 +50,7 @@ export interface ProductRow {
   formats: FormatOption[]
   seller_type: string
   batch_info: { nextRoastDate: string; bagsRemaining: number } | null
+  brew_notes?: Record<string, Partial<import("@/lib/brewGuide").BrewInstructions>> | null
   created_at: string
 }
 
@@ -67,6 +69,7 @@ export function rowToProduct(row: ProductRow): Product {
     formats: row.formats,
     type: row.seller_type as SellerType,
     batchInfo: row.batch_info ?? undefined,
+    brewNotes: row.brew_notes ?? undefined,
   }
 }
 
