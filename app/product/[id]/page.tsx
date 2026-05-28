@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
 import { slugify } from "@/lib/slugify"
 import { BrewGuide } from "@/components/BrewGuide"
+import { UserNav } from "@/components/UserNav"
 import type { BrewMethodKey } from "@/lib/brewGuide"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -398,16 +399,19 @@ export default function ProductPage() {
           <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </Link>
 
-        <Link href="/cart" className="relative text-stone-400 hover:text-[#2A1A0E] transition-colors">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-          </svg>
-          {cart.totalCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-[#C4714A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
-              {cart.totalCount > 9 ? "9+" : cart.totalCount}
-            </span>
-          )}
-        </Link>
+        <div className="flex items-center gap-4">
+          <UserNav />
+          <Link href="/cart" className="relative text-stone-400 hover:text-[#2A1A0E] transition-colors">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+            </svg>
+            {cart.totalCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C4714A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+                {cart.totalCount > 9 ? "9+" : cart.totalCount}
+              </span>
+            )}
+          </Link>
+        </div>
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}

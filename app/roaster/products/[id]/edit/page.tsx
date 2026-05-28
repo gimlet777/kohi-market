@@ -24,6 +24,8 @@ const FORMAT_PRESETS: Array<{ name: string; grams: number }> = [
 const inputClass =
   "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors"
 
+const GRIND_OPTIONS = ["Extra Fine", "Fine", "Medium Fine", "Medium", "Coarse", "Extra Coarse"]
+
 interface Format {
   name: string
   grams: string
@@ -126,7 +128,7 @@ export default function EditProductPage() {
           loaded[key as BrewMethodKey] = {
             grind: String(val?.grind ?? ""),
             ratio: String(val?.ratio ?? ""),
-            temp: String(val?.temp ?? ""),
+            temp: String(val?.temp ?? "").replace(/°C$/i, ""),
             time: String(val?.time ?? ""),
             tips: Array.isArray(val?.tips) ? val.tips.join("\n") : String(val?.tips ?? ""),
           }
@@ -218,7 +220,7 @@ export default function EditProductPage() {
         .map(([k, v]) => [k, {
           ...(v?.grind?.trim() ? { grind: v.grind.trim() } : {}),
           ...(v?.ratio?.trim() ? { ratio: v.ratio.trim() } : {}),
-          ...(v?.temp?.trim()  ? { temp:  v.temp.trim()  } : {}),
+          ...(v?.temp?.trim()  ? { temp:  `${v.temp.trim()}°C`  } : {}),
           ...(v?.time?.trim()  ? { time:  v.time.trim()  } : {}),
           ...(v?.tips?.trim()  ? { tips:  v.tips.trim().split("\n").map(s => s.trim()).filter(Boolean) } : {}),
         }])
@@ -633,13 +635,19 @@ export default function EditProductPage() {
                       <div className="px-4 pb-4 pt-2 bg-stone-50 border-t border-stone-100 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <Field label="Grind size">
-                            <input
-                              type="text"
-                              value={entry?.grind ?? ""}
-                              onChange={e => updateBrewNote(method.key, "grind", e.target.value)}
-                              placeholder="e.g. Medium-fine"
-                              className={inputClass}
-                            />
+                            <div className="relative">
+                              <select
+                                value={entry?.grind ?? ""}
+                                onChange={e => updateBrewNote(method.key, "grind", e.target.value)}
+                                className={`${inputClass} appearance-none pr-10`}
+                              >
+                                <option value="">Select…</option>
+                                {GRIND_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
+                              </select>
+                              <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
                           </Field>
                           <Field label="Ratio">
                             <input
@@ -650,12 +658,14 @@ export default function EditProductPage() {
                               className={inputClass}
                             />
                           </Field>
-                          <Field label="Water temperature">
+                          <Field label="Water temperature (°C)">
                             <input
-                              type="text"
+                              type="number"
+                              min="0"
+                              max="100"
                               value={entry?.temp ?? ""}
                               onChange={e => updateBrewNote(method.key, "temp", e.target.value)}
-                              placeholder="e.g. 93°C"
+                              placeholder="93"
                               className={inputClass}
                             />
                           </Field>

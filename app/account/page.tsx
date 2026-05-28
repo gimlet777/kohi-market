@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { BREW_METHODS, type BrewMethodKey } from "@/lib/brewGuide"
+import { UserNav } from "@/components/UserNav"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -160,14 +161,7 @@ export default function AccountPage() {
           <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
           <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </Link>
-        {userId && (
-          <button
-            onClick={handleSignOut}
-            className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors"
-          >
-            Sign out
-          </button>
-        )}
+        <UserNav />
       </nav>
 
       <div className="flex-1 px-6 md:px-10 py-12 max-w-lg mx-auto w-full">

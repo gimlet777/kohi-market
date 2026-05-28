@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import type { ProductRow } from "@/lib/products"
+import { UserNav } from "@/components/UserNav"
 
 interface RoasterProfile {
   roaster_name: string
@@ -398,15 +399,9 @@ function DashboardContent() {
           <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
           <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </Link>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <span className="hidden sm:block text-xs text-stone-400 tracking-widest uppercase">Roaster Portal</span>
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors disabled:opacity-50"
-          >
-            {loggingOut ? "Signing out…" : "Sign out"}
-          </button>
+          <UserNav />
         </div>
       </nav>
 

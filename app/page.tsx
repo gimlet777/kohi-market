@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase"
 import { useCart } from "@/context/CartContext"
 import { ProductCard, type LiveBatch } from "@/components/ProductCard"
 import { TasteQuiz, type QuizResults, type FormatPreference } from "@/components/TasteQuiz"
+import { UserNav } from "@/components/UserNav"
 import { slugify } from "@/lib/slugify"
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
@@ -243,7 +244,7 @@ export default function Home() {
           <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5 text-xs">
             <button
               onClick={() => setLang("EN")}
@@ -259,6 +260,8 @@ export default function Home() {
               JP
             </button>
           </div>
+
+          <UserNav />
 
           <Link href="/cart" className="relative text-stone-500 hover:text-[#2A1A0E] transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
