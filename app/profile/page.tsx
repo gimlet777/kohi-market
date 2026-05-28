@@ -27,6 +27,7 @@ interface Order {
 }
 
 interface ConsumerProfile {
+  display_name: string | null
   preferred_brew_method: BrewMethodKey | null
   grinder_type: string | null
 }
@@ -101,7 +102,7 @@ export default function ProfilePage() {
           .order("created_at", { ascending: false }),
         supabase
           .from("consumer_profiles")
-          .select("preferred_brew_method, grinder_type")
+          .select("display_name, preferred_brew_method, grinder_type")
           .eq("id", session.user.id)
           .maybeSingle(),
       ])
@@ -171,7 +172,9 @@ export default function ProfilePage() {
         {/* Header */}
         <div>
           <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-1">My Account</p>
-          <h1 className="font-serif text-3xl text-[#2A1A0E]">Profile</h1>
+          <h1 className="font-serif text-3xl text-[#2A1A0E]">
+            {profile?.display_name ?? "Profile"}
+          </h1>
           {userEmail && (
             <p className="text-xs text-stone-400 font-light mt-1">{userEmail}</p>
           )}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -18,6 +18,7 @@ interface UserState {
 
 export function UserNav() {
   const router = useRouter()
+  const pathname = usePathname()
   const [user, setUser] = useState<UserState | null>(null)
   const [ready, setReady] = useState(false)
   const [open, setOpen] = useState(false)
@@ -46,11 +47,18 @@ export function UserNav() {
           slug: roasterRow.slug ?? undefined,
         })
       } else {
-        const email = session.user.email ?? ""
+        // Read display_name from consumer_profiles if available
+        const { data: profileRow } = await supabase
+          .from("consumer_profiles")
+          .select("display_name")
+          .eq("id", session.user.id)
+          .maybeSingle()
+        if (!mounted) return
+        const name = profileRow?.display_name?.trim() || session.user.email || ""
         setUser({
           type: "consumer",
-          initial: email[0]?.toUpperCase() ?? "U",
-          displayName: email,
+          initial: name[0]?.toUpperCase() ?? "U",
+          displayName: name,
         })
       }
       setReady(true)
@@ -98,9 +106,12 @@ export function UserNav() {
   if (!ready) return <div className="w-14 h-5" />
 
   if (!user) {
+    const loginHref = pathname && pathname !== "/login" && pathname !== "/signup"
+      ? `/login?returnTo=${encodeURIComponent(pathname)}`
+      : "/login"
     return (
       <Link
-        href="/account"
+        href={loginHref}
         className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors tracking-wide"
       >
         Sign in
