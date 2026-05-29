@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "KOHĪ — Japan Coffee Marketplace",
-    short_name: "KOHĪ",
+    name: "Mame Mart",
+    short_name: "豆MART",
     description: "Discover exceptional specialty coffee from independent Japanese roasters.",
     start_url: "/",
     display: "standalone",

@@ -86,8 +86,7 @@ export default function SignupPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
-          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         </Link>
         <span className="text-xs text-stone-400">Roaster Portal</span>
       </nav>
@@ -97,7 +96,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
 
           <div className="mb-8">
-            <h1 className="font-serif text-3xl text-[#2A1A0E] mb-2">Join KOHĪ</h1>
+            <h1 className="font-serif text-3xl text-[#2A1A0E] mb-2">Join Mame Mart</h1>
             <p className="text-sm text-stone-400">Create your seller account to list your coffees.</p>
           </div>
 

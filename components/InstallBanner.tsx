@@ -51,8 +51,8 @@ export default function InstallBanner() {
         <div className="flex-1 min-w-0">
           <p className="text-[#F5ECD7] text-sm font-medium leading-snug">
             {isIOS
-              ? "Add KOHĪ to your home screen"
-              : "Install the KOHĪ app"}
+              ? "Add Mame Mart to your home screen"
+              : "Install the Mame Mart app"}
           </p>
           {isIOS ? (
             <p className="text-stone-400 text-xs mt-0.5 leading-relaxed">

@@ -30,7 +30,7 @@ export async function sendBuyerConfirmation({
   return resend.emails.send({
     from: FROM,
     to,
-    subject: "Your KOHĪ order is confirmed",
+    subject: "Your Mame Mart order is confirmed",
     html: buyerEmailHtml({ buyerName, items, totalAmount, orderRef }),
   })
 }
@@ -58,7 +58,7 @@ export async function sendRoasterNotification({
   return resend.emails.send({
     from: FROM,
     to,
-    subject: `New KOHĪ order — ${productList}`,
+    subject: `New Mame Mart order — ${productList}`,
     html: roasterEmailHtml({ roasterName, items, buyerName, buyerEmail, shippingAddress, orderRef }),
   })
 }
@@ -77,8 +77,7 @@ function emailShell(content: string): string {
         <!-- Header -->
         <tr>
           <td style="background:#34150F;padding:28px 40px;border-radius:16px 16px 0 0;">
-            <span style="font-family:Georgia,serif;font-size:26px;color:#C8965A;letter-spacing:3px;">KOHĪ</span>
-            <span style="font-family:Georgia,serif;font-size:13px;color:#78716c;margin-left:10px;letter-spacing:1px;">珈琲市</span>
+            <span style="font-family:Georgia,serif;font-size:22px;color:#C8965A;letter-spacing:1px;">豆</span><span style="font-family:Arial,sans-serif;font-size:22px;color:#C8965A;font-weight:600;letter-spacing:2px;">MART</span>
           </td>
         </tr>
 
@@ -92,8 +91,8 @@ function emailShell(content: string): string {
         <!-- Footer -->
         <tr>
           <td style="background:#34150F;padding:24px 40px;text-align:center;border-radius:0 0 16px 16px;">
-            <p style="margin:0;font-family:Georgia,serif;color:#C8965A;font-size:16px;letter-spacing:2px;">KOHĪ</p>
-            <p style="margin:8px 0 0;color:#78716c;font-size:11px;letter-spacing:2px;">珈琲市 · Specialty Coffee Marketplace</p>
+            <p style="margin:0;color:#C8965A;font-size:16px;"><span style="font-family:Georgia,serif;">豆</span><span style="font-family:Arial,sans-serif;font-weight:600;letter-spacing:1px;">MART</span></p>
+            <p style="margin:8px 0 0;color:#78716c;font-size:11px;letter-spacing:2px;">Mame Mart · Specialty Coffee Marketplace</p>
           </td>
         </tr>
 
@@ -200,7 +199,7 @@ function roasterEmailHtml({
 
   const content = `
     <h2 style="margin:0 0 6px;font-size:26px;color:#34150F;font-weight:normal;">New order</h2>
-    <p style="margin:0 0 4px;font-size:14px;color:#78716c;">Hi ${roasterName}, you have a new order on KOHĪ.</p>
+    <p style="margin:0 0 4px;font-size:14px;color:#78716c;">Hi ${roasterName}, you have a new order on Mame Mart.</p>
     <p style="margin:0 0 32px;font-size:12px;color:#a8a29e;letter-spacing:1px;">Order ref: #${refShort}</p>
 
     ${itemsTable(items)}

@@ -19,8 +19,8 @@ const cormorantGaramond = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "KOHĪ — Specialty Coffee Marketplace",
-  description: "Discover exceptional specialty coffee from independent roasters.",
+  title: "Mame Mart — Japan's Specialty Coffee Marketplace",
+  description: "Discover exceptional specialty coffee from independent Japanese roasters.",
 };
 
 export default function RootLayout({

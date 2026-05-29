@@ -339,8 +339,7 @@ export default function ProductPage() {
             ← Marketplace
           </Link>
           <Link href="/" className="flex items-center gap-3">
-            <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
-            <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+            <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
           </Link>
           <Link href="/cart" className="relative text-stone-400 hover:text-[#2A1A0E] transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -395,8 +394,7 @@ export default function ProductPage() {
         </Link>
 
         <Link href="/" className="flex items-center gap-3">
-          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
-          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         </Link>
 
         <div className="flex items-center gap-4">
@@ -563,8 +561,8 @@ export default function ProductPage() {
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
       <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
-        <span className="font-serif text-xl text-[#C4714A]">珈琲市</span>
-        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">KOHĪ · Specialty Coffee Marketplace</p>
+        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
 
     </div>

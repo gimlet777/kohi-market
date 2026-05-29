@@ -246,8 +246,7 @@ export default function NewProductPage() {
       <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
         <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
-            <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+            <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
           </Link>
           <span className="text-xs text-stone-400 tracking-widest uppercase hidden sm:block">Roaster Portal</span>
         </nav>
@@ -300,8 +299,7 @@ export default function NewProductPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <span className="font-serif text-xl text-[#2A1A0E] leading-none">珈琲市</span>
-          <span className="text-[11px] text-stone-300 tracking-[0.18em] font-light leading-none mt-0.5">KOHĪ</span>
+          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         </Link>
         <span className="text-xs text-stone-400 tracking-widest uppercase">Roaster Portal</span>
       </nav>
@@ -694,8 +692,8 @@ export default function NewProductPage() {
 
       {/* Footer */}
       <footer className="bg-[#2A1A0E] px-6 md:px-10 py-8 text-center mt-auto">
-        <span className="font-serif text-lg text-[#C4714A]">珈琲市</span>
-        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">KOHĪ · Roaster Portal</p>
+        <span className="text-lg font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Roaster Portal</p>
       </footer>
     </div>
   )
