@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { PRODUCTS as MOCK_PRODUCTS, rowToProduct, type ProductRow, type Product } from "@/lib/products"
 import { supabase } from "@/lib/supabase"
@@ -150,6 +150,22 @@ export default function Home() {
   const [quizMatchSummary, setQuizMatchSummary] = useState("")
   const [quizFormatPref, setQuizFormatPref] = useState<FormatPreference | null>(null)
 
+  // Furigana: refs on the rendered characters, state for their measured widths
+  const mameCharRef = useRef<HTMLSpanElement>(null)
+  const martCharRef = useRef<HTMLSpanElement>(null)
+  const [mameW, setMameW] = useState(0)
+  const [martW, setMartW] = useState(0)
+
+  useEffect(() => {
+    function measure() {
+      if (mameCharRef.current) setMameW(mameCharRef.current.getBoundingClientRect().width)
+      if (martCharRef.current) setMartW(martCharRef.current.getBoundingClientRect().width)
+    }
+    measure()
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [])
+
   // Restore quiz state after back-navigation
   useEffect(() => {
     const saved = sessionStorage.getItem("kohi_quiz_results")
@@ -282,8 +298,59 @@ export default function Home() {
             <p className="text-[10px] tracking-[0.35em] uppercase text-stone-400 mb-5 font-light">
               {c.tagline}
             </p>
-            <h1 className="text-7xl md:text-[7rem] text-[#2A1A0E] leading-none tracking-tight mb-4">
-              <span className="font-serif">豆</span><span className="font-medium">MART</span>
+            <h1 className="mb-4 leading-none">
+              <div style={{ display: "inline-flex", alignItems: "flex-end", gap: 0 }}>
+
+                {/* ── 豆 / MAME pair ── */}
+                <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
+                  <span style={{
+                    width: mameW || undefined,
+                    textAlign: "center",
+                    fontSize: 11,
+                    fontWeight: 300,
+                    letterSpacing: "0.25em",
+                    color: "#A08060",
+                    marginBottom: 5,
+                    textTransform: "uppercase",
+                    userSelect: "none",
+                    fontFamily: "var(--font-inter, sans-serif)",
+                    whiteSpace: "nowrap",
+                  }}>
+                    MAME
+                  </span>
+                  <span
+                    ref={mameCharRef}
+                    className="font-serif text-7xl md:text-[7rem] text-[#2A1A0E] leading-none tracking-tight"
+                  >
+                    豆
+                  </span>
+                </div>
+
+                {/* ── MART / マート pair ── */}
+                <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
+                  <span style={{
+                    width: martW || undefined,
+                    textAlign: "center",
+                    fontSize: 11,
+                    fontWeight: 300,
+                    letterSpacing: "0.25em",
+                    color: "#A08060",
+                    marginBottom: 5,
+                    userSelect: "none",
+                    fontFamily: "'Shippori Mincho', serif",
+                    whiteSpace: "nowrap",
+                  }}>
+                    マート
+                  </span>
+                  <span
+                    ref={martCharRef}
+                    className="font-medium text-7xl md:text-[7rem] text-[#2A1A0E] leading-none tracking-tight"
+                  >
+                    MART
+                  </span>
+                </div>
+
+              </div>
             </h1>
             <p className="font-editorial italic text-xl md:text-2xl text-stone-400 leading-snug mb-10">
               {c.heroSub}
