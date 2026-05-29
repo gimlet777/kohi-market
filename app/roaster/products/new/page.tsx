@@ -87,6 +87,7 @@ export default function NewProductPage() {
   const [noteInput, setNoteInput] = useState("")
   const [brewNotes, setBrewNotes] = useState<Partial<Record<BrewMethodKey, { grind: string; ratio: string; temp: string; time: string; tips: string }>>>({})
   const [brewNotesOpen, setBrewNotesOpen] = useState<BrewMethodKey | null>(null)
+  const [suggestingFor, setSuggestingFor] = useState<BrewMethodKey | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -149,6 +150,37 @@ export default function NewProductPage() {
 
   function updateBrewNote(method: BrewMethodKey, field: string, value: string) {
     setBrewNotes(prev => ({ ...prev, [method]: { ...prev[method], [field]: value } }))
+  }
+
+  async function suggestBrew(method: BrewMethodKey) {
+    setSuggestingFor(method)
+    setBrewNotesOpen(method)
+    try {
+      const res = await fetch("/api/suggest-brew", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          brewMethod: method,
+          roastLevel: roastLevel || undefined,
+          coffeeProcess: process || undefined,
+          origin: origin || undefined,
+        }),
+      })
+      if (!res.ok) return
+      const suggestion = await res.json()
+      setBrewNotes(prev => ({
+        ...prev,
+        [method]: {
+          grind: suggestion.grind ?? prev[method]?.grind ?? "",
+          ratio: suggestion.ratio ?? prev[method]?.ratio ?? "",
+          temp: suggestion.temp != null ? String(suggestion.temp) : prev[method]?.temp ?? "",
+          time: suggestion.time ?? prev[method]?.time ?? "",
+          tips: Array.isArray(suggestion.tips) ? suggestion.tips.join("\n") : prev[method]?.tips ?? "",
+        },
+      }))
+    } finally {
+      setSuggestingFor(null)
+    }
   }
 
   function resetForm() {
@@ -584,22 +616,30 @@ export default function NewProductPage() {
                 const hasSomething = entry && Object.values(entry).some(s => s.trim())
                 return (
                   <div key={method.key} className="border border-stone-200 rounded-[2px] overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setBrewNotesOpen(isOpen ? null : method.key)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-stone-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5">
+                    <div className="flex items-center justify-between hover:bg-stone-50 transition-colors">
+                      <button
+                        type="button"
+                        onClick={() => setBrewNotesOpen(isOpen ? null : method.key)}
+                        className="flex-1 flex items-center gap-2.5 px-4 py-3 text-left min-w-0"
+                      >
                         <span className="text-sm text-[#2A1A0E] font-medium">{method.label}</span>
-                        <span className="text-[11px] text-stone-400 font-light">{method.devices}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] text-stone-400 font-light truncate">{method.devices}</span>
+                      </button>
+                      <div className="flex items-center gap-2 pr-4 shrink-0">
                         {hasSomething && <span className="text-[10px] text-[#C4714A] font-medium">Notes added</span>}
+                        <button
+                          type="button"
+                          disabled={suggestingFor === method.key}
+                          onClick={() => suggestBrew(method.key)}
+                          className="text-[11px] text-stone-400 hover:text-[#C4714A] transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                          {suggestingFor === method.key ? "Suggesting…" : "Suggest with AI →"}
+                        </button>
                         <svg className={`h-4 w-4 text-stone-400 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
                       </div>
-                    </button>
+                    </div>
                     {isOpen && (
                       <div className="px-4 pb-4 pt-2 bg-stone-50 border-t border-stone-100 space-y-3">
                         <div className="grid grid-cols-2 gap-3">

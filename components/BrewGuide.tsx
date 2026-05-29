@@ -95,10 +95,15 @@ function InstructionPanel({
 }) {
   return (
     <div className="space-y-5">
-      {isRoasterNote && (
+      {isRoasterNote ? (
         <p className="text-[10px] tracking-[0.2em] uppercase text-[#C4714A] flex items-center gap-1.5">
           <span className="inline-block w-1 h-1 rounded-full bg-[#C4714A]" />
-          Roaster recipe
+          Roaster&apos;s recommendation
+        </p>
+      ) : (
+        <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400 flex items-center gap-1.5">
+          <span className="inline-block w-1 h-1 rounded-full bg-stone-300" />
+          General brewing guide
         </p>
       )}
 
