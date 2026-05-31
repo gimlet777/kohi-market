@@ -13,7 +13,8 @@ import type { FormatPreference } from "@/components/TasteQuiz"
 export interface LiveBatch {
   id: string
   productId: number
-  roastDate: string
+  roastDate: string | null
+  availableNow: boolean
   totalBags: number
   bagsRemaining: number
 }
@@ -105,7 +106,8 @@ export function ProductCard({
   const [waitlistDone, setWaitlistDone] = useState(false)
 
   const isCafe = product.type === "Café Roaster"
-  const soldOut = isCafe && batch !== null && batch.bagsRemaining === 0
+  const availableNow = isCafe && batch !== null && batch.availableNow
+  const soldOut = isCafe && batch !== null && !batch.availableNow && batch.bagsRemaining === 0
   const noBatch = isCafe && batch === null
   const hasFormats = allFormats.length > 1
 
@@ -188,10 +190,10 @@ export function ProductCard({
           {product.notes.join(" · ")}
         </p>
 
-        {/* Batch info strip — Café Roasters only */}
-        {isCafe && batch && (
+        {/* Batch info strip — scheduled batches only (not in-stock, not unavailable) */}
+        {isCafe && batch && !batch.availableNow && (
           <div className="flex items-center justify-between bg-stone-50 border border-stone-100 rounded-[2px] px-3 py-2 text-[11px]">
-            <span className="text-stone-500 font-light">Roasts {formatShortDate(batch.roastDate)}</span>
+            <span className="text-stone-500 font-light">Roasts {batch.roastDate ? formatShortDate(batch.roastDate) : "—"}</span>
             {batch.bagsRemaining > 0 ? (
               <span className={`font-normal ${batch.bagsRemaining <= 5 ? "text-red-500" : "text-emerald-600"}`}>
                 {batch.bagsRemaining} bag{batch.bagsRemaining !== 1 ? "s" : ""} left
@@ -201,9 +203,9 @@ export function ProductCard({
             )}
           </div>
         )}
-        {isCafe && !batch && (
+        {isCafe && noBatch && (
           <div className="bg-stone-50 border border-stone-100 rounded-[2px] px-3 py-2 text-[11px] text-stone-400 font-light">
-            No batches scheduled
+            Currently unavailable
           </div>
         )}
 
@@ -261,7 +263,8 @@ export function ProductCard({
             ¥{selectedFormat.price.toLocaleString()}
           </p>
 
-          {!isCafe && (
+          {/* Roastery or café in-stock: Add to Cart */}
+          {(!isCafe || availableNow) && (
             <button
               onClick={handleAddToCart}
               className={`text-[11px] px-3 py-1.5 rounded-[2px] tracking-wide transition-colors font-light ${
@@ -274,7 +277,8 @@ export function ProductCard({
             </button>
           )}
 
-          {isCafe && !soldOut && !noBatch && (
+          {/* Café scheduled batch with stock: Pre-order */}
+          {isCafe && !availableNow && batch && !soldOut && (
             <button
               onClick={handlePreorder}
               className={`text-[11px] px-3 py-1.5 rounded-[2px] tracking-wide transition-colors font-light ${
@@ -287,17 +291,19 @@ export function ProductCard({
             </button>
           )}
 
+          {/* Café sold out */}
           {isCafe && soldOut && (
             <span className="text-[11px] px-3 py-1.5 rounded-[2px] bg-stone-100 text-stone-400 border border-stone-200 font-light">Sold out</span>
           )}
 
+          {/* Café no batch */}
           {isCafe && noBatch && (
-            <span className="text-[11px] px-3 py-1.5 rounded-[2px] bg-stone-100 text-stone-400 border border-stone-200 font-light">Coming soon</span>
+            <span className="text-[11px] px-3 py-1.5 rounded-[2px] bg-stone-100 text-stone-400 border border-stone-200 font-light">Unavailable</span>
           )}
         </div>
 
-        {/* Waitlist — sold out only */}
-        {isCafe && soldOut && (
+        {/* Waitlist — sold out or no batch */}
+        {isCafe && (soldOut || noBatch) && (
           <div onClick={e => e.stopPropagation()}>
             {waitlistDone ? (
               <p className="text-[11px] text-emerald-600 text-center font-light">You're on the list ✓</p>

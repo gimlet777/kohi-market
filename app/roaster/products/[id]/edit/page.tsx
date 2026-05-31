@@ -36,6 +36,7 @@ interface Profile {
   roaster_name: string
   region: string
   seller_type: string
+  is_pro?: boolean
 }
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
@@ -103,7 +104,7 @@ export default function EditProductPage() {
       if (!session) { router.replace("/roaster/login"); return }
 
       const [{ data: profileData }, { data: product }] = await Promise.all([
-        supabase.from("roasters").select("roaster_name, region, seller_type").eq("id", session.user.id).single(),
+        supabase.from("roasters").select("roaster_name, region, seller_type, is_pro").eq("id", session.user.id).single(),
         supabase.from("products").select("*").eq("id", productId).eq("roaster_id", session.user.id).single(),
       ])
 
@@ -568,8 +569,8 @@ export default function EditProductPage() {
                     const drip = fmt.name.toLowerCase().includes("drip")
                     const priceVal = parseInt(fmt.price, 10)
                     const hasPrice = !isNaN(priceVal) && priceVal > 0
-                    const commissionRate = profile?.seller_type === "Café Roaster" ? 0.10 : 0.12
-                    const commissionPct = Math.round(commissionRate * 100)
+                    const commissionRate = profile?.is_pro ? 0.06 : 0.10
+                    const commissionPct = profile?.is_pro ? 6 : 10
                     const payout = hasPrice ? priceVal - Math.round(priceVal * commissionRate) : null
                     return (
                       <div key={i} className="space-y-1">
@@ -615,6 +616,9 @@ export default function EditProductPage() {
                         {payout !== null && (
                           <p className="text-[10px] text-[#C4714A] font-light text-right pr-9">
                             You receive ¥{payout.toLocaleString()} after {commissionPct}% commission
+                            {!profile?.is_pro && (
+                              <span className="text-stone-300 ml-1">(Pro plan drops to 6% · break-even at ¥120,000/month)</span>
+                            )}
                           </p>
                         )}
                       </div>

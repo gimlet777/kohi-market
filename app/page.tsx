@@ -23,21 +23,25 @@ async function fetchProducts(): Promise<Product[]> {
 
 async function fetchOpenBatches(): Promise<LiveBatch[]> {
   const today = new Date().toISOString().split("T")[0]
+  // Auto-complete past scheduled batches; skip available_now batches (they have no roast_date)
   await supabase
     .from("batches")
     .update({ status: "complete" })
     .eq("status", "open")
+    .eq("available_now", false)
     .lt("roast_date", today)
   const { data } = await supabase
     .from("batches")
-    .select("id, product_id, roast_date, total_bags, bags_remaining")
+    .select("id, product_id, roast_date, available_now, total_bags, bags_remaining")
     .eq("status", "open")
-    .gte("roast_date", today)
-    .order("roast_date", { ascending: true })
+    .or(`available_now.eq.true,roast_date.gte.${today}`)
+    .order("available_now", { ascending: false }) // in-stock first
+    .order("roast_date", { ascending: true, nullsFirst: false })
   return (data ?? []).map(r => ({
     id: r.id,
     productId: r.product_id,
     roastDate: r.roast_date,
+    availableNow: r.available_now ?? false,
     totalBags: r.total_bags,
     bagsRemaining: r.bags_remaining,
   }))

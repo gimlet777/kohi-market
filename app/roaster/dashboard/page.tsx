@@ -44,7 +44,8 @@ interface Order {
 interface BatchRow {
   id: string
   product_id: number
-  roast_date: string
+  roast_date: string | null
+  available_now: boolean
   total_bags: number
   bags_remaining: number
   status: "open" | "closed" | "complete"
@@ -151,6 +152,7 @@ function DashboardContent() {
 
   // Add batch form
   const [showAddBatch, setShowAddBatch] = useState(false)
+  const [batchMode, setBatchMode] = useState<"now" | "schedule">("schedule")
   const [batchForm, setBatchForm] = useState({ productId: "", roastDate: "", totalBags: "" })
   const [batchSubmitting, setBatchSubmitting] = useState(false)
   const [batchError, setBatchError] = useState<string | null>(null)
@@ -187,9 +189,9 @@ function DashboardContent() {
           .order("created_at", { ascending: false }),
         supabase
           .from("batches")
-          .select("id, product_id, roast_date, total_bags, bags_remaining, status, created_at, products(product_name)")
+          .select("id, product_id, roast_date, available_now, total_bags, bags_remaining, status, created_at, products(product_name)")
           .eq("roaster_id", session.user.id)
-          .order("roast_date", { ascending: true }),
+          .order("created_at", { ascending: false }),
       ])
 
       if (profileError) console.error("Profile fetch error:", profileError)
@@ -343,8 +345,14 @@ function DashboardContent() {
     setBatchSubmitting(true)
     setBatchError(null)
 
-    if (!userId || !batchForm.productId || !batchForm.roastDate || !batchForm.totalBags) {
+    if (!userId || !batchForm.productId || !batchForm.totalBags) {
       setBatchError("All fields are required.")
+      setBatchSubmitting(false)
+      return
+    }
+
+    if (batchMode === "schedule" && !batchForm.roastDate) {
+      setBatchError("Please select a roast date.")
       setBatchSubmitting(false)
       return
     }
@@ -361,12 +369,13 @@ function DashboardContent() {
       .insert({
         roaster_id: userId,
         product_id: parseInt(batchForm.productId, 10),
-        roast_date: batchForm.roastDate,
+        roast_date: batchMode === "schedule" ? batchForm.roastDate : null,
+        available_now: batchMode === "now",
         total_bags: total,
         bags_remaining: total,
         status: "open",
       })
-      .select("id, product_id, roast_date, total_bags, bags_remaining, status, created_at")
+      .select("id, product_id, roast_date, available_now, total_bags, bags_remaining, status, created_at")
       .single()
 
     if (error) {
@@ -375,15 +384,15 @@ function DashboardContent() {
       return
     }
 
-    // Construct the BatchRow with joined product name from local state
     const matchedProduct = products.find(p => p.id === parseInt(batchForm.productId, 10))
     const newBatch: BatchRow = {
       ...data,
       products: matchedProduct ? { product_name: matchedProduct.product_name } : null,
     }
 
-    setBatches(prev => [...prev, newBatch].sort((a, b) => a.roast_date.localeCompare(b.roast_date)))
+    setBatches(prev => [newBatch, ...prev])
     setBatchForm({ productId: "", roastDate: "", totalBags: "" })
+    setBatchMode("schedule")
     setShowAddBatch(false)
     setBatchSubmitting(false)
   }
@@ -474,8 +483,28 @@ function DashboardContent() {
             {/* Add Batch form */}
             {showAddBatch && (
               <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-6">
-                <h3 className="text-xs tracking-widest uppercase text-stone-400 mb-5">Schedule New Batch</h3>
+                <h3 className="text-xs tracking-widest uppercase text-stone-400 mb-5">New Batch</h3>
                 <form onSubmit={handleAddBatch} className="space-y-4">
+
+                  {/* Mode toggle */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["now", "schedule"] as const).map(mode => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => { setBatchMode(mode); setBatchError(null) }}
+                        className={`py-2.5 px-3 rounded-[2px] text-sm border transition-colors text-left ${
+                          batchMode === mode
+                            ? "bg-[#2A1A0E] text-white border-[#2A1A0E]"
+                            : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
+                        }`}
+                      >
+                        {mode === "now" ? "I have stock ready now" : "Schedule a future roast"}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Product selector */}
                   <div>
                     <label className="block text-xs text-stone-500 mb-1.5">Product</label>
                     {products.length === 0 ? (
@@ -495,7 +524,8 @@ function DashboardContent() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Roast date — schedule mode only */}
+                  {batchMode === "schedule" && (
                     <div>
                       <label className="block text-xs text-stone-500 mb-1.5">Roast date</label>
                       <input
@@ -507,18 +537,22 @@ function DashboardContent() {
                         className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A]"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs text-stone-500 mb-1.5">Total bags</label>
-                      <input
-                        type="number"
-                        required
-                        min="1"
-                        placeholder="e.g. 20"
-                        value={batchForm.totalBags}
-                        onChange={e => setBatchForm(f => ({ ...f, totalBags: e.target.value }))}
-                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A]"
-                      />
-                    </div>
+                  )}
+
+                  {/* Bags available */}
+                  <div>
+                    <label className="block text-xs text-stone-500 mb-1.5">
+                      {batchMode === "now" ? "Bags available" : "Total bags"}
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      placeholder="e.g. 20"
+                      value={batchForm.totalBags}
+                      onChange={e => setBatchForm(f => ({ ...f, totalBags: e.target.value }))}
+                      className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A]"
+                    />
                   </div>
 
                   {batchError && (
@@ -531,11 +565,13 @@ function DashboardContent() {
                       disabled={batchSubmitting || products.length === 0}
                       className="bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] transition-colors"
                     >
-                      {batchSubmitting ? "Scheduling…" : "Schedule Batch"}
+                      {batchSubmitting
+                        ? (batchMode === "now" ? "Adding…" : "Scheduling…")
+                        : (batchMode === "now" ? "Add in-stock batch" : "Schedule batch")}
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setShowAddBatch(false); setBatchError(null); setBatchForm({ productId: "", roastDate: "", totalBags: "" }) }}
+                      onClick={() => { setShowAddBatch(false); setBatchError(null); setBatchForm({ productId: "", roastDate: "", totalBags: "" }); setBatchMode("schedule") }}
                       className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
                     >
                       Cancel
@@ -570,8 +606,16 @@ function DashboardContent() {
                         const preorders = batch.total_bags - batch.bags_remaining
                         return (
                           <tr key={batch.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50/50 transition-colors">
-                            <td className="px-6 py-4 text-stone-600 whitespace-nowrap text-sm font-medium">
-                              {formatRoastDate(batch.roast_date)}
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {batch.available_now ? (
+                                <span className="inline-block text-[10px] px-2.5 py-1 rounded-[2px] border font-medium bg-emerald-50 text-emerald-700 border-emerald-100">
+                                  In stock
+                                </span>
+                              ) : (
+                                <span className="text-stone-600 text-sm font-medium">
+                                  {batch.roast_date ? formatRoastDate(batch.roast_date) : "—"}
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-4 text-[#2A1A0E] whitespace-nowrap">
                               {batch.products?.product_name ?? "—"}

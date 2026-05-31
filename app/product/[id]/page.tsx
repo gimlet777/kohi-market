@@ -15,7 +15,8 @@ import type { BrewMethodKey } from "@/lib/brewGuide"
 
 interface LiveBatch {
   id: string
-  roastDate: string
+  roastDate: string | null
+  availableNow: boolean
   totalBags: number
   bagsRemaining: number
   status: "open" | "closed" | "complete"
@@ -113,17 +114,19 @@ function BatchPanel({
 
       <div className="space-y-3">
         {/* Roast date */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[2px] bg-white border border-[#E8E2D8] flex items-center justify-center shrink-0">
-            <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-            </svg>
+        {batch.roastDate && (
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-[2px] bg-white border border-[#E8E2D8] flex items-center justify-center shrink-0">
+              <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-[11px] text-stone-400 uppercase tracking-wider">Next roast date</p>
+              <p className="text-sm font-medium text-[#2A1A0E]">{formatDate(batch.roastDate)}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[11px] text-stone-400 uppercase tracking-wider">Next roast date</p>
-            <p className="text-sm font-medium text-[#2A1A0E]">{formatDate(batch.roastDate)}</p>
-          </div>
-        </div>
+        )}
 
         {/* Progress bar */}
         <div>
@@ -213,6 +216,39 @@ function BatchPanel({
   )
 }
 
+function WaitlistPanel() {
+  const [email, setEmail] = useState("")
+  const [done, setDone] = useState(false)
+  return (
+    <div className="rounded-[2px] border border-[#E8E2D8] bg-[#FAFAF8] p-5 space-y-3">
+      <p className="text-xs tracking-widest uppercase text-stone-400">Currently unavailable</p>
+      <p className="text-sm text-stone-500 leading-relaxed">
+        No batches are scheduled yet. Join the waitlist and we'll let you know when pre-orders open.
+      </p>
+      {done ? (
+        <p className="text-sm text-emerald-600 font-light">You're on the list ✓</p>
+      ) : (
+        <form onSubmit={e => { e.preventDefault(); setDone(true) }} className="flex gap-2">
+          <input
+            type="email"
+            required
+            placeholder="your@email.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="flex-1 text-xs px-4 py-2 rounded-[2px] border border-stone-200 focus:outline-none focus:border-[#C4714A] min-w-0"
+          />
+          <button
+            type="submit"
+            className="text-xs px-4 py-2 rounded-[2px] bg-[#2A1A0E] text-white whitespace-nowrap"
+          >
+            Notify me
+          </button>
+        </form>
+      )}
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProductPage() {
@@ -242,11 +278,12 @@ export default function ProductPage() {
           supabase.from("products").select("*").eq("id", productId).single(),
           supabase
             .from("batches")
-            .select("id, roast_date, total_bags, bags_remaining, status")
+            .select("id, roast_date, available_now, total_bags, bags_remaining, status")
             .eq("product_id", productId)
             .eq("status", "open")
-            .gte("roast_date", new Date().toISOString().split("T")[0])
-            .order("roast_date", { ascending: true })
+            .or(`available_now.eq.true,roast_date.gte.${new Date().toISOString().split("T")[0]}`)
+            .order("available_now", { ascending: false })
+            .order("roast_date", { ascending: true, nullsFirst: false })
             .limit(1)
             .maybeSingle(),
         ]),
@@ -262,6 +299,7 @@ export default function ProductPage() {
         setBatch({
           id: batchData.id,
           roastDate: batchData.roast_date,
+          availableNow: batchData.available_now ?? false,
           totalBags: batchData.total_bags,
           bagsRemaining: batchData.bags_remaining,
           status: batchData.status,
@@ -521,7 +559,7 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Café Roaster: Batch panel */}
+            {/* Café Roaster: three states */}
             {product.type === "Café Roaster" && (
               <div className="space-y-3">
                 {product.formats.length > 1 && selectedFormat && (
@@ -529,17 +567,29 @@ export default function ProductPage() {
                     ¥{selectedFormat.price.toLocaleString()}
                   </p>
                 )}
-                {batch ? (
+                {batch?.availableNow ? (
+                  // In stock — same Add to Cart as roastery
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={cartAdded}
+                    className={`w-full py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-all ${
+                      cartAdded
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
+                        : "bg-[#C4714A] hover:bg-[#B05E3C] text-white"
+                    }`}
+                  >
+                    {cartAdded ? "Added to cart ✓" : "Add to cart"}
+                  </button>
+                ) : batch ? (
+                  // Scheduled batch
                   <BatchPanel
                     batch={batch}
                     onPreorder={handlePreorder}
                     preordered={preordered}
                   />
                 ) : (
-                  <div className="rounded-[2px] border border-[#E8E2D8] bg-[#FAFAF8] p-5 text-center">
-                    <p className="text-sm text-stone-400">No batches scheduled yet.</p>
-                    <p className="text-xs text-stone-300 mt-1">Check back soon for pre-orders.</p>
-                  </div>
+                  // No batch — waitlist
+                  <WaitlistPanel />
                 )}
               </div>
             )}
