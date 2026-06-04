@@ -89,6 +89,7 @@ export default function NewProductPage() {
   const [brewNotes, setBrewNotes] = useState<Partial<Record<BrewMethodKey, { grind: string; ratio: string; temp: string; time: string; tips: string }>>>({})
   const [brewNotesOpen, setBrewNotesOpen] = useState<BrewMethodKey | null>(null)
   const [suggestingFor, setSuggestingFor] = useState<BrewMethodKey | null>(null)
+  const [suggestError, setSuggestError] = useState<BrewMethodKey | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -155,6 +156,7 @@ export default function NewProductPage() {
 
   async function suggestBrew(method: BrewMethodKey) {
     setSuggestingFor(method)
+    setSuggestError(null)
     setBrewNotesOpen(method)
     try {
       const res = await fetch("/api/suggest-brew", {
@@ -162,13 +164,23 @@ export default function NewProductPage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           brewMethod: method,
+          productName: productName.trim() || undefined,
           roastLevel: roastLevel || undefined,
           coffeeProcess: process || undefined,
-          origin: origin || undefined,
+          origin: origin.trim() || undefined,
         }),
       })
-      if (!res.ok) return
+      if (!res.ok) {
+        console.error("suggest-brew error:", res.status, await res.text())
+        setSuggestError(method)
+        return
+      }
       const suggestion = await res.json()
+      if (suggestion.error) {
+        console.error("suggest-brew model error:", suggestion.error)
+        setSuggestError(method)
+        return
+      }
       setBrewNotes(prev => ({
         ...prev,
         [method]: {
@@ -179,6 +191,9 @@ export default function NewProductPage() {
           tips: Array.isArray(suggestion.tips) ? suggestion.tips.join("\n") : prev[method]?.tips ?? "",
         },
       }))
+    } catch (err) {
+      console.error("suggest-brew fetch failed:", err)
+      setSuggestError(method)
     } finally {
       setSuggestingFor(null)
     }
@@ -635,9 +650,17 @@ export default function NewProductPage() {
                           type="button"
                           disabled={suggestingFor === method.key}
                           onClick={() => suggestBrew(method.key)}
-                          className="text-[11px] text-stone-400 hover:text-[#C4714A] transition-colors disabled:opacity-50 whitespace-nowrap"
+                          className={`text-[11px] transition-colors disabled:opacity-50 whitespace-nowrap ${
+                            suggestError === method.key
+                              ? "text-red-400 hover:text-red-500"
+                              : "text-stone-400 hover:text-[#C4714A]"
+                          }`}
                         >
-                          {suggestingFor === method.key ? "Suggesting…" : "Suggest with AI →"}
+                          {suggestingFor === method.key
+                            ? "Suggesting…"
+                            : suggestError === method.key
+                              ? "Failed — check API key ↺"
+                              : "Suggest with AI →"}
                         </button>
                         <svg className={`h-4 w-4 text-stone-400 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
