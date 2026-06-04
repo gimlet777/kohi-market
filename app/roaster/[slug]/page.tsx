@@ -125,11 +125,12 @@ export default function RoasterProfilePage() {
         const today = new Date().toISOString().split("T")[0]
         const { data: batchRows } = await supabase
           .from("batches")
-          .select("id, product_id, roast_date, total_bags, bags_remaining, products(product_name)")
+          .select("id, product_id, roast_date, available_now, total_bags, bags_remaining, products(product_name)")
           .in("product_id", productIds)
           .eq("status", "open")
-          .gte("roast_date", today)
-          .order("roast_date", { ascending: true })
+          .or(`available_now.eq.true,roast_date.gte.${today}`)
+          .order("available_now", { ascending: false })
+          .order("roast_date", { ascending: true, nullsFirst: false })
 
         const map: Record<number, LiveBatch> = {}
         const upcoming: UpcomingBatch[] = []
@@ -139,6 +140,7 @@ export default function RoasterProfilePage() {
             id: b.id,
             productId: b.product_id,
             roastDate: b.roast_date,
+            availableNow: b.available_now ?? false,
             totalBags: b.total_bags,
             bagsRemaining: b.bags_remaining,
           }
