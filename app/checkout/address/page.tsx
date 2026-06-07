@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useCart } from "@/context/CartContext"
+import { supabase } from "@/lib/supabase"
 
 export interface ShippingAddress {
   postalCode: string
@@ -35,6 +36,13 @@ export default function AddressPage() {
   const [autoFilled, setAutoFilled] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setUserId(session.user.id)
+    })
+  }, [])
 
   // Restore from sessionStorage (after mount to avoid hydration mismatch)
   useEffect(() => {
@@ -110,7 +118,7 @@ export default function AddressPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cart.items, address: form }),
+        body: JSON.stringify({ items: cart.items, address: form, userId: userId ?? undefined }),
       })
       const data = await res.json()
       if (!res.ok || !data.url) throw new Error(data.error || "Failed to create checkout session")

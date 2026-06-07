@@ -17,11 +17,13 @@ interface LineItem {
 export async function POST(req: NextRequest) {
   let items: LineItem[]
   let address: ShippingAddress | undefined
+  let userId: string | undefined
 
   try {
     const body = await req.json()
     items = body.items
     address = body.address
+    userId = body.userId || undefined
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
   }
@@ -30,16 +32,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Cart is empty" }, { status: 400 })
   }
 
-  // Look up roaster emails keyed by roaster name
+  // Look up roaster emails + regions — ilike for case-insensitive name matching
   const roasterNames = [...new Set(items.map(i => i.roasterName))]
-  const { data: profiles } = await supabaseAdmin
-    .from("roasters")
-    .select("roaster_name, email")
-    .in("roaster_name", roasterNames)
+  const productNames = [...new Set(items.map(i => i.productName))]
 
   const roasterEmailMap: Record<string, string> = {}
-  for (const p of profiles ?? []) {
-    if (p.roaster_name && p.email) roasterEmailMap[p.roaster_name] = p.email
+  const roasterRegionMap: Record<string, string> = {}
+  for (const name of roasterNames) {
+    const { data } = await supabaseAdmin
+      .from("roasters")
+      .select("roaster_name, email, region")
+      .ilike("roaster_name", name.trim())
+      .maybeSingle()
+    if (data) {
+      if (data.email) roasterEmailMap[name] = data.email
+      if (data.region) roasterRegionMap[name] = data.region
+    }
+  }
+
+  const { data: productRows } = await supabaseAdmin
+    .from("products")
+    .select("product_name, origin, roaster_name")
+    .in("product_name", productNames)
+    .in("roaster_name", roasterNames)
+
+  // origin keyed by "productName|roasterName"
+  const originMap: Record<string, string> = {}
+  for (const p of productRows ?? []) {
+    if (p.product_name && p.origin) {
+      originMap[`${p.product_name}|${p.roaster_name}`] = p.origin
+    }
   }
 
   const origin = req.nextUrl.origin
@@ -91,6 +113,8 @@ export async function POST(req: NextRequest) {
             metadata: {
               roaster_name: item.roasterName,
               roaster_email: roasterEmailMap[item.roasterName] ?? "",
+              roaster_region: roasterRegionMap[item.roasterName] ?? "",
+              product_origin: originMap[`${item.productName}|${item.roasterName}`] ?? "",
               format_name: item.format.name,
               grams: String(item.format.grams),
               batch_id: item.batchId ?? "",
@@ -100,10 +124,11 @@ export async function POST(req: NextRequest) {
         },
         quantity: item.quantity,
       })),
-      // Store the collected address in session metadata so the webhook can read it
-      metadata: address
-        ? { shipping_address: JSON.stringify(address) }
-        : {},
+      // Store address + userId so the webhook can award gamification rewards
+      metadata: {
+        ...(address ? { shipping_address: JSON.stringify(address) } : {}),
+        ...(userId ? { user_id: userId } : {}),
+      },
       payment_intent_data: stripeShipping,
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout/cancel`,

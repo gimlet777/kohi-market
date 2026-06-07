@@ -12,6 +12,7 @@ interface UserState {
   initial: string
   displayName: string
   slug?: string
+  totalPoints?: number
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -48,17 +49,25 @@ export function UserNav() {
         })
       } else {
         // Read display_name from consumer_profiles if available
-        const { data: profileRow } = await supabase
-          .from("consumer_profiles")
-          .select("display_name")
-          .eq("id", session.user.id)
-          .maybeSingle()
+        const [{ data: profileRow }, { data: pointsRow }] = await Promise.all([
+          supabase
+            .from("consumer_profiles")
+            .select("display_name")
+            .eq("id", session.user.id)
+            .maybeSingle(),
+          supabase
+            .from("user_points")
+            .select("total_points")
+            .eq("user_id", session.user.id)
+            .maybeSingle(),
+        ])
         if (!mounted) return
         const name = profileRow?.display_name?.trim() || session.user.email || ""
         setUser({
           type: "consumer",
           initial: name[0]?.toUpperCase() ?? "U",
           displayName: name,
+          totalPoints: pointsRow?.total_points ?? 0,
         })
       }
       setReady(true)
@@ -124,17 +133,24 @@ export function UserNav() {
   return (
     <div ref={ref} className="relative">
       {/* Trigger */}
-      <button
-        onClick={() => setOpen(v => !v)}
-        aria-label={`Account menu for ${user.displayName}`}
-        className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-medium transition-colors select-none ${
-          isRoaster
-            ? "bg-[#C4714A]/10 text-[#C4714A] hover:bg-[#C4714A]/20"
-            : "bg-stone-100 text-stone-500 hover:bg-stone-200"
-        }`}
-      >
-        {user.initial}
-      </button>
+      <div className="flex items-center gap-2">
+        {!isRoaster && (user.totalPoints ?? 0) > 0 && (
+          <span className="text-[10px] text-[#C4714A] font-medium tracking-wide select-none">
+            <span className="font-serif">豆</span>{user.totalPoints?.toLocaleString()}pt
+          </span>
+        )}
+        <button
+          onClick={() => setOpen(v => !v)}
+          aria-label={`Account menu for ${user.displayName}`}
+          className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-medium transition-colors select-none ${
+            isRoaster
+              ? "bg-[#C4714A]/10 text-[#C4714A] hover:bg-[#C4714A]/20"
+              : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+          }`}
+        >
+          {user.initial}
+        </button>
+      </div>
 
       {/* Dropdown */}
       {open && (

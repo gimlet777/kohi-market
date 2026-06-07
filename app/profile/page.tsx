@@ -6,6 +6,7 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { UserNav } from "@/components/UserNav"
 import { BREW_METHODS, type BrewMethodKey } from "@/lib/brewGuide"
+import { REGIONS } from "@/lib/gamification-constants"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,6 +31,12 @@ interface ConsumerProfile {
   display_name: string | null
   preferred_brew_method: BrewMethodKey | null
   grinder_type: string | null
+}
+
+interface Badge {
+  badge_type: string
+  badge_data: Record<string, string>
+  earned_at: string
 }
 
 interface QuizSnapshot {
@@ -60,6 +67,106 @@ const GRINDER_LABELS: Record<string, string> = {
   "electric-burr": "Electric burr grinder",
 }
 
+// ─── Gamification sub-components ─────────────────────────────────────────────
+
+function PointsCard({ points }: { points: number }) {
+  return (
+    <div className="bg-[#2A1A0E] rounded-[2px] px-5 py-4 flex items-center justify-between">
+      <div>
+        <p className="text-[10px] tracking-[0.25em] uppercase text-[#A08060] mb-1">豆ポイント</p>
+        <p className="text-2xl font-medium text-white tabular-nums">
+          {points.toLocaleString()} <span className="text-sm font-light text-[#C8965A]">pt</span>
+        </p>
+        <p className="text-[10px] text-stone-500 font-light mt-1">1 pt per ¥10 spent · redemption coming soon</p>
+      </div>
+      <span className="text-3xl select-none">豆</span>
+    </div>
+  )
+}
+
+function RegionalBadges({ badges }: { badges: Badge[] }) {
+  const earnedTypes = new Set(badges.map(b => b.badge_type))
+  const hasTraveller = earnedTypes.has("coffee_traveller")
+  const earnedCount = REGIONS.filter(r => earnedTypes.has(`region_${r.toLowerCase()}`)).length
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400">Regional Badges</p>
+        <p className="text-[10px] text-stone-400 font-light">{earnedCount} of {REGIONS.length} regions visited</p>
+      </div>
+      <div className="grid grid-cols-5 gap-2 mb-3">
+        {REGIONS.map(region => {
+          const earned = earnedTypes.has(`region_${region.toLowerCase()}`)
+          return (
+            <div
+              key={region}
+              className={`rounded-[2px] border py-3 px-1 text-center transition-all ${
+                earned
+                  ? "bg-[#C4714A]/8 border-[#C4714A]/30"
+                  : "bg-stone-50 border-stone-100"
+              }`}
+            >
+              <p className={`text-[10px] font-medium leading-tight ${earned ? "text-[#C4714A]" : "text-stone-300"}`}>
+                {region}
+              </p>
+              <p className={`text-base mt-1 ${earned ? "opacity-100" : "opacity-20"}`}>
+                {earned ? "✦" : "○"}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+      {hasTraveller && (
+        <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-[2px] px-4 py-2.5">
+          <span className="text-base">🗾</span>
+          <div>
+            <p className="text-xs font-medium text-amber-800">Coffee Traveller</p>
+            <p className="text-[10px] text-amber-600 font-light">All 5 regions collected</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function OriginPassport({ badges }: { badges: Badge[] }) {
+  const originBadges = badges
+    .filter(b => b.badge_type.startsWith("origin_"))
+    .sort((a, b) => a.earned_at.localeCompare(b.earned_at))
+
+  if (originBadges.length === 0) {
+    return (
+      <div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-3">Origin Passport</p>
+        <div className="bg-stone-50 border border-stone-100 rounded-[2px] px-4 py-4 text-center">
+          <p className="text-xs text-stone-400 font-light">No stamps yet — your first purchase adds a passport stamp</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400">Origin Passport</p>
+        <p className="text-[10px] text-stone-400 font-light">{originBadges.length} origin{originBadges.length !== 1 ? "s" : ""} visited</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {originBadges.map(b => (
+          <div
+            key={b.badge_type}
+            className="flex items-center gap-1.5 bg-white border border-[#E8E2D8] rounded-[2px] px-3 py-1.5"
+          >
+            <span className="text-[10px] text-stone-400">✦</span>
+            <span className="text-xs text-[#2A1A0E] font-medium">{b.badge_data.origin}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
@@ -70,6 +177,8 @@ export default function ProfilePage() {
   const [ordersError, setOrdersError] = useState<string | null>(null)
   const [profile, setProfile] = useState<ConsumerProfile | null>(null)
   const [quiz, setQuiz] = useState<QuizSnapshot | null>(null)
+  const [badges, setBadges] = useState<Badge[]>([])
+  const [totalPoints, setTotalPoints] = useState(0)
 
   useEffect(() => {
     async function load() {
@@ -93,29 +202,44 @@ export default function ProfilePage() {
 
       setUserEmail(session.user.email ?? null)
 
-      // Load in parallel: orders + equipment profile
-      const [{ data: ordersData, error: ordersErr }, { data: profileData }] = await Promise.all([
-        supabase
-          .from("orders")
-          .select("id, buyer_name, items, total_amount, status, created_at")
-          .eq("buyer_email", session.user.email!)
-          .order("created_at", { ascending: false }),
+      const accessToken = session.access_token
+
+      const [
+        ordersResult,
+        { data: profileData },
+        { data: badgesData },
+        { data: pointsData },
+      ] = await Promise.all([
+        fetch("/api/orders", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }).then(r => r.json() as Promise<{ orders?: Order[]; error?: string }>),
         supabase
           .from("consumer_profiles")
           .select("display_name, preferred_brew_method, grinder_type")
           .eq("id", session.user.id)
           .maybeSingle(),
+        supabase
+          .from("badges")
+          .select("badge_type, badge_data, earned_at")
+          .eq("user_id", session.user.id)
+          .order("earned_at", { ascending: true }),
+        supabase
+          .from("user_points")
+          .select("total_points")
+          .eq("user_id", session.user.id)
+          .maybeSingle(),
       ])
 
-      if (ordersErr) {
-        setOrdersError("Could not load orders. Make sure the orders RLS policy is in place.")
+      if (ordersResult.error) {
+        setOrdersError("Could not load orders.")
       } else {
-        setOrders((ordersData ?? []) as Order[])
+        setOrders(ordersResult.orders ?? [])
       }
 
       if (profileData) setProfile(profileData as ConsumerProfile)
+      if (badgesData) setBadges(badgesData as Badge[])
+      if (pointsData) setTotalPoints(pointsData.total_points ?? 0)
 
-      // Read quiz snapshot from sessionStorage (client-only)
       try {
         const saved = sessionStorage.getItem("kohi_quiz_results")
         if (saved) {
@@ -153,6 +277,7 @@ export default function ProfilePage() {
   }
 
   const preferredMethodDef = BREW_METHODS.find(m => m.key === profile?.preferred_brew_method)
+  const hasAnyAchievements = badges.length > 0 || totalPoints > 0
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
@@ -177,6 +302,32 @@ export default function ProfilePage() {
             <p className="text-xs text-stone-400 font-light mt-1">{userEmail}</p>
           )}
         </div>
+
+        {/* ── Achievements ────────────────────────────────────────────────────── */}
+        <section>
+          <h2 className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-4">Achievements</h2>
+
+          {hasAnyAchievements ? (
+            <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-5 space-y-6">
+              <PointsCard points={totalPoints} />
+              <RegionalBadges badges={badges} />
+              <OriginPassport badges={badges} />
+            </div>
+          ) : (
+            <div className="bg-white border border-[#E8E2D8] rounded-[2px] p-8 text-center">
+              <p className="text-sm text-stone-400 mb-1">No achievements yet</p>
+              <p className="text-xs text-stone-300 mb-4 leading-relaxed">
+                Make your first purchase to earn 豆ポイント, regional badges, and origin passport stamps.
+              </p>
+              <Link
+                href="/"
+                className="inline-block text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors"
+              >
+                Browse the marketplace →
+              </Link>
+            </div>
+          )}
+        </section>
 
         {/* ── Order History ────────────────────────────────────────────────── */}
         <section id="orders">
