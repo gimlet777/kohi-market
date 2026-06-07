@@ -25,6 +25,7 @@ interface Order {
   total_amount: number
   status: "pending" | "shipped" | "delivered"
   created_at: string
+  buyer_user_id: string | null
 }
 
 interface ConsumerProfile {

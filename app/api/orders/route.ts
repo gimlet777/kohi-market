@@ -33,7 +33,8 @@ export async function GET(req: NextRequest) {
       .select("id, buyer_name, items, total_amount, status, created_at, buyer_email")
       .eq("buyer_email", user.email)
       .order("created_at", { ascending: false })
-    data = fallback.data
+    // Normalize shape to match the primary query — buyer_user_id is null when column absent
+    data = (fallback.data ?? []).map(row => ({ ...row, buyer_user_id: null as string | null }))
     error = fallback.error
   }
 
