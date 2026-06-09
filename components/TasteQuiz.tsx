@@ -331,14 +331,14 @@ export function TasteQuiz({ products, isOpen, onClose, onResults }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
-      <div className="absolute inset-0 bg-[#2A1A0E]/40" onClick={onClose} />
+      <div className="absolute inset-0 bg-[#2A1508]/40" onClick={onClose} />
 
       <div className="relative w-full max-w-[500px] bg-white rounded-[2px] shadow-2xl">
 
         <button
           onClick={onClose}
           aria-label="Close quiz"
-          className="absolute top-4 right-4 text-stone-400 hover:text-[#2A1A0E] transition-colors"
+          className="absolute top-4 right-4 text-stone-400 hover:text-[#2A1508] transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -350,7 +350,7 @@ export function TasteQuiz({ products, isOpen, onClose, onResults }: Props) {
 
           <div className="h-px bg-stone-100 mb-6 relative overflow-hidden">
             <div
-              className="absolute inset-y-0 left-0 bg-[#C4714A] transition-all duration-500"
+              className="absolute inset-y-0 left-0 bg-[#C4622D] transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -360,7 +360,7 @@ export function TasteQuiz({ products, isOpen, onClose, onResults }: Props) {
           </p>
 
           <div className={`transition-opacity duration-[280ms] ${fading ? "opacity-0" : "opacity-100"}`}>
-            <h3 className="font-serif text-2xl text-[#2A1A0E] leading-snug mb-6">
+            <h3 className="font-serif text-2xl text-[#2A1508] leading-snug mb-6">
               {current.q}
             </h3>
 
@@ -374,8 +374,8 @@ export function TasteQuiz({ products, isOpen, onClose, onResults }: Props) {
                     disabled={fading}
                     className={`w-full text-left px-4 py-3.5 rounded-[2px] border transition-all text-sm font-light leading-snug ${
                       isSelected
-                        ? "border-[#C4714A] bg-[#C4714A]/5 text-[#2A1A0E]"
-                        : "border-stone-200 bg-white text-[#2A1A0E] hover:border-[#C4714A]/40 hover:bg-stone-50"
+                        ? "border-[#C4622D] bg-[#C4622D]/5 text-[#2A1508]"
+                        : "border-stone-200 bg-white text-[#2A1508] hover:border-[#C4622D]/40 hover:bg-stone-50"
                     }`}
                   >
                     {opt}

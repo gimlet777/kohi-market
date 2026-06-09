@@ -10,6 +10,7 @@ import { slugify } from "@/lib/slugify"
 import { BrewGuide } from "@/components/BrewGuide"
 import { UserNav } from "@/components/UserNav"
 import type { BrewMethodKey } from "@/lib/brewGuide"
+import { NavLogo } from "@/components/NavLogo"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,9 +26,9 @@ interface LiveBatch {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const roastBadge: Record<string, string> = {
-  Light: "bg-transparent text-[#6A5040] border border-[#E8E2D8]",
-  Medium: "bg-transparent text-[#6A5040] border border-[#E8E2D8]",
-  Dark: "bg-transparent text-[#6A5040] border border-[#E8E2D8]",
+  Light: "bg-transparent text-[#6A5040] border border-[rgba(42,21,8,0.07)]",
+  Medium: "bg-transparent text-[#6A5040] border border-[rgba(42,21,8,0.07)]",
+  Dark: "bg-transparent text-[#6A5040] border border-[rgba(42,21,8,0.07)]",
 }
 
 function formatDate(iso: string) {
@@ -44,7 +45,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between py-3 border-b border-stone-100 last:border-0">
       <span className="text-xs tracking-widest uppercase text-stone-400">{label}</span>
-      <span className="text-sm text-[#2A1A0E] font-medium">{value}</span>
+      <span className="text-sm text-[#2A1508] font-medium">{value}</span>
     </div>
   )
 }
@@ -63,15 +64,15 @@ function FormatCard({
       onClick={onClick}
       className={`text-left p-4 rounded-[2px] border transition-all ${
         selected
-          ? "border-[#C4714A] bg-[#C4714A]/5"
+          ? "border-[#C4622D] bg-[#C4622D]/5"
           : "border-stone-200 bg-white hover:border-stone-300"
       }`}
     >
-      <p className={`text-sm font-medium ${selected ? "text-[#2A1A0E]" : "text-stone-600"}`}>
+      <p className={`text-sm font-medium ${selected ? "text-[#2A1508]" : "text-stone-600"}`}>
         {option.name}
       </p>
       <p className="text-xs text-stone-400 mt-0.5">{option.grams}g</p>
-      <p className={`text-base font-semibold mt-2 ${selected ? "text-[#C4714A]" : "text-[#2A1A0E]"}`}>
+      <p className={`text-base font-semibold mt-2 ${selected ? "text-[#C4622D]" : "text-[#2A1508]"}`}>
         ¥{option.price.toLocaleString()}
       </p>
     </button>
@@ -109,21 +110,21 @@ function BatchPanel({
   }
 
   return (
-    <div className="rounded-[2px] border border-[#E8E2D8] bg-[#FAFAF8] p-5 space-y-4">
+    <div className="rounded-[2px] border border-[rgba(42,21,8,0.07)] bg-[#F8F5F2] p-5 space-y-4">
       <p className="text-xs tracking-widest uppercase text-stone-400">Batch Info</p>
 
       <div className="space-y-3">
         {/* Roast date */}
         {batch.roastDate && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-[2px] bg-white border border-[#E8E2D8] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-[2px] bg-white border border-[rgba(42,21,8,0.07)] flex items-center justify-center shrink-0">
               <svg className="h-4 w-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
               </svg>
             </div>
             <div>
               <p className="text-[11px] text-stone-400 uppercase tracking-wider">Next roast date</p>
-              <p className="text-sm font-medium text-[#2A1A0E]">{formatDate(batch.roastDate)}</p>
+              <p className="text-sm font-medium text-[#2A1508]">{formatDate(batch.roastDate)}</p>
             </div>
           </div>
         )}
@@ -132,7 +133,7 @@ function BatchPanel({
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <p className="text-[11px] text-stone-400 uppercase tracking-wider">Batch fill</p>
-            <p className="text-[11px] font-medium text-[#2A1A0E]">
+            <p className="text-[11px] font-medium text-[#2A1508]">
               {batch.totalBags - batch.bagsRemaining} / {batch.totalBags} reserved
             </p>
           </div>
@@ -176,11 +177,11 @@ function BatchPanel({
                 placeholder="your@email.com"
                 value={waitlistEmail}
                 onChange={e => setWaitlistEmail(e.target.value)}
-                className="flex-1 text-xs px-4 py-2 rounded-[2px] border border-stone-200 focus:outline-none focus:border-[#C4714A] min-w-0"
+                className="flex-1 text-xs px-4 py-2 rounded-[2px] border border-stone-200 focus:outline-none focus:border-[#C4622D] min-w-0"
               />
               <button
                 type="submit"
-                className="text-xs px-4 py-2 rounded-[2px] bg-[#2A1A0E] text-white whitespace-nowrap"
+                className="text-xs px-4 py-2 rounded-[2px] bg-[#2A1508] text-white whitespace-nowrap"
               >
                 Notify me
               </button>
@@ -188,7 +189,7 @@ function BatchPanel({
           ) : (
             <button
               onClick={() => setShowWaitlist(true)}
-              className="w-full text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors text-center"
+              className="w-full text-xs text-[#C4622D] hover:text-[#B0561A] transition-colors text-center"
             >
               Join waitlist →
             </button>
@@ -202,7 +203,7 @@ function BatchPanel({
             className={`w-full py-3 rounded-[2px] text-sm font-medium tracking-wide transition-all ${
               preordered
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
-                : "bg-[#C4714A] hover:bg-[#B05E3C] text-white"
+                : "bg-[#2A1508] hover:bg-[#3c1e0a] text-[#F8F5F2]"
             }`}
           >
             {preordered ? "Pre-order placed ✓" : "Pre-order this batch"}
@@ -220,7 +221,7 @@ function WaitlistPanel() {
   const [email, setEmail] = useState("")
   const [done, setDone] = useState(false)
   return (
-    <div className="rounded-[2px] border border-[#E8E2D8] bg-[#FAFAF8] p-5 space-y-3">
+    <div className="rounded-[2px] border border-[rgba(42,21,8,0.07)] bg-[#F8F5F2] p-5 space-y-3">
       <p className="text-xs tracking-widest uppercase text-stone-400">Currently unavailable</p>
       <p className="text-sm text-stone-500 leading-relaxed">
         No batches are scheduled yet. Join the waitlist and we'll let you know when pre-orders open.
@@ -235,11 +236,11 @@ function WaitlistPanel() {
             placeholder="your@email.com"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="flex-1 text-xs px-4 py-2 rounded-[2px] border border-stone-200 focus:outline-none focus:border-[#C4714A] min-w-0"
+            className="flex-1 text-xs px-4 py-2 rounded-[2px] border border-stone-200 focus:outline-none focus:border-[#C4622D] min-w-0"
           />
           <button
             type="submit"
-            className="text-xs px-4 py-2 rounded-[2px] bg-[#2A1A0E] text-white whitespace-nowrap"
+            className="text-xs px-4 py-2 rounded-[2px] bg-[#2A1508] text-white whitespace-nowrap"
           >
             Notify me
           </button>
@@ -371,21 +372,21 @@ export default function ProductPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
-        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-          <Link href="/" className="text-stone-500 hover:text-[#2A1A0E] text-xs tracking-wide transition-colors">
+      <div className="min-h-screen flex flex-col bg-white">
+        <nav className="sticky top-0 z-50 bg-white border-b border-[rgba(42,21,8,0.07)] px-6 md:px-10 py-3.5 flex items-center justify-between">
+          <Link href="/" className="text-[#8C7B6E] hover:text-[#2A1508] text-xs tracking-wide transition-colors">
             ← Marketplace
           </Link>
           <Link href="/" className="flex items-center gap-3">
-            <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+            <NavLogo />
           </Link>
-          <Link href="/cart" className="relative text-stone-400 hover:text-[#2A1A0E] transition-colors">
+          <Link href="/cart" className="relative text-[#8C7B6E] hover:text-[#2A1508] transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
           </Link>
         </nav>
-        <div className="px-6 md:px-10 pt-12 pb-14 animate-pulse bg-stone-100">
+        <div className="px-6 md:px-10 pt-12 pb-14 animate-pulse bg-[#F0EBE3]">
           <div className="h-3 bg-stone-200 rounded w-32 mb-6" />
           <div className="h-12 bg-stone-200 rounded w-2/3 mb-3" />
           <div className="h-3 bg-stone-200 rounded w-24" />
@@ -408,10 +409,10 @@ export default function ProductPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-stone-400 text-sm mb-4">Product not found.</p>
-          <button onClick={() => router.push("/")} className="text-[#C4714A] text-sm hover:underline">
+          <p className="text-[#8C7B6E] text-sm mb-4">Product not found.</p>
+          <button onClick={() => router.push("/")} className="text-[#C4622D] text-sm hover:underline">
             ← Back to marketplace
           </button>
         </div>
@@ -420,29 +421,29 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
+    <div className="min-h-screen flex flex-col bg-white">
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-white border-b border-[rgba(42,21,8,0.07)] px-6 md:px-10 py-3.5 flex items-center justify-between">
         <Link
           href="/"
-          className="text-stone-500 hover:text-[#2A1A0E] transition-colors text-xs tracking-wide"
+          className="text-[#8C7B6E] hover:text-[#2A1508] transition-colors text-xs tracking-wide"
         >
           ← Marketplace
         </Link>
 
         <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+          <NavLogo />
         </Link>
 
         <div className="flex items-center gap-4">
           <UserNav />
-          <Link href="/cart" className="relative text-stone-400 hover:text-[#2A1A0E] transition-colors">
+          <Link href="/cart" className="relative text-[#8C7B6E] hover:text-[#2A1508] transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
             {cart.totalCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#C4714A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C4622D] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
                 {cart.totalCount > 9 ? "9+" : cart.totalCount}
               </span>
             )}
@@ -451,23 +452,20 @@ export default function ProductPage() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="bg-[#FAFAF8] px-6 md:px-10 pt-10 pb-8 border-b border-[#E8E2D8]">
+      <section className="bg-white px-6 md:px-10 pt-10 pb-8 border-b border-[rgba(42,21,8,0.07)]">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-2.5 mb-4">
-            <Link
-              href={`/roaster/${slugify(product.roaster)}`}
-              className="text-[10px] tracking-widest uppercase text-[#C4714A] font-normal hover:text-[#B05E3C] transition-colors"
-            >
+            <span className="text-[10px] tracking-widest uppercase text-[#C4622D] font-normal">
               {product.roaster}
-            </Link>
-            <span className="text-[10px] text-stone-300 font-light leading-none">·</span>
-            <span className="text-[10px] tracking-widest uppercase text-stone-400 font-light">{product.region}</span>
+            </span>
+            <span className="text-[10px] text-[#8B9EA5] font-light leading-none">·</span>
+            <span className="text-[10px] tracking-widest uppercase text-[#8C7B6E] font-light">{product.region}</span>
           </div>
-          <hr className="border-[#E8E2D8] mb-6" />
-          <h1 className="font-serif text-[2.5rem] leading-tight text-[#2A1A0E] mb-2">
+          <hr className="border-[rgba(42,21,8,0.07)] mb-6" />
+          <h1 className="font-serif text-[2.5rem] leading-tight text-[#2A1508] mb-2">
             {product.name}
           </h1>
-          <p className="text-sm text-stone-400 font-light">{product.origin}</p>
+          <p className="text-sm text-[#8C7B6E] font-light">{product.origin}</p>
         </div>
       </section>
 
@@ -475,13 +473,20 @@ export default function ProductPage() {
       <div className="flex-1 px-6 md:px-10 py-10 max-w-5xl w-full mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
 
-          {/* Left: details */}
+          {/* Left: photo + details */}
           <div className="space-y-8">
-            <p className="text-[#2A1A0E] text-sm leading-relaxed font-light">{product.description}</p>
+            {/* Product photo container */}
+            <div className="rounded-[2px] bg-[#F0EBE3] aspect-[4/3] w-full flex items-center justify-center">
+              <svg className="w-16 h-16 text-[#8C7B6E]/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
+            </div>
+
+            <p className="text-[#5A4A3A] text-sm leading-relaxed font-light">{product.description}</p>
 
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-2">Details</p>
-              <div className="rounded-[2px] bg-white border border-[#E8E2D8] px-4">
+              <p className="text-[11px] tracking-widest uppercase text-[#8C7B6E] mb-2">Details</p>
+              <div className="rounded-[2px] bg-white border border-[rgba(42,21,8,0.07)] px-4">
                 <DetailRow label="Origin" value={product.origin} />
                 <DetailRow label="Process" value={product.process} />
                 <DetailRow label="Roast" value={product.roast} />
@@ -495,12 +500,12 @@ export default function ProductPage() {
             </div>
 
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-3">Flavour notes</p>
+              <p className="text-[11px] tracking-widest uppercase text-[#8C7B6E] mb-3">Flavour notes</p>
               <div className="flex flex-wrap gap-2">
                 {product.notes.map((note) => (
                   <span
                     key={note}
-                    className="font-editorial italic text-sm px-4 py-1.5 border border-[#E8E2D8] rounded-[2px] text-stone-600 bg-white"
+                    className="font-editorial italic text-sm px-4 py-1.5 border border-[rgba(42,21,8,0.07)] rounded-[2px] text-[#5A4A3A] bg-white"
                   >
                     {note}
                   </span>
@@ -531,7 +536,7 @@ export default function ProductPage() {
               <div>
                 <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-1">Format</p>
                 <p className="text-sm text-stone-600">{product.formats[0].name} · {product.formats[0].grams}g</p>
-                <p className="text-2xl font-semibold text-[#2A1A0E] mt-1">
+                <p className="text-2xl font-semibold text-[#2A1508] mt-1">
                   ¥{product.formats[0].price.toLocaleString()}
                 </p>
               </div>
@@ -541,7 +546,7 @@ export default function ProductPage() {
             {product.type === "Roastery" && (
               <div className="space-y-3">
                 {product.formats.length > 1 && selectedFormat && (
-                  <p className="text-2xl font-semibold text-[#2A1A0E]">
+                  <p className="text-2xl font-semibold text-[#2A1508]">
                     ¥{selectedFormat.price.toLocaleString()}
                   </p>
                 )}
@@ -551,7 +556,7 @@ export default function ProductPage() {
                   className={`w-full py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-all ${
                     cartAdded
                       ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
-                      : "bg-[#C4714A] hover:bg-[#B05E3C] text-white"
+                      : "bg-[#2A1508] hover:bg-[#3c1e0a] text-[#F8F5F2]"
                   }`}
                 >
                   {cartAdded ? "Added to cart ✓" : "Add to cart"}
@@ -563,7 +568,7 @@ export default function ProductPage() {
             {product.type === "Café Roaster" && (
               <div className="space-y-3">
                 {product.formats.length > 1 && selectedFormat && (
-                  <p className="text-2xl font-semibold text-[#2A1A0E]">
+                  <p className="text-2xl font-semibold text-[#2A1508]">
                     ¥{selectedFormat.price.toLocaleString()}
                   </p>
                 )}
@@ -575,7 +580,7 @@ export default function ProductPage() {
                     className={`w-full py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-all ${
                       cartAdded
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default"
-                        : "bg-[#C4714A] hover:bg-[#B05E3C] text-white"
+                        : "bg-[#2A1508] hover:bg-[#3c1e0a] text-[#F8F5F2]"
                     }`}
                   >
                     {cartAdded ? "Added to cart ✓" : "Add to cart"}
@@ -594,6 +599,20 @@ export default function ProductPage() {
               </div>
             )}
 
+            {/* Roaster attribution */}
+            <div className="pt-4 mt-2 border-t border-[rgba(42,21,8,0.07)] flex items-center justify-between">
+              <div>
+                <p className="text-[10px] tracking-widest uppercase text-[#8C7B6E] mb-0.5">By</p>
+                <p className="text-sm text-[#2A1508] font-light">{product.roaster}</p>
+              </div>
+              <Link
+                href={`/roaster/${slugify(product.roaster)}`}
+                className="text-[11px] text-[#C4622D] hover:text-[#B0561A] transition-colors tracking-wide flex items-center gap-1"
+              >
+                Visit roaster →
+              </Link>
+            </div>
+
           </div>
         </div>
       </div>
@@ -610,8 +629,8 @@ export default function ProductPage() {
       />
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
-        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+      <footer className="bg-[#2A1508] px-6 md:px-10 py-10 text-center mt-auto">
+        <span className="text-xl font-medium text-[#C4622D] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
 

@@ -4,9 +4,10 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { NavLogo } from "@/components/NavLogo"
 
 const inputClass =
-  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors"
+  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -38,12 +39,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+          <NavLogo />
         </Link>
         <span className="text-xs text-stone-400">Roaster Portal</span>
       </nav>
@@ -53,13 +54,13 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
 
           <div className="mb-8">
-            <h1 className="font-serif text-3xl text-[#2A1A0E] mb-2">Welcome back</h1>
+            <h1 className="font-serif text-3xl text-[#2A1508] mb-2">Welcome back</h1>
             <p className="text-sm text-stone-400">Sign in to your roaster account.</p>
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded border border-[#E8E2D8] p-8 space-y-5"
+            className="bg-white rounded border border-[rgba(42,21,8,0.07)] p-8 space-y-5"
           >
             <div>
               <label className="block text-xs tracking-widest uppercase text-stone-400 mb-1.5">
@@ -98,7 +99,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#C4714A] hover:bg-[#B05E3C] disabled:opacity-60 text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors"
+              className="w-full bg-[#C4622D] hover:bg-[#B0561A] disabled:opacity-60 text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors"
             >
               {loading ? "Signing in…" : "Sign in"}
             </button>
@@ -106,7 +107,7 @@ export default function LoginPage() {
 
           <p className="text-center text-xs text-stone-400 mt-6">
             New roaster?{" "}
-            <Link href="/roaster/signup" className="text-[#C4714A] hover:text-[#B05E3C] transition-colors">
+            <Link href="/roaster/signup" className="text-[#C4622D] hover:text-[#B0561A] transition-colors">
               Create an account
             </Link>
           </p>

@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #fafaf8;
-  --color-foreground: #2A1A0E;
+  --color-background: #F8F5F2;
+  --color-foreground: #2A1508;
   --font-sans: var(--font-inter), sans-serif;
   --font-serif: 'Shippori Mincho', serif;
   --font-editorial: var(--font-cormorant), serif;
 }
 
 body {
-  background: #fafaf8;
-  color: #2A1A0E;
+  background: #F8F5F2;
+  color: #2A1508;
   font-family: var(--font-inter), sans-serif;
   font-weight: 300;
 }

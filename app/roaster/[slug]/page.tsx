@@ -9,6 +9,7 @@ import { rowToProduct, type ProductRow, type Product } from "@/lib/products"
 import { slugify } from "@/lib/slugify"
 import { ProductCard, type LiveBatch } from "@/components/ProductCard"
 import { UserNav } from "@/components/UserNav"
+import { NavLogo } from "@/components/NavLogo"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ interface RoasterProfile {
   hero_photo_url?: string | null
   gallery_urls?: string[] | null
   website?: string | null
+  accent_color?: string | null
 }
 
 interface UpcomingBatch {
@@ -66,7 +68,7 @@ export default function RoasterProfilePage() {
       // 1. Try claimed roaster account by slug column
       const { data: roasterData } = await supabase
         .from("roasters")
-        .select("id, roaster_name, region, seller_type, bio, slug, is_pro, hero_photo_url, gallery_urls, website")
+        .select("id, roaster_name, region, seller_type, bio, slug, is_pro, hero_photo_url, gallery_urls, website, accent_color")
         .eq("slug", slug)
         .maybeSingle()
 
@@ -168,18 +170,18 @@ export default function RoasterProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
-        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+      <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
+        <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-[rgba(42,21,8,0.07)] px-6 md:px-10 py-3.5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+            <NavLogo />
           </Link>
           <div className="flex items-center gap-5">
-            <Link href="/" className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors">
+            <Link href="/" className="text-xs text-[#8C7B6E] hover:text-[#2A1508] transition-colors">
               ← Marketplace
             </Link>
           </div>
         </nav>
-        <div className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10 animate-pulse">
+        <div className="bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10 animate-pulse">
           <div className="max-w-4xl mx-auto flex items-start gap-8 md:gap-12">
             <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-[2px] bg-stone-100" />
             <div className="flex-1 pt-1 space-y-3">
@@ -211,16 +213,16 @@ export default function RoasterProfilePage() {
 
   if (notFound) {
     return (
-      <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
-        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+      <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
+        <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-[rgba(42,21,8,0.07)] px-6 md:px-10 py-3.5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+            <NavLogo />
           </Link>
         </nav>
         <div className="flex-1 flex items-center justify-center py-24">
           <div className="text-center">
-            <p className="text-stone-400 text-sm mb-4">Roaster not found.</p>
-            <Link href="/" className="text-[#C4714A] text-sm hover:underline">
+            <p className="text-[#8C7B6E] text-sm mb-4">Roaster not found.</p>
+            <Link href="/" className="text-[#C4622D] text-sm hover:underline">
               ← Back to marketplace
             </Link>
           </div>
@@ -230,26 +232,27 @@ export default function RoasterProfilePage() {
   }
 
   const isCafe = sellerType === "Café Roaster"
+  const accentColor = roaster?.accent_color ?? "#C4622D"
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-[rgba(42,21,8,0.07)] px-6 md:px-10 py-3.5 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+          <NavLogo />
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors">
+          <Link href="/" className="text-xs text-[#8C7B6E] hover:text-[#2A1508] transition-colors">
             ← Marketplace
           </Link>
           <UserNav />
-          <Link href="/cart" className="relative text-stone-400 hover:text-[#2A1A0E] transition-colors">
+          <Link href="/cart" className="relative text-stone-400 hover:text-[#2A1508] transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
             {cart.totalCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#C4714A] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C4622D] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
                 {cart.totalCount > 9 ? "9+" : cart.totalCount}
               </span>
             )}
@@ -268,32 +271,32 @@ export default function RoasterProfilePage() {
                 alt={roasterName}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#2A1A0E]/60 via-[#2A1A0E]/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#2A1508]/60 via-[#2A1508]/10 to-transparent" />
             </div>
           )}
 
           {/* Pro: name, badge, meta, bio, website */}
-          <section className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 pt-10 pb-10">
+          <section className="bg-[#F8F5F2] border-b border-[rgba(42,21,8,0.07)] px-6 md:px-10 pt-10 pb-10">
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center gap-3 flex-wrap mb-4">
-                <span className="inline-flex items-center gap-1.5 text-[10px] tracking-widest uppercase text-[#C4714A] font-medium">
+                <span className="inline-flex items-center gap-1.5 text-[10px] tracking-widest uppercase text-[#C4622D] font-medium">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   Verified Roaster
                 </span>
-                {region && <span className="text-stone-300 text-sm">·</span>}
-                {region && <span className="text-sm text-stone-400">{region}</span>}
-                <span className="text-stone-300 text-sm">·</span>
-                <span className="text-sm text-stone-400">{sellerType}</span>
+                {region && <span className="text-[#8B9EA5] text-sm">·</span>}
+                {region && <span className="text-sm text-[#8C7B6E]">{region}</span>}
+                <span className="text-[#8B9EA5] text-sm">·</span>
+                <span className="text-sm text-[#8C7B6E]">{sellerType}</span>
               </div>
 
-              <h1 className="font-serif text-4xl md:text-5xl text-[#2A1A0E] leading-tight mb-6">
+              <h1 className="font-serif text-4xl md:text-5xl text-[#2A1508] leading-tight mb-6">
                 {roasterName}
               </h1>
 
               {roaster.bio && (
-                <p className="text-[#2A1A0E] font-light text-sm leading-relaxed max-w-2xl mb-5">
+                <p className="text-[#5A4A3A] font-light text-sm leading-relaxed max-w-2xl mb-5">
                   {roaster.bio}
                 </p>
               )}
@@ -303,12 +306,9 @@ export default function RoasterProfilePage() {
                   href={roaster.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[11px] tracking-wide text-[#C4714A] hover:text-[#B05E3C] transition-colors"
+                  className="inline-flex items-center gap-1.5 text-[11px] tracking-wide text-[#C4622D] hover:text-[#B0561A] transition-colors"
                 >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                  {roaster.website.replace(/^https?:\/\//, "")}
+                  Visit roaster →
                 </a>
               )}
             </div>
@@ -316,11 +316,11 @@ export default function RoasterProfilePage() {
         </>
       ) : (
         /* Free profile */
-        <section className="bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 pt-12 pb-10">
+        <section className="bg-[#F8F5F2] border-b border-[rgba(42,21,8,0.07)] px-6 md:px-10 pt-12 pb-10">
           <div className="max-w-4xl mx-auto flex items-start gap-8 md:gap-12">
 
             {/* Logo placeholder */}
-            <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-[2px] border border-dashed border-[#E8E2D8] flex flex-col items-center justify-center gap-1.5 text-stone-300 bg-white">
+            <div className="shrink-0 w-20 h-20 md:w-28 md:h-28 rounded-[2px] border border-dashed border-[rgba(42,21,8,0.10)] flex flex-col items-center justify-center gap-1.5 text-[#8B9EA5] bg-white">
               <svg className="w-6 h-6 md:w-7 md:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
@@ -330,16 +330,16 @@ export default function RoasterProfilePage() {
 
             {/* Name + meta */}
             <div className="flex-1 min-w-0 pt-1">
-              <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-3">
+              <p className="text-[10px] tracking-[0.3em] uppercase text-[#8B9EA5] mb-3">
                 Roaster Profile
               </p>
-              <h1 className="font-serif text-4xl md:text-5xl text-[#2A1A0E] leading-tight mb-3">
+              <h1 className="font-serif text-4xl md:text-5xl text-[#2A1508] leading-tight mb-3">
                 {roasterName}
               </h1>
               <div className="flex items-center gap-3 flex-wrap">
-                {region && <span className="text-sm text-stone-500">{region}</span>}
-                {region && <span className="text-stone-300">·</span>}
-                <span className="text-sm text-stone-500">{sellerType}</span>
+                {region && <span className="text-sm text-[#8C7B6E]">{region}</span>}
+                {region && <span className="text-[#8B9EA5]">·</span>}
+                <span className="text-sm text-[#8C7B6E]">{sellerType}</span>
               </div>
             </div>
           </div>
@@ -347,16 +347,16 @@ export default function RoasterProfilePage() {
           {/* Bio */}
           <div className="max-w-4xl mx-auto mt-8 pl-0 md:pl-[calc(7rem+3rem)]">
             {roaster?.bio ? (
-              <p className="text-[#2A1A0E] font-light text-sm leading-relaxed max-w-xl">{roaster.bio}</p>
+              <p className="text-[#5A4A3A] font-light text-sm leading-relaxed max-w-xl">{roaster.bio}</p>
             ) : (
-              <p className="text-stone-400 text-sm italic">This roaster hasn't added a bio yet.</p>
+              <p className="text-[#8C7B6E] text-sm italic">This roaster hasn't added a bio yet.</p>
             )}
           </div>
 
           {/* Claim notice — only for unclaimed (no roaster row) */}
           {!roaster && (
             <div className="max-w-4xl mx-auto mt-5 pl-0 md:pl-[calc(7rem+3rem)]">
-              <Link href="/roaster/signup" className="text-[11px] text-stone-400 hover:text-[#C4714A] transition-colors">
+              <Link href="/roaster/signup" className="text-[11px] text-[#8C7B6E] hover:text-[#C4622D] transition-colors">
                 Are you this roaster? Claim your page →
               </Link>
             </div>
@@ -367,11 +367,11 @@ export default function RoasterProfilePage() {
       {/* ── Products grid ───────────────────────────────────────────────────── */}
       <section className="flex-1 px-6 md:px-10 py-10">
         <div className="max-w-6xl mx-auto">
-          <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-6">
+          <p className="text-[10px] tracking-[0.3em] uppercase text-[#8B9EA5] mb-6">
             {products.length} product{products.length !== 1 ? "s" : ""}
           </p>
           {products.length === 0 ? (
-            <p className="text-stone-400 text-sm text-center py-16">No products listed yet.</p>
+            <p className="text-[#8C7B6E] text-sm text-center py-16">No products listed yet.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {products.map(product => (
@@ -379,6 +379,7 @@ export default function RoasterProfilePage() {
                   key={product.id}
                   product={product}
                   batch={batchMap[product.id] ?? null}
+                  accentColor={accentColor}
                 />
               ))}
             </div>
@@ -388,9 +389,9 @@ export default function RoasterProfilePage() {
 
       {/* ── Gallery — Pro roasters only ─────────────────────────────────────── */}
       {roaster?.is_pro && roaster.gallery_urls && roaster.gallery_urls.length > 0 && (
-        <section className="bg-white border-t border-[#E8E2D8] px-6 md:px-10 py-10">
+        <section className="bg-white border-t border-[rgba(42,21,8,0.07)] px-6 md:px-10 py-10">
           <div className="max-w-6xl mx-auto">
-            <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-6">Gallery</p>
+            <p className="text-[10px] tracking-[0.3em] uppercase text-[#8B9EA5] mb-6">Gallery</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {roaster.gallery_urls.map((url, i) => (
                 <div key={i} className="aspect-square overflow-hidden rounded-[2px]">
@@ -408,20 +409,20 @@ export default function RoasterProfilePage() {
 
       {/* ── Batch schedule — Café Roasters only ─────────────────────────────── */}
       {isCafe && upcomingBatches.length > 0 && (
-        <section className="bg-[#FAFAF8] border-t border-[#E8E2D8] px-6 md:px-10 py-10">
+        <section className="bg-[#F8F5F2] border-t border-[rgba(42,21,8,0.07)] px-6 md:px-10 py-10">
           <div className="max-w-4xl mx-auto">
-            <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-6">
+            <p className="text-[11px] tracking-widest uppercase text-[#8B9EA5] mb-6">
               Upcoming Batch Schedule
             </p>
             <div className="space-y-3">
               {upcomingBatches.map(b => (
                 <div
                   key={b.id}
-                  className="flex items-center justify-between gap-6 rounded-[2px] border border-[#E8E2D8] bg-white px-5 py-4"
+                  className="flex items-center justify-between gap-6 rounded-[2px] border border-[rgba(42,21,8,0.07)] bg-white px-5 py-4"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#2A1A0E] truncate">{b.productName}</p>
-                    <p className="text-xs text-stone-400 mt-0.5">Roasting {formatDate(b.roast_date)}</p>
+                    <p className="text-sm font-medium text-[#2A1508] truncate">{b.productName}</p>
+                    <p className="text-xs text-[#8C7B6E] mt-0.5">Roasting {formatDate(b.roast_date)}</p>
                   </div>
                   <div className="text-right shrink-0">
                     {b.bags_remaining > 0 ? (
@@ -429,12 +430,12 @@ export default function RoasterProfilePage() {
                         <p className={`text-sm font-medium ${b.bags_remaining <= 5 ? "text-red-500" : "text-emerald-600"}`}>
                           {b.bags_remaining} bag{b.bags_remaining !== 1 ? "s" : ""} left
                         </p>
-                        <p className="text-[11px] text-stone-400 mt-0.5">
+                        <p className="text-[11px] text-[#8C7B6E] mt-0.5">
                           {b.total_bags - b.bags_remaining} / {b.total_bags} reserved
                         </p>
                       </>
                     ) : (
-                      <p className="text-sm font-medium text-stone-400">Sold out</p>
+                      <p className="text-sm font-medium text-[#8C7B6E]">Sold out</p>
                     )}
                   </div>
                 </div>
@@ -445,8 +446,8 @@ export default function RoasterProfilePage() {
       )}
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
-        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+      <footer className="bg-[#2A1508] px-6 md:px-10 py-10 text-center mt-auto">
+        <span className="text-xl font-medium text-[#C4622D] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
 

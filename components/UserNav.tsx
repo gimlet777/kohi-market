@@ -121,7 +121,7 @@ export function UserNav() {
     return (
       <Link
         href={loginHref}
-        className="text-xs text-stone-400 hover:text-[#2A1A0E] transition-colors tracking-wide"
+        className="text-xs text-stone-400 hover:text-[#2A1508] transition-colors tracking-wide"
       >
         Sign in
       </Link>
@@ -135,7 +135,7 @@ export function UserNav() {
       {/* Trigger */}
       <div className="flex items-center gap-2">
         {!isRoaster && (user.totalPoints ?? 0) > 0 && (
-          <span className="text-[10px] text-[#C4714A] font-medium tracking-wide select-none">
+          <span className="text-[10px] text-[#C4622D] font-medium tracking-wide select-none">
             <span className="font-serif">豆</span>{user.totalPoints?.toLocaleString()}pt
           </span>
         )}
@@ -144,7 +144,7 @@ export function UserNav() {
           aria-label={`Account menu for ${user.displayName}`}
           className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-medium transition-colors select-none ${
             isRoaster
-              ? "bg-[#C4714A]/10 text-[#C4714A] hover:bg-[#C4714A]/20"
+              ? "bg-[#C4622D]/10 text-[#C4622D] hover:bg-[#C4622D]/20"
               : "bg-stone-100 text-stone-500 hover:bg-stone-200"
           }`}
         >
@@ -160,7 +160,7 @@ export function UserNav() {
             <p className="text-[10px] tracking-widest uppercase text-stone-400">
               {isRoaster ? "Roaster account" : "My account"}
             </p>
-            <p className="text-xs text-[#2A1A0E] font-medium truncate mt-0.5">
+            <p className="text-xs text-[#2A1508] font-medium truncate mt-0.5">
               {isRoaster ? user.displayName : user.displayName}
             </p>
           </div>
@@ -200,7 +200,7 @@ export function UserNav() {
           <div className="border-t border-stone-100">
             <button
               onClick={handleSignOut}
-              className="w-full text-left px-4 py-2.5 text-xs text-stone-400 hover:bg-stone-50 hover:text-[#2A1A0E] transition-colors"
+              className="w-full text-left px-4 py-2.5 text-xs text-stone-400 hover:bg-stone-50 hover:text-[#2A1508] transition-colors"
             >
               Sign out
             </button>
@@ -216,7 +216,7 @@ function MenuItem({ href, children, onClose }: { href: string; children: React.R
     <Link
       href={href}
       onClick={onClose}
-      className="block px-4 py-2.5 text-xs text-stone-600 hover:bg-stone-50 hover:text-[#2A1A0E] transition-colors"
+      className="block px-4 py-2.5 text-xs text-stone-600 hover:bg-stone-50 hover:text-[#2A1508] transition-colors"
     >
       {children}
     </Link>

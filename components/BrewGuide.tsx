@@ -8,7 +8,7 @@ import type { RoastLevel } from "@/lib/products"
 // ─── Method icons ─────────────────────────────────────────────────────────────
 
 function ImmersionIcon({ active }: { active: boolean }) {
-  const c = active ? "#C4714A" : "#A08060"
+  const c = active ? "#C4622D" : "#8B9EA5"
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="7" y="4" width="14" height="18" rx="2" />
@@ -20,7 +20,7 @@ function ImmersionIcon({ active }: { active: boolean }) {
 }
 
 function PouroverIcon({ active }: { active: boolean }) {
-  const c = active ? "#C4714A" : "#A08060"
+  const c = active ? "#C4622D" : "#8B9EA5"
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M7 5h14l-5 11H12L7 5z" />
@@ -32,7 +32,7 @@ function PouroverIcon({ active }: { active: boolean }) {
 }
 
 function PressureIcon({ active }: { active: boolean }) {
-  const c = active ? "#C4714A" : "#A08060"
+  const c = active ? "#C4622D" : "#8B9EA5"
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="9" y="8" width="10" height="14" rx="2" />
@@ -44,7 +44,7 @@ function PressureIcon({ active }: { active: boolean }) {
 }
 
 function ColdBrewIcon({ active }: { active: boolean }) {
-  const c = active ? "#C4714A" : "#A08060"
+  const c = active ? "#C4622D" : "#8B9EA5"
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="8" y="5" width="12" height="18" rx="2" />
@@ -56,7 +56,7 @@ function ColdBrewIcon({ active }: { active: boolean }) {
 }
 
 function BoilingIcon({ active }: { active: boolean }) {
-  const c = active ? "#C4714A" : "#A08060"
+  const c = active ? "#C4622D" : "#8B9EA5"
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 18 Q7 14 10 11 Q13 8 12 5" />
@@ -81,7 +81,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
       <p className="text-[9px] tracking-[0.25em] uppercase text-stone-400">{label}</p>
-      <p className="text-sm font-medium text-[#2A1A0E]">{value}</p>
+      <p className="text-sm font-medium text-[#2A1508]">{value}</p>
     </div>
   )
 }
@@ -96,8 +96,8 @@ function InstructionPanel({
   return (
     <div className="space-y-5">
       {isRoasterNote ? (
-        <p className="text-[10px] tracking-[0.2em] uppercase text-[#C4714A] flex items-center gap-1.5">
-          <span className="inline-block w-1 h-1 rounded-full bg-[#C4714A]" />
+        <p className="text-[10px] tracking-[0.2em] uppercase text-[#C4622D] flex items-center gap-1.5">
+          <span className="inline-block w-1 h-1 rounded-full bg-[#C4622D]" />
           Roaster&apos;s recommendation
         </p>
       ) : (
@@ -108,7 +108,7 @@ function InstructionPanel({
       )}
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-white rounded-[2px] border border-[#E8E2D8] px-5 py-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-white rounded-[2px] border border-[rgba(42,21,8,0.07)] px-5 py-4">
         <Stat label="Grind" value={instructions.grind} />
         <Stat label="Ratio" value={instructions.ratio} />
         <Stat label="Water temp" value={instructions.temp} />
@@ -120,7 +120,7 @@ function InstructionPanel({
         <ul className="space-y-2">
           {instructions.tips.map((tip, i) => (
             <li key={i} className="flex gap-2.5 text-sm text-stone-500 font-light leading-snug">
-              <span className="text-[#C4714A] shrink-0 mt-0.5">—</span>
+              <span className="text-[#C4622D] shrink-0 mt-0.5">—</span>
               <span>{tip}</span>
             </li>
           ))}
@@ -162,14 +162,14 @@ export function BrewGuide({
   const isCurrentSaved = savedMethod === activeMethod
 
   return (
-    <section className="border-t border-[#E8E2D8] pt-10">
+    <section className="border-t border-[rgba(42,21,8,0.07)] pt-10">
       <div className="max-w-5xl mx-auto px-6 md:px-10 pb-12 space-y-6">
 
         {/* Header */}
         <div className="flex items-baseline justify-between gap-4 flex-wrap">
           <div>
             <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-1">How to brew this</p>
-            <h2 className="font-serif text-xl text-[#2A1A0E]">Brewing Guide</h2>
+            <h2 className="font-serif text-xl text-[#2A1508]">Brewing Guide</h2>
           </div>
           {isLoggedIn && onSaveMethod && (
             <button
@@ -178,7 +178,7 @@ export function BrewGuide({
               className={`text-xs px-3 py-1.5 rounded-[2px] border transition-colors font-light ${
                 isCurrentSaved
                   ? "border-emerald-200 text-emerald-600 bg-emerald-50 cursor-default"
-                  : "border-[#C4714A]/40 text-[#C4714A] hover:border-[#C4714A] hover:bg-[#C4714A]/5"
+                  : "border-[#C4622D]/40 text-[#C4622D] hover:border-[#C4622D] hover:bg-[#C4622D]/5"
               }`}
             >
               {isCurrentSaved ? "Saved as default ✓" : isSavingMethod ? "Saving…" : "Save as my default method"}
@@ -187,7 +187,7 @@ export function BrewGuide({
           {!isLoggedIn && (
             <a
               href="/account"
-              className="text-xs text-stone-400 hover:text-[#C4714A] transition-colors font-light"
+              className="text-xs text-stone-400 hover:text-[#C4622D] transition-colors font-light"
             >
               Sign in to save your equipment →
             </a>
@@ -204,12 +204,12 @@ export function BrewGuide({
                 onClick={() => setActiveMethod(method.key)}
                 className={`flex flex-col items-center gap-2 px-2 pt-4 pb-3.5 rounded-[2px] border transition-all text-center ${
                   active
-                    ? "border-[#C4714A] bg-[#C4714A]/5"
+                    ? "border-[#C4622D] bg-[#C4622D]/5"
                     : "border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50"
                 }`}
               >
                 {METHOD_ICONS[method.key](active)}
-                <span className={`text-[10px] tracking-wide font-medium leading-none ${active ? "text-[#C4714A]" : "text-stone-500"}`}>
+                <span className={`text-[10px] tracking-wide font-medium leading-none ${active ? "text-[#C4622D]" : "text-stone-500"}`}>
                   {method.label}
                 </span>
               </button>
