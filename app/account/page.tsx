@@ -6,6 +6,7 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { BREW_METHODS, type BrewMethodKey } from "@/lib/brewGuide"
 import { UserNav } from "@/components/UserNav"
+import { Logo } from "@/components/Logo"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ const GRINDER_OPTIONS: { value: GrinderType; label: string; desc: string }[] = [
 ]
 
 const inputClass =
-  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors"
+  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors"
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -107,27 +108,27 @@ export default function AccountPage() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
-        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+      <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
+        <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+          <Link href="/">
+            <Logo height={36} />
           </Link>
           <UserNav />
         </nav>
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[#C4714A] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#C4622D] border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
+    <div className="min-h-screen flex flex-col bg-[#F8F5F2]">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/">
+          <Logo height={36} />
         </Link>
         <UserNav />
       </nav>
@@ -137,7 +138,7 @@ export default function AccountPage() {
 
           <div>
             <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-2">My Account</p>
-            <h1 className="font-serif text-3xl text-[#2A1A0E]">Equipment Profile</h1>
+            <h1 className="font-serif text-3xl text-[#2A1508]">Equipment Profile</h1>
             {userEmail && <p className="text-xs text-stone-400 font-light mt-1">{userEmail}</p>}
           </div>
 
@@ -156,11 +157,11 @@ export default function AccountPage() {
                       onClick={() => setPreferredMethod(active ? null : method.key)}
                       className={`text-left px-4 py-3 rounded-[2px] border transition-all ${
                         active
-                          ? "border-[#C4714A] bg-[#C4714A]/5"
+                          ? "border-[#C4622D] bg-[#C4622D]/5"
                           : "border-stone-200 bg-white hover:border-stone-300"
                       }`}
                     >
-                      <p className={`text-sm font-medium ${active ? "text-[#C4714A]" : "text-stone-600"}`}>
+                      <p className={`text-sm font-medium ${active ? "text-[#C4622D]" : "text-stone-600"}`}>
                         {method.label}
                       </p>
                       <p className="text-[10px] text-stone-400 font-light mt-0.5 leading-snug">
@@ -188,18 +189,18 @@ export default function AccountPage() {
                       onClick={() => setGrinderType(active ? null : opt.value)}
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-[2px] border text-left transition-all ${
                         active
-                          ? "border-[#C4714A] bg-[#C4714A]/5"
+                          ? "border-[#C4622D] bg-[#C4622D]/5"
                           : "border-stone-200 bg-white hover:border-stone-300"
                       }`}
                     >
                       <div>
-                        <p className={`text-sm font-medium ${active ? "text-[#C4714A]" : "text-stone-600"}`}>
+                        <p className={`text-sm font-medium ${active ? "text-[#C4622D]" : "text-stone-600"}`}>
                           {opt.label}
                         </p>
                         <p className="text-xs text-stone-400 font-light mt-0.5">{opt.desc}</p>
                       </div>
                       {active && (
-                        <svg className="h-4 w-4 text-[#C4714A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="h-4 w-4 text-[#C4622D] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -232,22 +233,22 @@ export default function AccountPage() {
               <button
                 type="submit"
                 disabled={profileSaving}
-                className="bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] font-light transition-colors"
+                className="bg-[#2A1508] hover:bg-[#3d2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] font-light transition-colors"
               >
                 {profileSaving ? "Saving…" : "Save preferences"}
               </button>
               {profileSaved && (
-                <span className="text-sm text-[#C4714A] font-light">Saved ✓</span>
+                <span className="text-sm text-[#C4622D] font-light">Saved ✓</span>
               )}
             </div>
 
           </form>
 
           <div className="border-t border-stone-100 pt-6 flex items-center gap-6">
-            <Link href="/profile" className="text-xs text-stone-400 hover:text-[#C4714A] transition-colors">
+            <Link href="/profile" className="text-xs text-stone-400 hover:text-[#C4622D] transition-colors">
               ← My profile
             </Link>
-            <Link href="/" className="text-xs text-stone-400 hover:text-[#C4714A] transition-colors">
+            <Link href="/" className="text-xs text-stone-400 hover:text-[#C4622D] transition-colors">
               ← Back to marketplace
             </Link>
           </div>
@@ -256,9 +257,9 @@ export default function AccountPage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
-        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
-        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
+      <footer className="bg-[#2A1508] px-6 md:px-10 py-10 text-center mt-auto">
+        <Logo height={32} inverted />
+        <p className="text-stone-500 text-xs mt-2 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
     </div>
   )

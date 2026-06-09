@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useCart } from "@/context/CartContext"
+import { Logo } from "@/components/Logo"
 import { supabase } from "@/lib/supabase"
 
 export interface ShippingAddress {
@@ -130,42 +131,42 @@ export default function AddressPage() {
   }
 
   const inputCls =
-    "w-full text-sm border border-stone-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4714A] bg-white"
+    "w-full text-sm border border-stone-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4622D] bg-white"
 
   // Applied to the three zipcloud-populated fields while autoFilled is true
   const autoFilledInputCls =
-    "w-full text-sm border border-emerald-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4714A] bg-emerald-50/60 transition-colors"
+    "w-full text-sm border border-emerald-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4622D] bg-emerald-50/60 transition-colors"
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
         <Link
           href="/cart"
-          className="flex items-center gap-2 text-[#2A1A0E] hover:text-[#C4714A] transition-colors text-sm"
+          className="flex items-center gap-2 text-[#2A1508] hover:text-[#C4622D] transition-colors text-sm"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
           Cart
         </Link>
-        <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+        <Link href="/">
+          <Logo height={36} />
         </Link>
         {/* Step indicator */}
         <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
-          <span className="w-5 h-5 rounded-full bg-[#C4714A] text-white flex items-center justify-center text-[10px] font-medium">1</span>
+          <span className="w-5 h-5 rounded-full bg-[#C4622D] text-white flex items-center justify-center text-[10px] font-medium">1</span>
           <span className="w-8 h-px bg-stone-200" />
           <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-400 flex items-center justify-center text-[10px] font-medium">2</span>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="bg-[#FAFAF8] border-b border-[#E8E2D8] px-6 md:px-10 pt-12 pb-10">
+      <section className="bg-[#F8F5F2] border-b border-[#E8E2D8] px-6 md:px-10 pt-12 pb-10">
         <div className="max-w-xl mx-auto">
           <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-3">Step 1 of 2</p>
-          <h1 className="font-serif text-3xl text-[#2A1A0E] mb-2">Shipping address</h1>
+          <h1 className="font-serif text-3xl text-[#2A1508] mb-2">Shipping address</h1>
           <p className="text-stone-400 text-xs mt-2 leading-relaxed">
             Enter your delivery address. You'll confirm payment on the next screen.
           </p>
@@ -195,7 +196,7 @@ export default function AddressPage() {
                   value={form.postalCode}
                   onChange={handlePostcodeChange}
                   placeholder="1500001"
-                  className="w-full text-sm border border-stone-200 rounded-[2px] pl-9 pr-4 py-3 focus:outline-none focus:border-[#C4714A] bg-white"
+                  className="w-full text-sm border border-stone-200 rounded-[2px] pl-9 pr-4 py-3 focus:outline-none focus:border-[#C4622D] bg-white"
                 />
               </div>
               <div className="text-xs min-h-[1rem]">
@@ -296,7 +297,7 @@ export default function AddressPage() {
               value={form.building}
               onChange={set("building")}
               placeholder="e.g. コーヒービル 301 / Kohī Building Apt. 301"
-              className="w-full text-sm border border-amber-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4714A] bg-white"
+              className="w-full text-sm border border-amber-200 rounded-[2px] px-4 py-3 focus:outline-none focus:border-[#C4622D] bg-white"
             />
             <p className="text-[11px] text-amber-700 mt-2 leading-relaxed">
               For apartments and buildings, include the building name and room number.
@@ -350,7 +351,7 @@ export default function AddressPage() {
           <button
             type="submit"
             disabled={submitting || lookup === "loading"}
-            className="w-full mt-2 bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white py-4 rounded-[2px] text-sm font-medium tracking-wide transition-colors flex items-center justify-center gap-2"
+            className="w-full mt-2 bg-[#2A1508] hover:bg-[#3d2010] disabled:opacity-60 text-white py-4 rounded-[2px] text-sm font-medium tracking-wide transition-colors flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>
@@ -370,8 +371,8 @@ export default function AddressPage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
-        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+      <footer className="bg-[#2A1508] px-6 md:px-10 py-10 text-center mt-auto">
+        <Logo height={32} inverted />
         <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
 

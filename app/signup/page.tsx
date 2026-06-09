@@ -4,9 +4,10 @@ import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { Logo } from "@/components/Logo"
 
 const inputClass =
-  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors"
+  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors"
 
 // ─── Inner form (needs useSearchParams, wrapped in Suspense below) ────────────
 
@@ -21,7 +22,6 @@ function SignupForm() {
   const [loading, setLoading]         = useState(false)
   const [error, setError]             = useState<string | null>(null)
 
-  // Redirect away if already signed in
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session?.user) return
@@ -53,7 +53,6 @@ function SignupForm() {
       return
     }
 
-    // Create consumer profile row with display name
     await supabase.from("consumer_profiles").upsert({
       id: data.user!.id,
       display_name: displayName.trim() || null,
@@ -68,12 +67,12 @@ function SignupForm() {
     : "/login"
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/">
+          <Logo height={36} />
         </Link>
       </nav>
 
@@ -82,7 +81,7 @@ function SignupForm() {
 
           <div className="mb-8">
             <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-2">My Account</p>
-            <h1 className="font-serif text-3xl text-[#2A1A0E]">Create account</h1>
+            <h1 className="font-serif text-3xl text-[#2A1508]">Create account</h1>
             <p className="text-sm text-stone-400 font-light mt-1">
               Join Mame Mart to save preferences and track your orders.
             </p>
@@ -133,7 +132,7 @@ function SignupForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white text-sm font-medium rounded-[2px] tracking-wide transition-colors"
+              className="w-full py-3 bg-[#2A1508] hover:bg-[#3d2010] disabled:opacity-60 text-white text-sm font-medium rounded-[2px] tracking-wide transition-colors"
             >
               {loading ? "Creating account…" : "Create account"}
             </button>
@@ -141,7 +140,7 @@ function SignupForm() {
 
           <p className="text-xs text-stone-400 text-center mt-6">
             Already have an account?{" "}
-            <Link href={loginHref} className="text-[#C4714A] hover:text-[#B05E3C] transition-colors">
+            <Link href={loginHref} className="text-[#C4622D] hover:text-[#A84F22] transition-colors">
               Sign in →
             </Link>
           </p>
@@ -150,9 +149,9 @@ function SignupForm() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
-        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
-        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
+      <footer className="bg-[#2A1508] px-6 md:px-10 py-10 text-center mt-auto">
+        <Logo height={32} inverted />
+        <p className="text-stone-500 text-xs mt-2 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
     </div>
   )

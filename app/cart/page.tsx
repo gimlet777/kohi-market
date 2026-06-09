@@ -2,26 +2,27 @@
 
 import Link from "next/link"
 import { useCart } from "@/context/CartContext"
+import { Logo } from "@/components/Logo"
 
 export default function CartPage() {
   const cart = useCart()
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-2 text-[#2A1A0E] hover:text-[#C4714A] transition-colors text-sm"
+          className="flex items-center gap-2 text-[#2A1508] hover:text-[#C4622D] transition-colors text-sm"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
           Marketplace
         </Link>
-        <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+        <Link href="/">
+          <Logo height={36} />
         </Link>
         <div className="w-24 text-right">
           {cart.totalCount > 0 && (
@@ -33,10 +34,10 @@ export default function CartPage() {
       </nav>
 
       {/* Hero */}
-      <section className="bg-[#FAFAF8] border-b border-[#E8E2D8] px-6 md:px-10 pt-12 pb-10">
+      <section className="bg-[#F8F5F2] border-b border-[#E8E2D8] px-6 md:px-10 pt-12 pb-10">
         <div className="max-w-2xl mx-auto">
           <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-3">Your Cart</p>
-          <h1 className="font-serif text-3xl text-[#2A1A0E] mb-2">
+          <h1 className="font-serif text-3xl text-[#2A1508] mb-2">
             {cart.items.length === 0 ? "Nothing here yet" : `${cart.totalCount} item${cart.totalCount !== 1 ? "s" : ""}`}
           </h1>
         </div>
@@ -60,7 +61,7 @@ export default function CartPage() {
             </p>
             <Link
               href="/"
-              className="inline-block bg-[#C4714A] hover:bg-[#B05E3C] text-white text-sm px-6 py-3 rounded-[2px] transition-colors"
+              className="inline-block bg-[#C4622D] hover:bg-[#A84F22] text-white text-sm px-6 py-3 rounded-[2px] transition-colors"
             >
               Browse coffees
             </Link>
@@ -79,11 +80,11 @@ export default function CartPage() {
 
                   {/* Product info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-[#C4714A] mb-0.5">{item.roasterName}</p>
+                    <p className="text-xs text-[#C4622D] mb-0.5">{item.roasterName}</p>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium text-[#2A1A0E] text-sm leading-snug">{item.productName}</p>
+                      <p className="font-medium text-[#2A1508] text-sm leading-snug">{item.productName}</p>
                       {item.batchId && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-[2px] border border-[#C4714A] text-[#C4714A] leading-none">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-[2px] border border-[#C4622D] text-[#C4622D] leading-none">
                           Pre-order
                         </span>
                       )}
@@ -96,7 +97,7 @@ export default function CartPage() {
 
                   {/* Line total */}
                   <div className="text-right shrink-0">
-                    <p className="font-semibold text-[#2A1A0E] text-sm">
+                    <p className="font-semibold text-[#2A1508] text-sm">
                       ¥{(item.price * item.quantity).toLocaleString()}
                     </p>
                     <p className="text-xs text-stone-400 mt-0.5">
@@ -112,17 +113,17 @@ export default function CartPage() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => cart.updateQuantity(item.cartItemId, item.quantity - 1)}
-                      className="w-11 h-11 rounded-[2px] border border-[#E8E2D8] flex items-center justify-center text-stone-400 hover:border-[#C4714A] hover:text-[#C4714A] transition-colors text-lg leading-none"
+                      className="w-11 h-11 rounded-[2px] border border-[#E8E2D8] flex items-center justify-center text-stone-400 hover:border-[#C4622D] hover:text-[#C4622D] transition-colors text-lg leading-none"
                       aria-label="Decrease quantity"
                     >
                       −
                     </button>
-                    <span className="text-sm font-medium text-[#2A1A0E] w-4 text-center">
+                    <span className="text-sm font-medium text-[#2A1508] w-4 text-center">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => cart.updateQuantity(item.cartItemId, item.quantity + 1)}
-                      className="w-11 h-11 rounded-[2px] border border-[#E8E2D8] flex items-center justify-center text-stone-400 hover:border-[#C4714A] hover:text-[#C4714A] transition-colors text-lg leading-none"
+                      className="w-11 h-11 rounded-[2px] border border-[#E8E2D8] flex items-center justify-center text-stone-400 hover:border-[#C4622D] hover:text-[#C4622D] transition-colors text-lg leading-none"
                       aria-label="Increase quantity"
                     >
                       +
@@ -151,7 +152,7 @@ export default function CartPage() {
                       {item.productName}
                       <span className="text-stone-400 text-xs"> × {item.quantity}</span>
                     </span>
-                    <span className="text-[#2A1A0E] shrink-0">
+                    <span className="text-[#2A1508] shrink-0">
                       ¥{(item.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
@@ -159,8 +160,8 @@ export default function CartPage() {
               </div>
 
               <div className="border-t border-stone-100 pt-4 flex items-baseline justify-between">
-                <span className="text-sm font-medium text-[#2A1A0E]">Total</span>
-                <span className="text-xl font-semibold text-[#2A1A0E]">
+                <span className="text-sm font-medium text-[#2A1508]">Total</span>
+                <span className="text-xl font-semibold text-[#2A1508]">
                   ¥{cart.totalPrice.toLocaleString()}
                 </span>
               </div>
@@ -171,7 +172,7 @@ export default function CartPage() {
 
               <Link
                 href="/checkout/address"
-                className="block w-full mt-5 bg-[#2A1A0E] hover:bg-[#3a2010] text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors text-center"
+                className="block w-full mt-5 bg-[#2A1508] hover:bg-[#3d2010] text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors text-center"
               >
                 Proceed to Checkout
               </Link>
@@ -189,9 +190,9 @@ export default function CartPage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
-        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
-        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
+      <footer className="bg-[#2A1508] px-6 md:px-10 py-10 text-center mt-auto">
+        <Logo height={32} inverted />
+        <p className="text-stone-500 text-xs mt-2 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
 
     </div>

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import type { ProductRow } from "@/lib/products"
 import { UserNav } from "@/components/UserNav"
+import { Logo } from "@/components/Logo"
 
 interface RoasterProfile {
   roaster_name: string
@@ -17,6 +18,7 @@ interface RoasterProfile {
   is_pro?: boolean
   hero_photo_url?: string | null
   gallery_urls?: string[] | null
+  accent_color?: string | null
 }
 
 const REGIONS = ["Tokyo", "Kyoto", "Osaka", "Fukuoka", "Hokkaido"]
@@ -109,7 +111,7 @@ function formatRoastDate(iso: string) {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAFAF8]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F8F5F2]" />}>
       <DashboardContent />
     </Suspense>
   )
@@ -139,6 +141,7 @@ function DashboardContent() {
   const [settingsRegion, setSettingsRegion] = useState("")
   const [settingsBio, setSettingsBio] = useState("")
   const [settingsWebsite, setSettingsWebsite] = useState("")
+  const [settingsAccentColor, setSettingsAccentColor] = useState("")
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [settingsError, setSettingsError] = useState<string | null>(null)
@@ -174,7 +177,7 @@ function DashboardContent() {
       ] = await Promise.all([
         supabase
           .from("roasters")
-          .select("roaster_name, email, region, seller_type, bio, website, is_pro, hero_photo_url, gallery_urls")
+          .select("roaster_name, email, region, seller_type, bio, website, is_pro, hero_photo_url, gallery_urls, accent_color")
           .eq("id", session.user.id)
           .single(),
         supabase
@@ -205,6 +208,7 @@ function DashboardContent() {
         setSettingsRegion(profileData.region ?? "")
         setSettingsBio(profileData.bio ?? "")
         setSettingsWebsite(profileData.website ?? "")
+        setSettingsAccentColor(profileData.accent_color ?? "")
         setHeroUrl(profileData.hero_photo_url ?? "")
         setGalleryUrls(profileData.gallery_urls ?? [])
       }
@@ -261,13 +265,14 @@ function DashboardContent() {
         region: settingsRegion,
         bio: settingsBio.trim() || null,
         website: settingsWebsite.trim() || null,
+        accent_color: settingsAccentColor.trim() || null,
       })
       .eq("id", session.user.id)
 
     if (error) {
       setSettingsError(error.message)
     } else {
-      setProfile(prev => prev ? { ...prev, roaster_name: settingsName.trim(), region: settingsRegion, bio: settingsBio.trim() || undefined, website: settingsWebsite.trim() || undefined } : prev)
+      setProfile(prev => prev ? { ...prev, roaster_name: settingsName.trim(), region: settingsRegion, bio: settingsBio.trim() || undefined, website: settingsWebsite.trim() || undefined, accent_color: settingsAccentColor.trim() || null } : prev)
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 3000)
     }
@@ -400,12 +405,12 @@ function DashboardContent() {
   const isCafeRoaster = profile?.seller_type === "Café Roaster"
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/">
+          <Logo height={36} />
         </Link>
         <div className="flex items-center gap-4">
           <span className="hidden sm:block text-xs text-stone-400 tracking-widest uppercase">Roaster Portal</span>
@@ -414,7 +419,7 @@ function DashboardContent() {
       </nav>
 
       {/* Hero */}
-      <div className="bg-[#FAFAF8] border-b border-[#E8E2D8] px-6 md:px-10 pt-10 pb-8">
+      <div className="bg-[#F8F5F2] border-b border-[#E8E2D8] px-6 md:px-10 pt-10 pb-8">
         {isLoading ? (
           <div className="max-w-5xl mx-auto space-y-3">
             <div className="h-3 w-24 bg-stone-100 rounded animate-pulse" />
@@ -424,8 +429,8 @@ function DashboardContent() {
         ) : (
           <div className="max-w-5xl mx-auto">
             <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-2">Dashboard</p>
-            <h1 className="font-serif text-3xl text-[#2A1A0E] mb-1">
-              Welcome back, <span className="text-[#C4714A]">{profile?.roaster_name ?? "Roaster"}</span>
+            <h1 className="font-serif text-3xl text-[#2A1508] mb-1">
+              Welcome back, <span className="text-[#C4622D]">{profile?.roaster_name ?? "Roaster"}</span>
             </h1>
             <p className="text-sm text-stone-400 font-light">{profile?.seller_type} · {profile?.region}</p>
           </div>
@@ -442,7 +447,7 @@ function DashboardContent() {
                 onClick={() => setActiveTab(tab)}
                 className={`px-5 py-3.5 text-xs tracking-widest uppercase font-medium border-b-2 transition-colors ${
                   activeTab === tab
-                    ? "border-[#2A1A0E] text-[#2A1A0E]"
+                    ? "border-[#2A1508] text-[#2A1508]"
                     : "border-transparent text-stone-400 hover:text-stone-600"
                 }`}
               >
@@ -473,7 +478,7 @@ function DashboardContent() {
               {!showAddBatch && (
                 <button
                   onClick={() => setShowAddBatch(true)}
-                  className="bg-[#C4714A] hover:bg-[#B05E3C] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
+                  className="bg-[#C4622D] hover:bg-[#A84F22] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
                 >
                   + Add Batch
                 </button>
@@ -495,7 +500,7 @@ function DashboardContent() {
                         onClick={() => { setBatchMode(mode); setBatchError(null) }}
                         className={`py-2.5 px-3 rounded-[2px] text-sm border transition-colors text-left ${
                           batchMode === mode
-                            ? "bg-[#2A1A0E] text-white border-[#2A1A0E]"
+                            ? "bg-[#2A1508] text-white border-[#2A1508]"
                             : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
                         }`}
                       >
@@ -508,13 +513,13 @@ function DashboardContent() {
                   <div>
                     <label className="block text-xs text-stone-500 mb-1.5">Product</label>
                     {products.length === 0 ? (
-                      <p className="text-xs text-stone-400">No products yet — <Link href="/roaster/products/new" className="text-[#C4714A] hover:underline">add one first</Link>.</p>
+                      <p className="text-xs text-stone-400">No products yet — <Link href="/roaster/products/new" className="text-[#C4622D] hover:underline">add one first</Link>.</p>
                     ) : (
                       <select
                         required
                         value={batchForm.productId}
                         onChange={e => setBatchForm(f => ({ ...f, productId: e.target.value }))}
-                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A] bg-white"
+                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4622D] bg-white"
                       >
                         <option value="">Select a product…</option>
                         {products.map(p => (
@@ -534,7 +539,7 @@ function DashboardContent() {
                         value={batchForm.roastDate}
                         min={new Date().toISOString().split("T")[0]}
                         onChange={e => setBatchForm(f => ({ ...f, roastDate: e.target.value }))}
-                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A]"
+                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4622D]"
                       />
                     </div>
                   )}
@@ -551,7 +556,7 @@ function DashboardContent() {
                       placeholder="e.g. 20"
                       value={batchForm.totalBags}
                       onChange={e => setBatchForm(f => ({ ...f, totalBags: e.target.value }))}
-                      className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4714A]"
+                      className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4622D]"
                     />
                   </div>
 
@@ -563,7 +568,7 @@ function DashboardContent() {
                     <button
                       type="submit"
                       disabled={batchSubmitting || products.length === 0}
-                      className="bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] transition-colors"
+                      className="bg-[#2A1508] hover:bg-[#3d2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] transition-colors"
                     >
                       {batchSubmitting
                         ? (batchMode === "now" ? "Adding…" : "Scheduling…")
@@ -617,7 +622,7 @@ function DashboardContent() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-4 py-4 text-[#2A1A0E] whitespace-nowrap">
+                            <td className="px-4 py-4 text-[#2A1508] whitespace-nowrap">
                               {batch.products?.product_name ?? "—"}
                             </td>
                             <td className="px-4 py-4 text-stone-600 whitespace-nowrap">
@@ -636,7 +641,7 @@ function DashboardContent() {
                             </td>
                             <td className="px-4 py-4 text-stone-600 whitespace-nowrap">
                               {preorders > 0 ? (
-                                <span className="font-medium text-[#2A1A0E]">{preorders}</span>
+                                <span className="font-medium text-[#2A1508]">{preorders}</span>
                               ) : (
                                 <span className="text-stone-300">—</span>
                               )}
@@ -683,7 +688,7 @@ function DashboardContent() {
                   ].map(([label, value]) => (
                     <div key={label} className="flex gap-4 text-sm">
                       <dt className="w-28 text-stone-400 shrink-0">{label}</dt>
-                      <dd className="text-[#2A1A0E] font-medium">{value}</dd>
+                      <dd className="text-[#2A1508] font-medium">{value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -737,7 +742,7 @@ function DashboardContent() {
                               {formatDate(order.created_at)}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">
-                              <p className="text-[#2A1A0E] font-medium text-sm">{order.buyer_name}</p>
+                              <p className="text-[#2A1508] font-medium text-sm">{order.buyer_name}</p>
                               <p className="text-stone-400 text-xs">{order.buyer_email}</p>
                             </td>
                             <td className="px-4 py-4 min-w-[180px]">
@@ -751,7 +756,7 @@ function DashboardContent() {
                                 </p>
                               ))}
                             </td>
-                            <td className="px-4 py-4 text-[#2A1A0E] font-medium whitespace-nowrap">
+                            <td className="px-4 py-4 text-[#2A1508] font-medium whitespace-nowrap">
                               ¥{order.total_amount.toLocaleString()}
                             </td>
                             <td className="px-4 py-4">
@@ -767,7 +772,7 @@ function DashboardContent() {
                                   <span className="text-xs text-stone-400">Mark as shipped?</span>
                                   <button
                                     onClick={() => handleUpdateStatus(order.id, "shipped")}
-                                    className="text-xs text-[#C4714A] hover:text-[#B05E3C] font-medium transition-colors"
+                                    className="text-xs text-[#C4622D] hover:text-[#A84F22] font-medium transition-colors"
                                   >
                                     Confirm
                                   </button>
@@ -781,7 +786,7 @@ function DashboardContent() {
                               ) : order.status === "pending" ? (
                                 <button
                                   onClick={() => setConfirmShipOrderId(order.id)}
-                                  className="text-xs text-[#C4714A] hover:text-[#B05E3C] font-medium transition-colors"
+                                  className="text-xs text-[#C4622D] hover:text-[#A84F22] font-medium transition-colors"
                                 >
                                   Mark shipped
                                 </button>
@@ -809,7 +814,7 @@ function DashboardContent() {
                 <h2 className="text-xs tracking-widest uppercase text-stone-400">My Products</h2>
                 <Link
                   href="/roaster/products/new"
-                  className="bg-[#C4714A] hover:bg-[#B05E3C] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
+                  className="bg-[#C4622D] hover:bg-[#A84F22] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
                 >
                   + Add Product
                 </Link>
@@ -857,7 +862,7 @@ function DashboardContent() {
                       <tbody>
                         {products.map(p => (
                           <tr key={p.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50/50 transition-colors">
-                            <td className="px-6 py-4 font-medium text-[#2A1A0E] whitespace-nowrap">{p.product_name}</td>
+                            <td className="px-6 py-4 font-medium text-[#2A1508] whitespace-nowrap">{p.product_name}</td>
                             <td className="px-4 py-4 text-stone-500 whitespace-nowrap">{p.origin}</td>
                             <td className="px-4 py-4">
                               <span className={`inline-block text-[10px] px-2.5 py-1 rounded-[2px] border font-medium ${roastBadge(p.roast_level)}`}>
@@ -889,7 +894,7 @@ function DashboardContent() {
                                 <div className="flex items-center gap-3 justify-end">
                                   <Link
                                     href={`/roaster/products/${p.id}/edit`}
-                                    className="text-xs text-stone-400 hover:text-[#C4714A] transition-colors"
+                                    className="text-xs text-stone-400 hover:text-[#C4622D] transition-colors"
                                   >
                                     Edit
                                   </Link>
@@ -927,7 +932,7 @@ function DashboardContent() {
                       </span>
                     </div>
                     <div>
-                      <h3 className="font-medium text-[#2A1A0E] text-sm mb-1">{card.title}</h3>
+                      <h3 className="font-medium text-[#2A1508] text-sm mb-1">{card.title}</h3>
                       <p className="text-xs text-stone-400 leading-relaxed">{card.description}</p>
                     </div>
                   </div>
@@ -939,7 +944,7 @@ function DashboardContent() {
             <div className="text-center pb-4">
               <Link
                 href="/"
-                className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors tracking-wide"
+                className="text-xs text-[#C4622D] hover:text-[#A84F22] transition-colors tracking-wide"
               >
                 ← View marketplace
               </Link>
@@ -969,7 +974,7 @@ function DashboardContent() {
                     value={settingsName}
                     onChange={e => setSettingsName(e.target.value)}
                     placeholder="Your roastery name"
-                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors font-light"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
                   />
                 </div>
 
@@ -982,7 +987,7 @@ function DashboardContent() {
                     <select
                       value={settingsRegion}
                       onChange={e => setSettingsRegion(e.target.value)}
-                      className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] bg-white focus:outline-none focus:border-[#C4714A] transition-colors font-light appearance-none pr-10"
+                      className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light appearance-none pr-10"
                     >
                       <option value="">Select region…</option>
                       {REGIONS.map(r => (
@@ -1005,7 +1010,7 @@ function DashboardContent() {
                     value={settingsBio}
                     onChange={e => setSettingsBio(e.target.value)}
                     placeholder="Tell customers about your roastery, your philosophy, and what makes your coffee special…"
-                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors font-light resize-none"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light resize-none"
                   />
                 </div>
 
@@ -1019,8 +1024,33 @@ function DashboardContent() {
                     value={settingsWebsite}
                     onChange={e => setSettingsWebsite(e.target.value)}
                     placeholder="https://yourroastery.com"
-                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors font-light"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
                   />
+                </div>
+
+                {/* Accent colour */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    Accent Colour
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={settingsAccentColor || "#C4622D"}
+                      onChange={e => setSettingsAccentColor(e.target.value)}
+                      className="h-10 w-16 rounded-[2px] border border-stone-200 cursor-pointer p-0.5 bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={settingsAccentColor}
+                      onChange={e => setSettingsAccentColor(e.target.value)}
+                      placeholder="#C4622D"
+                      className="flex-1 px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                    />
+                  </div>
+                  <p className="text-[11px] text-stone-300 mt-1.5 font-light">
+                    Shown as a 2px accent bar on your product cards in the marketplace.
+                  </p>
                 </div>
 
                 {/* Email — read only */}
@@ -1048,12 +1078,12 @@ function DashboardContent() {
                 <button
                   type="submit"
                   disabled={settingsSaving}
-                  className="bg-[#2A1A0E] hover:bg-[#3a2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] font-light transition-colors"
+                  className="bg-[#2A1508] hover:bg-[#3d2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] font-light transition-colors"
                 >
                   {settingsSaving ? "Saving…" : "Save changes"}
                 </button>
                 {settingsSaved && (
-                  <span className="text-sm text-[#C4714A] font-light">Changes saved ✓</span>
+                  <span className="text-sm text-[#C4622D] font-light">Changes saved ✓</span>
                 )}
               </div>
 
@@ -1081,7 +1111,7 @@ function DashboardContent() {
                       </button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-[#E8E2D8] rounded-[2px] bg-white cursor-pointer hover:border-[#C4714A] transition-colors">
+                    <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-[#E8E2D8] rounded-[2px] bg-white cursor-pointer hover:border-[#C4622D] transition-colors">
                       {heroUploading ? (
                         <span className="text-xs text-stone-400">Uploading…</span>
                       ) : (
@@ -1126,7 +1156,7 @@ function DashboardContent() {
                       </div>
                     ))}
                     {galleryUrls.length < 6 && (
-                      <label className="aspect-square flex items-center justify-center border border-dashed border-[#E8E2D8] rounded-[2px] bg-white cursor-pointer hover:border-[#C4714A] transition-colors">
+                      <label className="aspect-square flex items-center justify-center border border-dashed border-[#E8E2D8] rounded-[2px] bg-white cursor-pointer hover:border-[#C4622D] transition-colors">
                         {galleryUploading ? (
                           <span className="text-xs text-stone-400">…</span>
                         ) : (
@@ -1159,8 +1189,8 @@ function DashboardContent() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-8 text-center mt-auto">
-        <span className="text-lg font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+      <footer className="bg-[#2A1508] px-6 md:px-10 py-8 text-center mt-auto">
+        <Logo height={28} inverted />
         <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Roaster Portal</p>
       </footer>
     </div>
