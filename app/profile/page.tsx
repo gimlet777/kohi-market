@@ -7,7 +7,6 @@ import { supabase } from "@/lib/supabase"
 import { UserNav } from "@/components/UserNav"
 import { BREW_METHODS, type BrewMethodKey } from "@/lib/brewGuide"
 import { REGIONS } from "@/lib/gamification-constants"
-import { Logo } from "@/components/Logo"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,7 +72,7 @@ const GRINDER_LABELS: Record<string, string> = {
 
 function PointsCard({ points }: { points: number }) {
   return (
-    <div className="bg-[#2A1508] rounded-[2px] px-5 py-4 flex items-center justify-between">
+    <div className="bg-[#2A1A0E] rounded-[2px] px-5 py-4 flex items-center justify-between">
       <div>
         <p className="text-[10px] tracking-[0.25em] uppercase text-[#A08060] mb-1">豆ポイント</p>
         <p className="text-2xl font-medium text-white tabular-nums">
@@ -105,11 +104,11 @@ function RegionalBadges({ badges }: { badges: Badge[] }) {
               key={region}
               className={`rounded-[2px] border py-3 px-1 text-center transition-all ${
                 earned
-                  ? "bg-[#C4622D]/8 border-[#C4622D]/30"
+                  ? "bg-[#C4714A]/8 border-[#C4714A]/30"
                   : "bg-stone-50 border-stone-100"
               }`}
             >
-              <p className={`text-[10px] font-medium leading-tight ${earned ? "text-[#C4622D]" : "text-stone-300"}`}>
+              <p className={`text-[10px] font-medium leading-tight ${earned ? "text-[#C4714A]" : "text-stone-300"}`}>
                 {region}
               </p>
               <p className={`text-base mt-1 ${earned ? "opacity-100" : "opacity-20"}`}>
@@ -161,7 +160,7 @@ function OriginPassport({ badges }: { badges: Badge[] }) {
             className="flex items-center gap-1.5 bg-white border border-[#E8E2D8] rounded-[2px] px-3 py-1.5"
           >
             <span className="text-[10px] text-stone-400">✦</span>
-            <span className="text-xs text-[#2A1508] font-medium">{b.badge_data.origin}</span>
+            <span className="text-xs text-[#2A1A0E] font-medium">{b.badge_data.origin}</span>
           </div>
         ))}
       </div>
@@ -264,15 +263,15 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
-        <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-          <Link href="/">
-          <Logo height={36} />
-        </Link>
+      <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+          </Link>
           <UserNav />
         </nav>
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[#C4622D] border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#C4714A] border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     )
@@ -282,12 +281,12 @@ export default function ProfilePage() {
   const hasAnyAchievements = badges.length > 0 || totalPoints > 0
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F5F2]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-        <Link href="/">
-          <Logo height={36} />
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         </Link>
         <UserNav />
       </nav>
@@ -297,7 +296,7 @@ export default function ProfilePage() {
         {/* Header */}
         <div>
           <p className="text-[10px] tracking-[0.3em] uppercase text-stone-400 mb-1">My Account</p>
-          <h1 className="font-serif text-3xl text-[#2A1508]">
+          <h1 className="font-serif text-3xl text-[#2A1A0E]">
             {profile?.display_name ?? "Profile"}
           </h1>
           {userEmail && (
@@ -323,7 +322,7 @@ export default function ProfilePage() {
               </p>
               <Link
                 href="/"
-                className="inline-block text-xs text-[#C4622D] hover:text-[#A84F22] transition-colors"
+                className="inline-block text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors"
               >
                 Browse the marketplace →
               </Link>
@@ -352,7 +351,7 @@ export default function ProfilePage() {
               </p>
               <Link
                 href="/"
-                className="inline-block mt-4 text-xs text-[#C4622D] hover:text-[#A84F22] transition-colors"
+                className="inline-block mt-4 text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors"
               >
                 Browse the marketplace →
               </Link>
@@ -365,14 +364,14 @@ export default function ProfilePage() {
                     <div>
                       <p className="text-xs text-stone-400 font-light">{formatDate(order.created_at)}</p>
                       {order.buyer_name && (
-                        <p className="text-sm font-medium text-[#2A1508] mt-0.5">{order.buyer_name}</p>
+                        <p className="text-sm font-medium text-[#2A1A0E] mt-0.5">{order.buyer_name}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span className={`text-[10px] px-2.5 py-1 rounded-[2px] border font-medium capitalize ${statusBadge(order.status)}`}>
                         {order.status}
                       </span>
-                      <p className="text-sm font-medium text-[#2A1508]">
+                      <p className="text-sm font-medium text-[#2A1A0E]">
                         ¥{order.total_amount.toLocaleString()}
                       </p>
                     </div>
@@ -402,8 +401,8 @@ export default function ProfilePage() {
             <div className="bg-white border border-[#E8E2D8] rounded-[2px] px-5 py-4 space-y-3">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[10px] tracking-widest uppercase text-[#C4622D] mb-1">Quiz results</p>
-                  <p className="text-sm text-[#2A1508] font-medium">
+                  <p className="text-[10px] tracking-widest uppercase text-[#C4714A] mb-1">Quiz results</p>
+                  <p className="text-sm text-[#2A1A0E] font-medium">
                     {quiz.summary}
                   </p>
                   {quiz.formatPref && (
@@ -425,7 +424,7 @@ export default function ProfilePage() {
               <div className="flex items-center gap-4 pt-1 border-t border-stone-100">
                 <Link
                   href="/"
-                  className="text-xs text-[#C4622D] hover:text-[#A84F22] transition-colors font-light"
+                  className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors font-light"
                 >
                   Browse matches →
                 </Link>
@@ -448,7 +447,7 @@ export default function ProfilePage() {
               </p>
               <Link
                 href="/"
-                className="inline-block text-xs text-[#C4622D] hover:text-[#A84F22] transition-colors"
+                className="inline-block text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors"
               >
                 Find my coffee →
               </Link>
@@ -462,7 +461,7 @@ export default function ProfilePage() {
             <h2 className="text-[10px] tracking-[0.2em] uppercase text-stone-400">Saved Equipment</h2>
             <Link
               href="/account"
-              className="text-xs text-[#C4622D] hover:text-[#A84F22] transition-colors font-light"
+              className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors font-light"
             >
               Edit →
             </Link>
@@ -474,7 +473,7 @@ export default function ProfilePage() {
                 {preferredMethodDef && (
                   <div className="flex items-baseline gap-4">
                     <dt className="text-xs text-stone-400 w-28 shrink-0">Brew method</dt>
-                    <dd className="text-sm text-[#2A1508]">
+                    <dd className="text-sm text-[#2A1A0E]">
                       {preferredMethodDef.label}
                       <span className="text-stone-400 text-xs font-light ml-1.5">{preferredMethodDef.devices}</span>
                     </dd>
@@ -483,7 +482,7 @@ export default function ProfilePage() {
                 {profile?.grinder_type && (
                   <div className="flex items-baseline gap-4">
                     <dt className="text-xs text-stone-400 w-28 shrink-0">Grinder</dt>
-                    <dd className="text-sm text-[#2A1508]">
+                    <dd className="text-sm text-[#2A1A0E]">
                       {GRINDER_LABELS[profile.grinder_type] ?? profile.grinder_type}
                     </dd>
                   </div>
@@ -492,7 +491,7 @@ export default function ProfilePage() {
             ) : (
               <p className="text-sm text-stone-400 text-center py-2">
                 No equipment saved yet.{" "}
-                <Link href="/account" className="text-[#C4622D] hover:text-[#A84F22]">
+                <Link href="/account" className="text-[#C4714A] hover:text-[#B05E3C]">
                   Add your setup →
                 </Link>
               </p>
@@ -503,8 +502,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#2A1508] px-6 md:px-10 py-10 text-center mt-auto">
-        <Logo height={32} inverted />
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
+        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
     </div>

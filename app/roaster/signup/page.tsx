@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
-import { Logo } from "@/components/Logo"
 
 const REGIONS = ["Tokyo", "Kyoto", "Osaka", "Fukuoka", "Hokkaido"]
 const SELLER_TYPES = ["Roastery", "Café Roaster"] as const
@@ -21,7 +20,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputClass =
-  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors"
+  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors"
 
 export default function SignupPage() {
   const router = useRouter()
@@ -82,12 +81,12 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-        <Link href="/">
-          <Logo height={36} />
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         </Link>
         <span className="text-xs text-stone-400">Roaster Portal</span>
       </nav>
@@ -97,7 +96,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
 
           <div className="mb-8">
-            <h1 className="font-serif text-3xl text-[#2A1508] mb-2">Join Mame Mart</h1>
+            <h1 className="font-serif text-3xl text-[#2A1A0E] mb-2">Join Mame Mart</h1>
             <p className="text-sm text-stone-400">Create your seller account to list your coffees.</p>
           </div>
 
@@ -171,7 +170,7 @@ export default function SignupPage() {
                     onClick={() => setSellerType(t)}
                     className={`flex-1 py-2.5 px-4 rounded-[2px] border text-sm transition-all ${
                       sellerType === t
-                        ? "border-[#C4622D] bg-amber-50 text-[#2A1508] font-medium"
+                        ? "border-[#C4714A] bg-amber-50 text-[#2A1A0E] font-medium"
                         : "border-stone-200 text-stone-500 hover:border-stone-300 bg-white"
                     }`}
                   >
@@ -190,7 +189,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#C4622D] hover:bg-[#A84F22] disabled:opacity-60 text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors"
+              className="w-full bg-[#C4714A] hover:bg-[#B05E3C] disabled:opacity-60 text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors"
             >
               {loading ? "Creating account…" : "Create account"}
             </button>
@@ -198,7 +197,7 @@ export default function SignupPage() {
 
           <p className="text-center text-xs text-stone-400 mt-6">
             Already have an account?{" "}
-            <Link href="/roaster/login" className="text-[#C4622D] hover:text-[#A84F22] transition-colors">
+            <Link href="/roaster/login" className="text-[#C4714A] hover:text-[#B05E3C] transition-colors">
               Sign in
             </Link>
           </p>

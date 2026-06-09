@@ -1,14 +1,13 @@
 import Link from "next/link"
-import { Logo } from "@/components/Logo"
 
 export default function CheckoutCancelPage() {
   return (
-    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-        <Link href="/">
-          <Logo height={36} />
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         </Link>
       </nav>
 
@@ -23,16 +22,16 @@ export default function CheckoutCancelPage() {
             </svg>
           </div>
 
-          <h1 className="font-serif text-3xl text-[#2A1508] mb-3">
+          <h1 className="font-serif text-3xl text-[#2A1A0E] mb-3">
             Order cancelled
           </h1>
           <p className="text-stone-500 text-sm leading-relaxed mb-10">
-            No payment was taken. Your cart is still saved — head back whenever you&apos;re ready.
+            No payment was taken. Your cart is still saved — head back whenever you're ready.
           </p>
 
           <Link
             href="/cart"
-            className="inline-block bg-[#2A1508] hover:bg-[#3d2010] text-white text-sm px-8 py-3 rounded-[2px] transition-colors"
+            className="inline-block bg-[#2A1A0E] hover:bg-[#3a2010] text-white text-sm px-8 py-3 rounded-[2px] transition-colors"
           >
             Back to cart
           </Link>
@@ -40,9 +39,9 @@ export default function CheckoutCancelPage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#2A1508] px-6 md:px-10 py-10 text-center mt-auto">
-        <Logo height={32} inverted />
-        <p className="text-stone-500 text-xs mt-2 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-10 text-center mt-auto">
+        <span className="text-xl font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+        <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Specialty Coffee Marketplace</p>
       </footer>
 
     </div>

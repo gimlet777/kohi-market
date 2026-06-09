@@ -5,7 +5,6 @@ import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { BREW_METHODS, type BrewMethodKey } from "@/lib/brewGuide"
-import { Logo } from "@/components/Logo"
 
 const ROAST_LEVELS = ["Light", "Medium", "Dark"] as const
 const PROCESSES = ["Washed", "Natural", "Honey", "Anaerobic", "Other"]
@@ -23,7 +22,7 @@ const FORMAT_PRESETS: Array<{ name: string; grams: number }> = [
 ]
 
 const inputClass =
-  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors"
+  "w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1A0E] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4714A] transition-colors"
 
 const GRIND_OPTIONS = ["Extra Fine", "Fine", "Medium Fine", "Medium", "Coarse", "Extra Coarse"]
 
@@ -310,11 +309,11 @@ export default function EditProductPage() {
 
   if (saved) {
     return (
-      <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
-        <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-          <Link href="/">
-          <Logo height={36} />
-        </Link>
+      <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+        <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
+          </Link>
           <span className="text-xs text-stone-400 tracking-widest uppercase hidden sm:block">Roaster Portal</span>
         </nav>
         <div className="flex-1 flex items-center justify-center px-6 py-20">
@@ -325,17 +324,17 @@ export default function EditProductPage() {
               </svg>
             </div>
             <div>
-              <h2 className="font-serif text-2xl text-[#2A1508] mb-2">Changes saved!</h2>
+              <h2 className="font-serif text-2xl text-[#2A1A0E] mb-2">Changes saved!</h2>
               <p className="text-stone-500 text-sm leading-relaxed">
-                <span className="font-medium text-[#2A1508]">{savedName}</span> has been updated.
-                Remember to update your <span className="font-medium text-[#2A1508]">Batch Schedule</span> in
+                <span className="font-medium text-[#2A1A0E]">{savedName}</span> has been updated.
+                Remember to update your <span className="font-medium text-[#2A1A0E]">Batch Schedule</span> in
                 the dashboard if needed.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/roaster/dashboard?tab=batches"
-                className="bg-[#C4622D] hover:bg-[#A84F22] text-white text-sm px-6 py-3 rounded-[2px] font-medium tracking-wide transition-colors"
+                className="bg-[#C4714A] hover:bg-[#B05E3C] text-white text-sm px-6 py-3 rounded-[2px] font-medium tracking-wide transition-colors"
               >
                 Go to Batch Schedule →
               </Link>
@@ -354,17 +353,17 @@ export default function EditProductPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8F5F2] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#C4622D] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#C4714A] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   if (notFound) {
     return (
-      <div className="min-h-screen bg-[#F8F5F2] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-[#FAFAF8] flex flex-col items-center justify-center gap-4">
         <p className="text-stone-500 text-sm">Product not found or you don't have permission to edit it.</p>
-        <Link href="/roaster/dashboard" className="text-xs text-[#C4622D] hover:text-[#A84F22] transition-colors">
+        <Link href="/roaster/dashboard" className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors">
           ← Back to dashboard
         </Link>
       </div>
@@ -372,21 +371,21 @@ export default function EditProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
+    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-[#F8F5F2] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
-        <Link href="/">
-          <Logo height={36} />
+      <nav className="sticky top-0 z-50 bg-[#FAFAF8] border-b border-stone-200 px-6 md:px-10 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="text-xl font-medium text-[#2A1A0E] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         </Link>
         <span className="text-xs text-stone-400 tracking-widest uppercase">Roaster Portal</span>
       </nav>
 
       {/* Header */}
-      <div className="bg-[#F8F5F2] border-b border-[#E8E2D8] px-6 md:px-10 pt-10 pb-8">
+      <div className="bg-[#FAFAF8] border-b border-[#E8E2D8] px-6 md:px-10 pt-10 pb-8">
         <div className="max-w-2xl mx-auto">
-          <Link href="/roaster/dashboard" className="text-xs text-stone-400 hover:text-[#C4622D] transition-colors mb-4 inline-block">← Back to dashboard</Link>
-          <h1 className="font-serif text-3xl text-[#2A1508]">Edit Product</h1>
+          <Link href="/roaster/dashboard" className="text-xs text-stone-400 hover:text-[#C4714A] transition-colors mb-4 inline-block">← Back to dashboard</Link>
+          <h1 className="font-serif text-3xl text-[#2A1A0E]">Edit Product</h1>
           <p className="text-sm text-stone-400 font-light mt-1">Changes will update your live marketplace listing.</p>
         </div>
       </div>
@@ -474,7 +473,7 @@ export default function EditProductPage() {
                         onClick={() => setRoastLevel(level)}
                         className={`flex-1 py-2.5 rounded-[2px] border text-sm transition-all ${
                           roastLevel === level
-                            ? "border-[#C4622D] bg-amber-50 text-[#2A1508] font-medium"
+                            ? "border-[#C4714A] bg-amber-50 text-[#2A1A0E] font-medium"
                             : "border-stone-200 text-stone-500 hover:border-stone-300 bg-white"
                         }`}
                       >
@@ -505,7 +504,7 @@ export default function EditProductPage() {
               hint="Press Enter or comma to add each note — e.g. Blueberry, Jasmine, Citrus"
             >
               <div
-                className="flex flex-wrap gap-2 px-3 py-2 border border-stone-200 rounded-[2px] bg-white focus-within:border-[#C4622D] transition-colors min-h-[52px] cursor-text"
+                className="flex flex-wrap gap-2 px-3 py-2 border border-stone-200 rounded-[2px] bg-white focus-within:border-[#C4714A] transition-colors min-h-[52px] cursor-text"
                 onClick={() => document.getElementById("note-input")?.focus()}
               >
                 {notes.map(note => (
@@ -531,7 +530,7 @@ export default function EditProductPage() {
                   onKeyDown={handleNoteKeyDown}
                   onBlur={commitNote}
                   placeholder={notes.length === 0 ? "Type a note and press Enter…" : ""}
-                  className="flex-1 min-w-[140px] text-sm text-[#2A1508] placeholder-stone-300 outline-none bg-transparent py-1"
+                  className="flex-1 min-w-[140px] text-sm text-[#2A1A0E] placeholder-stone-300 outline-none bg-transparent py-1"
                 />
               </div>
             </Field>
@@ -564,7 +563,7 @@ export default function EditProductPage() {
                       key={preset.name}
                       type="button"
                       onClick={() => addPreset(preset)}
-                      className="text-[11px] px-3 py-1.5 rounded-[2px] border border-stone-200 text-stone-500 hover:border-[#C4622D] hover:text-[#C4622D] transition-colors bg-white"
+                      className="text-[11px] px-3 py-1.5 rounded-[2px] border border-stone-200 text-stone-500 hover:border-[#C4714A] hover:text-[#C4714A] transition-colors bg-white"
                     >
                       + {preset.name}
                     </button>
@@ -630,7 +629,7 @@ export default function EditProductPage() {
                           </button>
                         </div>
                         {payout !== null && (
-                          <p className="text-[10px] text-[#C4622D] font-light text-right pr-9">
+                          <p className="text-[10px] text-[#C4714A] font-light text-right pr-9">
                             You receive ¥{payout.toLocaleString()} after {commissionPct}% commission
                             {!profile?.is_pro && (
                               <span className="text-stone-300 ml-1">(Pro plan drops to 6% · break-even at ¥120,000/month)</span>
@@ -646,7 +645,7 @@ export default function EditProductPage() {
               <button
                 type="button"
                 onClick={addFormat}
-                className="text-xs text-[#C4622D] hover:text-[#A84F22] transition-colors"
+                className="text-xs text-[#C4714A] hover:text-[#B05E3C] transition-colors"
               >
                 + Add custom format
               </button>
@@ -671,11 +670,11 @@ export default function EditProductPage() {
                         onClick={() => setBrewNotesOpen(isOpen ? null : method.key)}
                         className="flex-1 flex items-center gap-2.5 px-4 py-3 text-left min-w-0"
                       >
-                        <span className="text-sm text-[#2A1508] font-medium">{method.label}</span>
+                        <span className="text-sm text-[#2A1A0E] font-medium">{method.label}</span>
                         <span className="text-[11px] text-stone-400 font-light truncate">{method.devices}</span>
                       </button>
                       <div className="flex items-center gap-2 pr-4 shrink-0">
-                        {hasSomething && <span className="text-[10px] text-[#C4622D] font-medium">Notes added</span>}
+                        {hasSomething && <span className="text-[10px] text-[#C4714A] font-medium">Notes added</span>}
                         <button
                           type="button"
                           disabled={suggestingFor === method.key}
@@ -683,7 +682,7 @@ export default function EditProductPage() {
                           className={`text-[11px] transition-colors disabled:opacity-50 whitespace-nowrap ${
                             suggestError === method.key
                               ? "text-red-400 hover:text-red-500"
-                              : "text-stone-400 hover:text-[#C4622D]"
+                              : "text-stone-400 hover:text-[#C4714A]"
                           }`}
                         >
                           {suggestingFor === method.key
@@ -778,7 +777,7 @@ export default function EditProductPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-[#C4622D] hover:bg-[#A84F22] disabled:opacity-60 text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors"
+              className="flex-1 bg-[#C4714A] hover:bg-[#B05E3C] disabled:opacity-60 text-white py-3.5 rounded-[2px] text-sm font-medium tracking-wide transition-colors"
             >
               {loading ? "Saving…" : "Save changes"}
             </button>
@@ -788,8 +787,8 @@ export default function EditProductPage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#2A1508] px-6 md:px-10 py-8 text-center mt-auto">
-        <Logo height={28} inverted />
+      <footer className="bg-[#2A1A0E] px-6 md:px-10 py-8 text-center mt-auto">
+        <span className="text-lg font-medium text-[#C4714A] leading-none tracking-tight"><span className="font-serif">豆</span>MART</span>
         <p className="text-stone-600 text-xs mt-1 tracking-widest font-light">Mame Mart · Roaster Portal</p>
       </footer>
     </div>
