@@ -151,12 +151,6 @@ function DashboardContent() {
   const [galleryUploading, setGalleryUploading] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
 
-  // Add batch form
-  const [showAddBatch, setShowAddBatch] = useState(false)
-  const [batchMode, setBatchMode] = useState<"now" | "schedule">("schedule")
-  const [batchForm, setBatchForm] = useState({ productId: "", roastDate: "", totalBags: "" })
-  const [batchSubmitting, setBatchSubmitting] = useState(false)
-  const [batchError, setBatchError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -341,63 +335,6 @@ function DashboardContent() {
     if (!error) setGalleryUrls(newUrls)
   }
 
-  async function handleAddBatch(e: React.FormEvent) {
-    e.preventDefault()
-    setBatchSubmitting(true)
-    setBatchError(null)
-
-    if (!userId || !batchForm.productId || !batchForm.totalBags) {
-      setBatchError("All fields are required.")
-      setBatchSubmitting(false)
-      return
-    }
-
-    if (batchMode === "schedule" && !batchForm.roastDate) {
-      setBatchError("Please select a roast date.")
-      setBatchSubmitting(false)
-      return
-    }
-
-    const total = parseInt(batchForm.totalBags, 10)
-    if (isNaN(total) || total <= 0) {
-      setBatchError("Total bags must be a positive number.")
-      setBatchSubmitting(false)
-      return
-    }
-
-    const { data, error } = await supabase
-      .from("batches")
-      .insert({
-        roaster_id: userId,
-        product_id: parseInt(batchForm.productId, 10),
-        roast_date: batchMode === "schedule" ? batchForm.roastDate : null,
-        available_now: batchMode === "now",
-        total_bags: total,
-        bags_remaining: total,
-        status: "open",
-      })
-      .select("id, product_id, roast_date, available_now, total_bags, bags_remaining, status, created_at")
-      .single()
-
-    if (error) {
-      setBatchError(error.message)
-      setBatchSubmitting(false)
-      return
-    }
-
-    const matchedProduct = products.find(p => p.id === parseInt(batchForm.productId, 10))
-    const newBatch: BatchRow = {
-      ...data,
-      products: matchedProduct ? { product_name: matchedProduct.product_name } : null,
-    }
-
-    setBatches(prev => [newBatch, ...prev])
-    setBatchForm({ productId: "", roastDate: "", totalBags: "" })
-    setBatchMode("schedule")
-    setShowAddBatch(false)
-    setBatchSubmitting(false)
-  }
-
   const isCafeRoaster = profile?.seller_type === "Café Roaster"
 
   return (
@@ -471,116 +408,13 @@ function DashboardContent() {
                   </p>
                 )}
               </div>
-              {!showAddBatch && (
-                <button
-                  onClick={() => setShowAddBatch(true)}
-                  className="bg-[#C4622D] hover:bg-[#B0561A] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
-                >
-                  + Add Batch
-                </button>
-              )}
+              <Link
+                href="/roaster/batches/new"
+                className="bg-[#C4622D] hover:bg-[#B0561A] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
+              >
+                + List a Batch
+              </Link>
             </div>
-
-            {/* Add Batch form */}
-            {showAddBatch && (
-              <div className="bg-white border border-[rgba(42,21,8,0.07)] rounded-[2px] p-6">
-                <h3 className="text-xs tracking-widest uppercase text-stone-400 mb-5">New Batch</h3>
-                <form onSubmit={handleAddBatch} className="space-y-4">
-
-                  {/* Mode toggle */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {(["now", "schedule"] as const).map(mode => (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => { setBatchMode(mode); setBatchError(null) }}
-                        className={`py-2.5 px-3 rounded-[2px] text-sm border transition-colors text-left ${
-                          batchMode === mode
-                            ? "bg-[#2A1508] text-white border-[#2A1508]"
-                            : "bg-white text-stone-500 border-stone-200 hover:border-stone-400"
-                        }`}
-                      >
-                        {mode === "now" ? "I have stock ready now" : "Schedule a future roast"}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Product selector */}
-                  <div>
-                    <label className="block text-xs text-stone-500 mb-1.5">Product</label>
-                    {products.length === 0 ? (
-                      <p className="text-xs text-stone-400">No products yet — <Link href="/roaster/products/new" className="text-[#C4622D] hover:underline">add one first</Link>.</p>
-                    ) : (
-                      <select
-                        required
-                        value={batchForm.productId}
-                        onChange={e => setBatchForm(f => ({ ...f, productId: e.target.value }))}
-                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4622D] bg-white"
-                      >
-                        <option value="">Select a product…</option>
-                        {products.map(p => (
-                          <option key={p.id} value={p.id}>{p.product_name}</option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  {/* Roast date — schedule mode only */}
-                  {batchMode === "schedule" && (
-                    <div>
-                      <label className="block text-xs text-stone-500 mb-1.5">Roast date</label>
-                      <input
-                        type="date"
-                        required
-                        value={batchForm.roastDate}
-                        min={new Date().toISOString().split("T")[0]}
-                        onChange={e => setBatchForm(f => ({ ...f, roastDate: e.target.value }))}
-                        className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4622D]"
-                      />
-                    </div>
-                  )}
-
-                  {/* Bags available */}
-                  <div>
-                    <label className="block text-xs text-stone-500 mb-1.5">
-                      {batchMode === "now" ? "Bags available" : "Total bags"}
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      placeholder="e.g. 20"
-                      value={batchForm.totalBags}
-                      onChange={e => setBatchForm(f => ({ ...f, totalBags: e.target.value }))}
-                      className="w-full text-sm border border-stone-200 rounded-[2px] px-4 py-2.5 focus:outline-none focus:border-[#C4622D]"
-                    />
-                  </div>
-
-                  {batchError && (
-                    <p className="text-xs text-red-500">{batchError}</p>
-                  )}
-
-                  <div className="flex items-center gap-3 pt-1">
-                    <button
-                      type="submit"
-                      disabled={batchSubmitting || products.length === 0}
-                      className="bg-[#2A1508] hover:bg-[#3a2010] disabled:opacity-60 text-white text-sm px-6 py-2.5 rounded-[2px] transition-colors"
-                    >
-                      {batchSubmitting
-                        ? (batchMode === "now" ? "Adding…" : "Scheduling…")
-                        : (batchMode === "now" ? "Add in-stock batch" : "Schedule batch")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setShowAddBatch(false); setBatchError(null); setBatchForm({ productId: "", roastDate: "", totalBags: "" }); setBatchMode("schedule") }}
-                      className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
 
             {/* Batches table */}
             {batches.length === 0 ? (
@@ -600,6 +434,7 @@ function DashboardContent() {
                         <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Remaining</th>
                         <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Pre-orders</th>
                         <th className="text-left text-[10px] tracking-widest uppercase text-stone-400 font-medium px-4 py-3">Status</th>
+                        <th className="px-4 py-3" />
                       </tr>
                     </thead>
                     <tbody>
@@ -646,6 +481,14 @@ function DashboardContent() {
                               <span className={`inline-block text-[10px] px-2.5 py-1 rounded-[2px] border font-medium capitalize ${batchStatusBadge(batch.status)}`}>
                                 {batch.status}
                               </span>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-right">
+                              <Link
+                                href={`/roaster/batches/new?edit=${batch.id}`}
+                                className="text-xs text-stone-400 hover:text-[#C4622D] transition-colors"
+                              >
+                                Edit
+                              </Link>
                             </td>
                           </tr>
                         )
@@ -808,12 +651,22 @@ function DashboardContent() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xs tracking-widest uppercase text-stone-400">My Products</h2>
-                <Link
-                  href="/roaster/products/new"
-                  className="bg-[#C4622D] hover:bg-[#B0561A] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
-                >
-                  + Add Product
-                </Link>
+                <div className="flex items-center gap-2">
+                  {isCafeRoaster && (
+                    <Link
+                      href="/roaster/batches/new"
+                      className="border border-stone-200 text-stone-500 hover:border-[#C4622D] hover:text-[#C4622D] text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
+                    >
+                      + List a Batch
+                    </Link>
+                  )}
+                  <Link
+                    href="/roaster/products/new"
+                    className="bg-[#C4622D] hover:bg-[#B0561A] text-white text-xs font-medium px-4 py-2 rounded-[2px] transition-colors"
+                  >
+                    + Add Product
+                  </Link>
+                </div>
               </div>
 
               {isLoading ? (

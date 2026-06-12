@@ -271,7 +271,11 @@ export default function Home() {
               {c.tagline}
             </p>
             <div className="mb-4">
-              <img src="/logo.svg" alt="Kohi Market" className="h-[120px] w-auto" />
+              <img
+                src="/logo.svg"
+                alt="Kohi Market"
+                style={{ aspectRatio: "2388 / 1668", maxWidth: 320, width: "100%", height: "auto", display: "block" }}
+              />
             </div>
             <p className="font-editorial italic text-xl md:text-2xl text-[#8C7B6E] leading-snug mb-10">
               {c.heroSub}

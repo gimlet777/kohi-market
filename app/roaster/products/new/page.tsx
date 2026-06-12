@@ -510,13 +510,12 @@ export default function NewProductPage() {
 
           {/* Description */}
           <SectionCard title="Description">
-            <Field label="About this coffee" required>
+            <Field label="About this coffee">
               <textarea
-                required
                 rows={4}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Describe the flavour profile, farm, and what makes this coffee special…"
+                placeholder="Add a description to help customers discover your coffee"
                 className={`${inputClass} resize-none`}
               />
             </Field>
@@ -545,7 +544,8 @@ export default function NewProductPage() {
 
               {/* Format rows */}
               {formats.length > 0 && (
-                <div className="space-y-2">
+                <div className="overflow-x-auto">
+                  <div className="space-y-2 min-w-[440px]">
                   <div className="grid grid-cols-[1fr_80px_90px_24px] gap-3">
                     <p className="text-[11px] text-stone-400 uppercase tracking-widest">Format name *</p>
                     <p className="text-[11px] text-stone-400 uppercase tracking-widest">Grams</p>
@@ -611,6 +611,7 @@ export default function NewProductPage() {
                       </div>
                     )
                   })}
+                  </div>
                 </div>
               )}
 
