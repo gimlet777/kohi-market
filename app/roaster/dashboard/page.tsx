@@ -18,6 +18,7 @@ interface RoasterProfile {
   is_pro?: boolean
   hero_photo_url?: string | null
   gallery_urls?: string[] | null
+  qr_version?: number | null
 }
 
 const REGIONS = ["Tokyo", "Kyoto", "Osaka", "Fukuoka", "Hokkaido"]
@@ -144,6 +145,12 @@ function DashboardContent() {
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [settingsError, setSettingsError] = useState<string | null>(null)
 
+  // QR stamp code
+  const [qrVersion, setQrVersion] = useState(1)
+  const [qrLoading, setQrLoading] = useState(false)
+  const [qrError, setQrError] = useState<string | null>(null)
+  const [confirmRegen, setConfirmRegen] = useState(false)
+
   // Pro media
   const [heroUrl, setHeroUrl] = useState("")
   const [galleryUrls, setGalleryUrls] = useState<string[]>([])
@@ -169,7 +176,7 @@ function DashboardContent() {
       ] = await Promise.all([
         supabase
           .from("roasters")
-          .select("roaster_name, email, region, seller_type, bio, website, is_pro, hero_photo_url, gallery_urls")
+          .select("roaster_name, email, region, seller_type, bio, website, is_pro, hero_photo_url, gallery_urls, qr_version")
           .eq("id", session.user.id)
           .single(),
         supabase
@@ -202,6 +209,7 @@ function DashboardContent() {
         setSettingsWebsite(profileData.website ?? "")
         setHeroUrl(profileData.hero_photo_url ?? "")
         setGalleryUrls(profileData.gallery_urls ?? [])
+        setQrVersion(profileData.qr_version ?? 1)
       }
       setProducts(productsData ?? [])
       setOrders((ordersData ?? []) as Order[])
@@ -333,6 +341,60 @@ function DashboardContent() {
     const newUrls = galleryUrls.filter(u => u !== url)
     const { error } = await supabase.from("roasters").update({ gallery_urls: newUrls }).eq("id", userId)
     if (!error) setGalleryUrls(newUrls)
+  }
+
+  async function downloadStampQR() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { router.replace("/roaster/login"); return }
+    const res = await fetch("/api/stamp-qr", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: "Unknown error" }))
+      throw new Error(body.error ?? "Failed to generate QR code")
+    }
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `stamp-qr-v${qrVersion}.png`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  async function handleDownloadQR() {
+    setQrLoading(true)
+    setQrError(null)
+    try {
+      await downloadStampQR()
+    } catch (e: unknown) {
+      setQrError(e instanceof Error ? e.message : "Failed to generate QR code")
+    } finally {
+      setQrLoading(false)
+    }
+  }
+
+  async function handleRegenerateQR() {
+    if (!userId) return
+    setQrLoading(true)
+    setQrError(null)
+    setConfirmRegen(false)
+    try {
+      const newVersion = qrVersion + 1
+      const { error: updateError } = await supabase
+        .from("roasters")
+        .update({ qr_version: newVersion })
+        .eq("id", userId)
+      if (updateError) throw new Error(updateError.message)
+      setQrVersion(newVersion)
+      await downloadStampQR()
+    } catch (e: unknown) {
+      setQrError(e instanceof Error ? e.message : "Failed to regenerate QR code")
+    } finally {
+      setQrLoading(false)
+    }
   }
 
   const isCafeRoaster = profile?.seller_type === "Café Roaster"
@@ -1006,6 +1068,62 @@ function DashboardContent() {
                 )}
               </div>
             )}
+
+            {/* QR Stamp Code */}
+            <div className="border-t border-[rgba(42,21,8,0.07)] pt-6 space-y-4">
+              <div>
+                <h2 className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Stamp QR Code</h2>
+                <p className="text-xs text-stone-400 font-light mt-1 leading-relaxed">
+                  Display this QR code at your roastery or include it in packaging. Customers scan it to earn loyalty stamps.
+                </p>
+              </div>
+
+              <p className="text-[10px] tracking-widest uppercase text-stone-300">Version {qrVersion}</p>
+
+              {confirmRegen ? (
+                <div className="bg-amber-50 border border-amber-100 rounded-[2px] px-4 py-3 space-y-3">
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    Regenerating will invalidate any printed or distributed copies of the current QR code. A new version will be downloaded automatically.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleRegenerateQR}
+                      disabled={qrLoading}
+                      className="text-xs bg-[#2A1508] hover:bg-[#3a2010] disabled:opacity-60 text-white px-4 py-2 rounded-[2px] transition-colors"
+                    >
+                      {qrLoading ? "Regenerating…" : "Confirm regenerate"}
+                    </button>
+                    <button
+                      onClick={() => setConfirmRegen(false)}
+                      className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleDownloadQR}
+                    disabled={qrLoading}
+                    className="bg-[#2A1508] hover:bg-[#3a2010] disabled:opacity-60 text-white text-xs font-medium px-4 py-2.5 rounded-[2px] transition-colors"
+                  >
+                    {qrLoading ? "Generating…" : "Download Stamp QR Code"}
+                  </button>
+                  <button
+                    onClick={() => { setConfirmRegen(true); setQrError(null) }}
+                    disabled={qrLoading}
+                    className="text-xs text-stone-400 hover:text-[#C4622D] disabled:opacity-40 transition-colors"
+                  >
+                    Regenerate QR →
+                  </button>
+                </div>
+              )}
+
+              {qrError && (
+                <p className="text-xs text-red-500 font-light">{qrError}</p>
+              )}
+            </div>
 
           </div>
         )}
