@@ -186,6 +186,9 @@ export function UserNav() {
                 <MenuItem href="/profile" onClose={() => setOpen(false)}>
                   My profile
                 </MenuItem>
+                <MenuItem href="/mame-log" onClose={() => setOpen(false)}>
+                  Mame Log
+                </MenuItem>
                 <MenuItem href="/profile#orders" onClose={() => setOpen(false)}>
                   My orders
                 </MenuItem>

@@ -35,6 +35,12 @@ interface ConsumerProfile {
   grinder_type: string | null
 }
 
+interface MameLogPreview {
+  totalStamps: number
+  totalRoasters: number
+  topBadges: Array<{ name: string; accentColor: string | null; tier: "bronze" | "silver" | "gold" }>
+}
+
 interface Badge {
   badge_type: string
   badge_data: Record<string, string>
@@ -181,6 +187,7 @@ export default function ProfilePage() {
   const [quiz, setQuiz] = useState<QuizSnapshot | null>(null)
   const [badges, setBadges] = useState<Badge[]>([])
   const [totalPoints, setTotalPoints] = useState(0)
+  const [mameLog, setMameLog] = useState<MameLogPreview | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -211,6 +218,7 @@ export default function ProfilePage() {
         { data: profileData },
         { data: badgesData },
         { data: pointsData },
+        { data: stampsRaw },
       ] = await Promise.all([
         fetch("/api/orders", {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -230,6 +238,10 @@ export default function ProfilePage() {
           .select("total_points")
           .eq("user_id", session.user.id)
           .maybeSingle(),
+        supabase
+          .from("stamps")
+          .select("roaster_id")
+          .eq("user_id", session.user.id),
       ])
 
       if (ordersResult.error) {
@@ -241,6 +253,35 @@ export default function ProfilePage() {
       if (profileData) setProfile(profileData as ConsumerProfile)
       if (badgesData) setBadges(badgesData as Badge[])
       if (pointsData) setTotalPoints(pointsData.total_points ?? 0)
+
+      // Mame Log preview
+      const countMap: Record<string, number> = {}
+      for (const s of stampsRaw ?? []) {
+        countMap[s.roaster_id] = (countMap[s.roaster_id] ?? 0) + 1
+      }
+      const roasterIds = Object.keys(countMap)
+      if (roasterIds.length > 0) {
+        const { data: roastersRaw } = await supabase
+          .from("roasters")
+          .select("id, roaster_name, accent_color")
+          .in("id", roasterIds)
+        const tierOf = (n: number): "bronze" | "silver" | "gold" =>
+          n >= 10 ? "gold" : n >= 3 ? "silver" : "bronze"
+        const tierOrder = { gold: 0, silver: 1, bronze: 2 }
+        const topBadges = (roastersRaw ?? [])
+          .map(r => ({
+            name: r.roaster_name as string,
+            accentColor: (r.accent_color as string | null) ?? null,
+            tier: tierOf(countMap[r.id as string] ?? 0),
+          }))
+          .sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier])
+          .slice(0, 3)
+        setMameLog({
+          totalStamps: Object.values(countMap).reduce((s, c) => s + c, 0),
+          totalRoasters: roasterIds.length,
+          topBadges,
+        })
+      }
 
       try {
         const saved = sessionStorage.getItem("kohi_quiz_results")
@@ -304,6 +345,51 @@ export default function ProfilePage() {
             <p className="text-xs text-stone-400 font-light mt-1">{userEmail}</p>
           )}
         </div>
+
+        {/* ── Mame Log teaser ─────────────────────────────────────────────────── */}
+        {mameLog && (
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[10px] tracking-[0.2em] uppercase text-stone-400">
+                <span className="font-serif">豆</span> Log
+              </h2>
+              <Link href="/mame-log" className="text-xs text-[#C4622D] hover:text-[#B0561A] transition-colors font-light">
+                View full log →
+              </Link>
+            </div>
+            <div className="bg-white border border-[rgba(42,21,8,0.07)] rounded-[2px] px-5 py-4">
+              <p className="text-xs text-stone-400 font-light mb-4">
+                {mameLog.totalStamps} stamp{mameLog.totalStamps !== 1 ? "s" : ""} · {mameLog.totalRoasters} roaster{mameLog.totalRoasters !== 1 ? "s" : ""} visited
+              </p>
+              <div className="flex items-center gap-4">
+                {mameLog.topBadges.map((badge, i) => {
+                  const ringColor = badge.tier === "gold" ? "#F59E0B" : badge.tier === "silver" ? "#94A3B8" : "#CD7F32"
+                  const accent = badge.accentColor ?? "#C4622D"
+                  return (
+                    <div key={i} className="flex flex-col items-center gap-1.5">
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center"
+                        style={{ border: `2px solid ${ringColor}` }}
+                      >
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center"
+                          style={{ background: `${accent}18` }}
+                        >
+                          <span className="font-serif text-base" style={{ color: accent }}>
+                            {badge.name[0]?.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[8px] tracking-wide uppercase text-stone-400 text-center w-12 leading-tight line-clamp-1">
+                        {badge.name}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ── Achievements ────────────────────────────────────────────────────── */}
         <section>
