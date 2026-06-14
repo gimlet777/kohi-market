@@ -55,6 +55,7 @@ export async function GET(req: NextRequest) {
       "Content-Type": "image/png",
       "Content-Disposition": `attachment; filename="stamp-qr-v${version}.png"`,
       "Cache-Control": "no-store",
+      "X-Debug-Base-Url": baseUrl,
     },
   })
 }
