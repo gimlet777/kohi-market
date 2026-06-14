@@ -30,14 +30,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "STAMP_SECRET is not configured" }, { status: 500 })
   }
 
+  if (!process.env.NEXT_PUBLIC_SITE_URL) {
+    return NextResponse.json({ error: "NEXT_PUBLIC_SITE_URL is not configured" }, { status: 500 })
+  }
+
   const version: number = roaster.qr_version ?? 1
 
-  // Derive base URL from request — works for both local dev and production
-  const proto =
-    req.headers.get("x-forwarded-proto") ??
-    (req.headers.get("host")?.startsWith("localhost") ? "http" : "https")
-  const host = req.headers.get("host") ?? "localhost:3000"
-  const baseUrl = `${proto}://${host}`
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
 
   const stampUrl = buildStampUrl(roaster.id, version, baseUrl)
 
