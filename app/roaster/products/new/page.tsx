@@ -515,7 +515,7 @@ export default function NewProductPage() {
                 rows={4}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Add a description to help customers discover your coffee"
+                placeholder="Add a description to help customers discover your coffee (optional)."
                 className={`${inputClass} resize-none`}
               />
             </Field>
