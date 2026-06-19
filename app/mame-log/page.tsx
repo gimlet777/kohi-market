@@ -25,6 +25,26 @@ const FLAG: Record<string, string> = {
   "India": "🇮🇳", "Bolivia": "🇧🇴", "El Salvador": "🇸🇻",
 }
 
+const JAPAN_MACRO_REGIONS: Array<{ name: string; kanji: string }> = [
+  { name: "Hokkaido",        kanji: "北海" },
+  { name: "Tohoku",          kanji: "東北" },
+  { name: "Kanto",           kanji: "関東" },
+  { name: "Chubu",           kanji: "中部" },
+  { name: "Kansai",          kanji: "関西" },
+  { name: "Chugoku",         kanji: "中国" },
+  { name: "Shikoku",         kanji: "四国" },
+  { name: "Kyushu/Okinawa",  kanji: "九州" },
+]
+
+// Maps city-level badge slugs (badge_type = "region_<slug>") to macro-regions
+const BADGE_SLUG_TO_MACRO: Record<string, string> = {
+  hokkaido: "Hokkaido",
+  tokyo:    "Kanto",
+  kyoto:    "Kansai",
+  osaka:    "Kansai",
+  fukuoka:  "Kyushu/Okinawa",
+}
+
 type Tier = "bronze" | "silver" | "gold"
 
 const TIER_COLOR: Record<Tier, string> = {
@@ -190,6 +210,76 @@ function AchievementCard({ achievement }: { achievement: AchievementDef }) {
   )
 }
 
+function RegionalExplorerCard({ unlockedRegions }: { unlockedRegions: Set<string> }) {
+  const total = JAPAN_MACRO_REGIONS.length
+  const unlocked = JAPAN_MACRO_REGIONS.filter(r => unlockedRegions.has(r.name)).length
+  const pct = total === 0 ? 0 : Math.round((unlocked / total) * 100)
+  const completed = unlocked === total
+
+  return (
+    <div className="bg-white border border-[rgba(42,21,8,0.07)] rounded-[2px] p-4">
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-9 h-9 rounded-full bg-[#C4622D]/10 flex items-center justify-center shrink-0">
+          <span className="text-base">🗾</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium text-[#2A1508]">Japan Regional Explorer</p>
+            {completed && (
+              <span className="text-[10px] tracking-widest uppercase text-emerald-600 font-medium shrink-0">
+                Complete
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-stone-400 font-light">Purchase from roasters across Japan&apos;s regions</p>
+        </div>
+      </div>
+
+      {/* Region badges */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        {JAPAN_MACRO_REGIONS.map(({ name, kanji }) => {
+          const earned = unlockedRegions.has(name)
+          return (
+            <div key={name} className="flex flex-col items-center gap-1">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                  earned
+                    ? "bg-[#C4622D] border-[#C4622D]"
+                    : "bg-white border-stone-200"
+                }`}
+              >
+                <span
+                  className={`font-serif text-[11px] font-medium leading-none ${
+                    earned ? "text-white" : "text-stone-300"
+                  }`}
+                >
+                  {kanji}
+                </span>
+              </div>
+              <p className={`text-[8px] text-center leading-tight w-12 ${earned ? "text-[#2A1508]" : "text-stone-300"}`}>
+                {name}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Progress bar */}
+      <div className="space-y-1.5">
+        <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[#C4622D] rounded-full transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="text-[10px] text-stone-400 font-light">
+          {completed ? "All 8 regions tried" : `${unlocked} of ${total} regions tried`}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MameLogPage() {
@@ -197,6 +287,7 @@ export default function MameLogPage() {
   const [loading, setLoading] = useState(true)
   const [roasterStamps, setRoasterStamps] = useState<RoasterStamp[]>([])
   const [collectedOrigins, setCollectedOrigins] = useState<Set<string>>(new Set())
+  const [unlockedMacroRegions, setUnlockedMacroRegions] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     async function load() {
@@ -207,13 +298,18 @@ export default function MameLogPage() {
       }
       const userId = session.user.id
 
-      const [{ data: stampsData }, { data: originBadgesData }] = await Promise.all([
+      const [{ data: stampsData }, { data: originBadgesData }, { data: regionBadgesData }] = await Promise.all([
         supabase.from("stamps").select("roaster_id").eq("user_id", userId),
         supabase
           .from("badges")
           .select("badge_data")
           .eq("user_id", userId)
           .like("badge_type", "origin_%"),
+        supabase
+          .from("badges")
+          .select("badge_type")
+          .eq("user_id", userId)
+          .like("badge_type", "region_%"),
       ])
 
       const countMap: Record<string, number> = {}
@@ -253,6 +349,15 @@ export default function MameLogPage() {
         }
       }
       setCollectedOrigins(origins)
+
+      const macroRegions = new Set<string>()
+      for (const b of regionBadgesData ?? []) {
+        const slug = (b.badge_type as string).replace("region_", "")
+        const macro = BADGE_SLUG_TO_MACRO[slug]
+        if (macro) macroRegions.add(macro)
+      }
+      setUnlockedMacroRegions(macroRegions)
+
       setLoading(false)
     }
 
@@ -370,6 +475,7 @@ export default function MameLogPage() {
             {achievements.map(a => (
               <AchievementCard key={a.id} achievement={a} />
             ))}
+            <RegionalExplorerCard unlockedRegions={unlockedMacroRegions} />
           </div>
         </section>
 
