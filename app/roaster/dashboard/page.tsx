@@ -147,6 +147,8 @@ function DashboardContent() {
 
   // QR stamp code
   const [qrVersion, setQrVersion] = useState(1)
+  const [notifPrefs, setNotifPrefs] = useState({ new_order: true, order_reminder: true, low_stock: true, batch_expired: true })
+  const [notifSaving, setNotifSaving] = useState(false)
   const [qrLoading, setQrLoading] = useState(false)
   const [qrError, setQrError] = useState<string | null>(null)
   const [confirmRegen, setConfirmRegen] = useState(false)
@@ -173,6 +175,7 @@ function DashboardContent() {
         { data: productsData, error: productsError },
         { data: ordersData, error: ordersError },
         { data: batchesData, error: batchesError },
+        { data: notifPrefsData },
       ] = await Promise.all([
         supabase
           .from("roasters")
@@ -194,6 +197,11 @@ function DashboardContent() {
           .select("id, product_id, roast_date, available_now, total_bags, bags_remaining, status, created_at, products(product_name)")
           .eq("roaster_id", session.user.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("roaster_notification_preferences")
+          .select("new_order, order_reminder, low_stock, batch_expired")
+          .eq("roaster_id", session.user.id)
+          .maybeSingle(),
       ])
 
       if (profileError) console.error("Profile fetch error:", profileError)
@@ -214,6 +222,14 @@ function DashboardContent() {
       setProducts(productsData ?? [])
       setOrders((ordersData ?? []) as Order[])
       setBatches((batchesData ?? []) as unknown as BatchRow[])
+      if (notifPrefsData) {
+        setNotifPrefs({
+          new_order:      notifPrefsData.new_order,
+          order_reminder: notifPrefsData.order_reminder,
+          low_stock:      notifPrefsData.low_stock,
+          batch_expired:  notifPrefsData.batch_expired,
+        })
+      }
       setIsLoading(false)
     }
     load()
@@ -395,6 +411,21 @@ function DashboardContent() {
     } finally {
       setQrLoading(false)
     }
+  }
+
+  async function handleToggleNotif(key: keyof typeof notifPrefs) {
+    if (!userId || notifSaving) return
+    const next = { ...notifPrefs, [key]: !notifPrefs[key] }
+    setNotifPrefs(next)
+    setNotifSaving(true)
+    const { error } = await supabase
+      .from("roaster_notification_preferences")
+      .upsert({ roaster_id: userId, ...next, updated_at: new Date().toISOString() })
+    if (error) {
+      console.error("Failed to save notification preferences:", error)
+      setNotifPrefs(notifPrefs)
+    }
+    setNotifSaving(false)
   }
 
   const isCafeRoaster = profile?.seller_type === "Café Roaster"
@@ -1123,6 +1154,48 @@ function DashboardContent() {
               {qrError && (
                 <p className="text-xs text-red-500 font-light">{qrError}</p>
               )}
+            </div>
+
+            {/* Notification Settings */}
+            <div className="border-t border-[rgba(42,21,8,0.07)] pt-6 space-y-4">
+              <div>
+                <h2 className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Notification Settings</h2>
+                <p className="text-xs text-stone-400 font-light mt-1 leading-relaxed">
+                  Email notifications sent to <span className="text-[#2A1508]">{profile?.email}</span>
+                </p>
+              </div>
+
+              <div className="space-y-0 divide-y divide-[rgba(42,21,8,0.05)]">
+                {([
+                  { key: "new_order",      label: "New order received",         desc: "When a customer places an order for your products" },
+                  { key: "order_reminder", label: "Order shipping reminder",     desc: "If an order hasn't been marked shipped after 3 days" },
+                  { key: "low_stock",      label: "Low stock warning",           desc: "When a batch drops to 5 or fewer bags remaining" },
+                  { key: "batch_expired",  label: "Batch sold out",              desc: "When a batch sells out completely" },
+                ] as const).map(({ key, label, desc }) => (
+                  <div key={key} className="flex items-center justify-between gap-4 py-3.5">
+                    <div className="min-w-0">
+                      <p className="text-sm text-[#2A1508] font-light">{label}</p>
+                      <p className="text-[11px] text-stone-400 font-light mt-0.5">{desc}</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={notifPrefs[key]}
+                      onClick={() => handleToggleNotif(key)}
+                      disabled={notifSaving}
+                      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                        notifPrefs[key] ? "bg-[#C4622D]" : "bg-stone-200"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                          notifPrefs[key] ? "translate-x-4" : "translate-x-0.5"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
           </div>

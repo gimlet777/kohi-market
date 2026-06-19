@@ -1,6 +1,6 @@
 import Stripe from "stripe"
 import { NextRequest, NextResponse } from "next/server"
-import { sendBuyerConfirmation, sendRoasterNotification, OrderEmailItem } from "@/lib/email"
+import { sendBuyerConfirmation, sendRoasterNotification, sendLowStockEmail, sendBatchSoldOutEmail, OrderEmailItem } from "@/lib/email"
 import { supabaseAdmin } from "@/lib/supabase-admin"
 import { awardOrderRewards } from "@/lib/gamification"
 
@@ -128,10 +128,11 @@ export async function POST(req: NextRequest) {
   console.log(`[webhook] roasters in cart: [${roasterNames.join(", ")}]`)
 
   const roasterIdMap: Record<string, string | null> = {}
+  const roasterEmailFromDb: Record<string, string> = {}
   for (const name of roasterNames) {
     const { data, error } = await supabaseAdmin
       .from("roasters")
-      .select("id, roaster_name")
+      .select("id, roaster_name, email")
       .ilike("roaster_name", name.trim())
       .maybeSingle()
     if (error) {
@@ -140,6 +141,7 @@ export async function POST(req: NextRequest) {
     } else if (data) {
       console.log(`[webhook] matched roaster "${name}" → id=${data.id} (db name: "${data.roaster_name}")`)
       roasterIdMap[name] = data.id
+      if (data.email) roasterEmailFromDb[name] = data.email
     } else {
       console.warn(`[webhook] no roaster found for name="${name}" (case-insensitive) — will save order with roaster_id=null`)
       roasterIdMap[name] = null
@@ -218,7 +220,11 @@ export async function POST(req: NextRequest) {
   }
 
   // Decrement bags_remaining for pre-order items — runs regardless of order save success
-  for (const roaster of Object.values(roasterItems)) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+  for (const [roasterName, roaster] of Object.entries(roasterItems)) {
+    const roasterId = roasterIdMap[roasterName] ?? null
+    const roasterEmail = roasterEmailFromDb[roasterName] || roaster.email
+
     for (const item of roaster.items) {
       if (!item.batchId) continue
 
@@ -246,8 +252,49 @@ export async function POST(req: NextRequest) {
 
       if (updateErr) {
         console.error(`[webhook] batch update error (${item.batchId}):`, updateErr.message)
-      } else {
-        console.log(`[webhook] batch ${item.batchId} updated OK${newRemaining === 0 ? " — marked complete" : ""}`)
+        continue
+      }
+
+      console.log(`[webhook] batch ${item.batchId} updated OK${newRemaining === 0 ? " — marked complete" : ""}`)
+
+      if (!roasterId || !roasterEmail) continue
+      const dashboardUrl = `${siteUrl}/roaster/dashboard?tab=batches`
+
+      // Low stock notification (1–5 bags remaining)
+      if (newRemaining > 0 && newRemaining <= 5) {
+        const { data: prefs } = await supabaseAdmin
+          .from("roaster_notification_preferences")
+          .select("low_stock")
+          .eq("roaster_id", roasterId)
+          .maybeSingle()
+        if (prefs?.low_stock ?? true) {
+          await sendLowStockEmail({
+            to: roasterEmail,
+            roasterName: roaster.name,
+            productName: item.productName,
+            formatName: item.formatName,
+            bagsRemaining: newRemaining,
+            dashboardUrl,
+          }).catch(err => console.error(`[webhook] low stock email error (${roasterName}):`, err))
+        }
+      }
+
+      // Batch sold out notification
+      if (newRemaining === 0) {
+        const { data: prefs } = await supabaseAdmin
+          .from("roaster_notification_preferences")
+          .select("batch_expired")
+          .eq("roaster_id", roasterId)
+          .maybeSingle()
+        if (prefs?.batch_expired ?? true) {
+          await sendBatchSoldOutEmail({
+            to: roasterEmail,
+            roasterName: roaster.name,
+            productName: item.productName,
+            formatName: item.formatName,
+            dashboardUrl,
+          }).catch(err => console.error(`[webhook] batch sold out email error (${roasterName}):`, err))
+        }
       }
     }
   }
@@ -266,21 +313,31 @@ export async function POST(req: NextRequest) {
     }).catch(err => console.error("Buyer email error:", err))
   }
 
-  // Send one notification per roaster
-  for (const roaster of Object.values(roasterItems)) {
-    if (!roaster.email) {
-      console.warn(`No email found for roaster: ${roaster.name}`)
+  // Send one notification per roaster (gated on new_order preference)
+  for (const [roasterName, roaster] of Object.entries(roasterItems)) {
+    const roasterId = roasterIdMap[roasterName] ?? null
+    const toEmail = roasterEmailFromDb[roasterName] || roaster.email
+    if (!toEmail) {
+      console.warn(`No email found for roaster: ${roasterName}`)
       continue
     }
+    if (roasterId) {
+      const { data: prefs } = await supabaseAdmin
+        .from("roaster_notification_preferences")
+        .select("new_order")
+        .eq("roaster_id", roasterId)
+        .maybeSingle()
+      if (!(prefs?.new_order ?? true)) continue
+    }
     await sendRoasterNotification({
-      to: roaster.email,
+      to: toEmail,
       roasterName: roaster.name,
       items: roaster.items,
       buyerName,
       buyerEmail: buyerEmail ?? "unknown",
       shippingAddress: shippingAddressString,
       orderRef: session.id,
-    }).catch(err => console.error(`Roaster email error (${roaster.name}):`, err))
+    }).catch(err => console.error(`Roaster email error (${roasterName}):`, err))
   }
 
   // Award gamification rewards if the buyer was logged in (buyerUserId declared above)
