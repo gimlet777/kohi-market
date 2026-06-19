@@ -181,6 +181,17 @@ function ListBatchContent() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
 
+            {/* Active-orders warning when editing a batch with sales */}
+            {isEditing && originalTotal > originalRemaining && (
+              <div className="bg-amber-50 border border-amber-200 rounded-[2px] px-4 py-3 flex gap-3 items-start">
+                <span className="text-amber-500 text-base leading-none mt-0.5">⚠</span>
+                <p className="text-xs text-amber-700">
+                  <span className="font-medium">{originalTotal - originalRemaining} bag{originalTotal - originalRemaining !== 1 ? "s" : ""} from this batch have already been ordered.</span>{" "}
+                  Changes to quantity or price may affect pending orders. Reducing total bags below what's been sold is not recommended.
+                </p>
+              </div>
+            )}
+
             {/* Product */}
             <div className="bg-white border border-[rgba(42,21,8,0.07)] rounded-[2px] p-6">
               <h2 className="text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-5">Product</h2>

@@ -133,6 +133,8 @@ function DashboardContent() {
   const [loggingOut, setLoggingOut] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [confirmDeleteBatchId, setConfirmDeleteBatchId] = useState<string | null>(null)
+  const [deleteBatchError, setDeleteBatchError] = useState<string | null>(null)
   const [confirmShipOrderId, setConfirmShipOrderId] = useState<string | null>(null)
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
 
@@ -413,6 +415,17 @@ function DashboardContent() {
     }
   }
 
+  async function handleDeleteBatch(id: string) {
+    setDeleteBatchError(null)
+    const { error } = await supabase.from("batches").delete().eq("id", id)
+    if (error) {
+      setDeleteBatchError(error.message)
+    } else {
+      setBatches(prev => prev.filter(b => b.id !== id))
+      setConfirmDeleteBatchId(null)
+    }
+  }
+
   async function handleToggleNotif(key: keyof typeof notifPrefs) {
     if (!userId || notifSaving) return
     const next = { ...notifPrefs, [key]: !notifPrefs[key] }
@@ -576,12 +589,43 @@ function DashboardContent() {
                               </span>
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap text-right">
-                              <Link
-                                href={`/roaster/batches/new?edit=${batch.id}`}
-                                className="text-xs text-stone-400 hover:text-[#C4622D] transition-colors"
-                              >
-                                Edit
-                              </Link>
+                              {confirmDeleteBatchId === batch.id ? (
+                                <span className="inline-flex items-center gap-3">
+                                  {preorders > 0 && (
+                                    <span className="text-[10px] text-amber-600 mr-1">
+                                      {preorders} order{preorders !== 1 ? "s" : ""} placed
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-stone-500">Remove?</span>
+                                  <button
+                                    onClick={() => handleDeleteBatch(batch.id)}
+                                    className="text-xs text-red-500 hover:text-red-700 transition-colors font-medium"
+                                  >
+                                    Yes
+                                  </button>
+                                  <button
+                                    onClick={() => setConfirmDeleteBatchId(null)}
+                                    className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-4">
+                                  <Link
+                                    href={`/roaster/batches/new?edit=${batch.id}`}
+                                    className="text-xs text-stone-400 hover:text-[#C4622D] transition-colors"
+                                  >
+                                    Edit
+                                  </Link>
+                                  <button
+                                    onClick={() => setConfirmDeleteBatchId(batch.id)}
+                                    className="text-xs text-stone-400 hover:text-red-500 transition-colors"
+                                  >
+                                    Remove
+                                  </button>
+                                </span>
+                              )}
                             </td>
                           </tr>
                         )
@@ -590,6 +634,9 @@ function DashboardContent() {
                   </table>
                 </div>
               </div>
+            )}
+            {deleteBatchError && (
+              <p className="text-xs text-red-500">{deleteBatchError}</p>
             )}
           </div>
         )}
