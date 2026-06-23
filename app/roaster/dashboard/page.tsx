@@ -33,6 +33,18 @@ interface RoasterProfile {
 
 const REGIONS = ["Tokyo", "Kyoto", "Osaka", "Fukuoka", "Hokkaido"]
 
+const JP_PREFECTURES = [
+  "北海道",
+  "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+  "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+  "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県",
+  "岐阜県", "静岡県", "愛知県", "三重県",
+  "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+  "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+  "徳島県", "香川県", "愛媛県", "高知県",
+  "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県",
+]
+
 interface OrderItem {
   productName: string
   formatName: string
@@ -488,6 +500,13 @@ function DashboardContent() {
   }
 
   const isCafeRoaster = profile?.seller_type === "Café Roaster"
+  const hasCompleteShippingAddress = !!(
+    profile?.shipping_address?.postal_code &&
+    profile?.shipping_address?.prefecture &&
+    profile?.shipping_address?.city &&
+    profile?.shipping_address?.district &&
+    profile?.shipping_address?.phone
+  )
 
   return (
     <div className="min-h-screen bg-[#F8F5F2] flex flex-col">
@@ -549,6 +568,28 @@ function DashboardContent() {
         {/* ── BATCH SCHEDULE TAB ─────────────────────────────────────────────── */}
         {activeTab === "batches" && isCafeRoaster && (
           <div className="space-y-6">
+
+            {/* Shipping address warning */}
+            {!isLoading && !hasCompleteShippingAddress && (
+              <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-[2px] px-4 py-3.5">
+                <svg className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-amber-800">Shipping address not configured</p>
+                  <p className="text-[11px] text-amber-700 mt-0.5 leading-relaxed">
+                    Customers will see "Shipping calculated at dispatch" instead of live rates. Add your dispatch address in{" "}
+                    <button
+                      onClick={() => setActiveTab("settings")}
+                      className="underline font-medium hover:text-amber-900 transition-colors"
+                    >
+                      Settings → Shipping Address
+                    </button>
+                    .
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -992,6 +1033,21 @@ function DashboardContent() {
         {activeTab === "settings" && (
           <div className="max-w-lg space-y-6">
 
+            {/* Shipping address incomplete banner */}
+            {!isLoading && !hasCompleteShippingAddress && (
+              <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-[2px] px-4 py-3.5">
+                <svg className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <div>
+                  <p className="text-xs font-medium text-amber-800">Shipping address required</p>
+                  <p className="text-[11px] text-amber-700 mt-0.5 leading-relaxed">
+                    Fill in your dispatch address below so customers see live shipping rates at checkout and labels can be generated.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSaveSettings} className="space-y-6">
 
               {/* Profile details */}
@@ -1082,57 +1138,78 @@ function DashboardContent() {
 
               {/* Shipping origin address */}
               <div className="border-t border-[rgba(42,21,8,0.07)] pt-5 space-y-4">
-                <div>
-                  <h3 className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Shipping Origin Address</h3>
-                  <p className="text-[11px] text-stone-400 mt-1 font-light leading-relaxed">
-                    Used to calculate real-time shipping rates at checkout. Fill in your roastery or dispatch address.
-                  </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Shipping Address</h3>
+                    <p className="text-[11px] text-stone-400 mt-1 font-light leading-relaxed">
+                      Your dispatch address — used for live shipping rate calculation at checkout and label generation.
+                    </p>
+                  </div>
+                  {hasCompleteShippingAddress && (
+                    <span className="text-[10px] text-emerald-600 shrink-0 mt-0.5">Address saved ✓</span>
+                  )}
                 </div>
 
+                {/* Postal code */}
                 <div>
                   <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
-                    郵便番号 (Postal code)
+                    郵便番号 <span className="text-stone-300 normal-case tracking-normal">(Postal code)</span>
+                    <span className="text-red-400 ml-1">*</span>
                   </label>
                   <input
                     type="text"
                     inputMode="numeric"
+                    maxLength={8}
                     value={shipPostal}
                     onChange={e => setShipPostal(e.target.value)}
                     placeholder="1500001"
-                    className="w-40 px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                    className="w-44 px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
-                      都道府県 (Prefecture)
-                    </label>
-                    <input
-                      type="text"
+                {/* Prefecture */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    都道府県 <span className="text-stone-300 normal-case tracking-normal">(Prefecture)</span>
+                    <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
                       value={shipPrefecture}
                       onChange={e => setShipPrefecture(e.target.value)}
-                      placeholder="東京都"
-                      className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
-                      市区町村 (City / Ward)
-                    </label>
-                    <input
-                      type="text"
-                      value={shipCity}
-                      onChange={e => setShipCity(e.target.value)}
-                      placeholder="渋谷区"
-                      className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
-                    />
+                      className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light appearance-none pr-10"
+                    >
+                      <option value="">都道府県を選択…</option>
+                      {JP_PREFECTURES.map(p => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                    <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
                 </div>
 
+                {/* City */}
                 <div>
                   <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
-                    町名・番地 (District & street number)
+                    市区町村 <span className="text-stone-300 normal-case tracking-normal">(City / Ward / Town)</span>
+                    <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={shipCity}
+                    onChange={e => setShipCity(e.target.value)}
+                    placeholder="渋谷区"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                  />
+                </div>
+
+                {/* Address line 1 */}
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    番地 <span className="text-stone-300 normal-case tracking-normal">(Address line 1)</span>
+                    <span className="text-red-400 ml-1">*</span>
                   </label>
                   <input
                     type="text"
@@ -1143,9 +1220,10 @@ function DashboardContent() {
                   />
                 </div>
 
+                {/* Address line 2 */}
                 <div>
                   <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
-                    建物名・部屋番号 (Building / unit)
+                    建物名・部屋番号 <span className="text-stone-300 normal-case tracking-normal">(Address line 2 — optional)</span>
                   </label>
                   <input
                     type="text"
@@ -1156,9 +1234,11 @@ function DashboardContent() {
                   />
                 </div>
 
+                {/* Phone */}
                 <div>
                   <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
-                    電話番号 (Phone)
+                    電話番号 <span className="text-stone-300 normal-case tracking-normal">(Phone number)</span>
+                    <span className="text-red-400 ml-1">*</span>
                   </label>
                   <input
                     type="tel"
@@ -1168,6 +1248,7 @@ function DashboardContent() {
                     placeholder="0312345678"
                     className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
                   />
+                  <p className="text-[11px] text-stone-400 mt-1.5 font-light">Required by Yamato Transport for label generation.</p>
                 </div>
               </div>
 
