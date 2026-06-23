@@ -67,14 +67,16 @@ export async function POST(req: NextRequest) {
   }
 
   console.log(`[shipping-rates] roasters in request: [${[...byRoaster.keys()].join(", ")}]`)
-  console.log(`[shipping-rates] to_address: postalCode=${address.postalCode} prefecture=${address.prefecture} city=${address.city} country=${address.country ?? "(none)"}`)
+  // address.country is always undefined for the Japanese address form (no country field).
+  // isDomestic defaults to true; to_address.country is explicitly set to "JP" below.
+  const isDomestic = !address.country || address.country === "JP"
+  const today = new Date().toISOString().slice(0, 10)
+  console.log(`[shipping-rates] isDomestic=${isDomestic} shipment_date=${today} to_zip=${address.postalCode.replace(/\D/g, "")} to_prefecture=${address.prefecture}`)
 
   const results: RoasterRates[] = []
-  const today = new Date().toISOString().slice(0, 10)
-  const isDomestic = !address.country || address.country === "JP"
-  console.log(`[shipping-rates] isDomestic=${isDomestic} shipment_date=${today}`)
 
   for (const [roasterName, roasterItems] of byRoaster) {
+    // 1. Try authenticated roasters table first
     const { data: roaster, error: dbError } = await supabaseAdmin
       .from("roasters")
       .select("roaster_name, shipping_address")
@@ -84,12 +86,35 @@ export async function POST(req: NextRequest) {
     if (dbError) {
       console.error(`[shipping-rates] DB error looking up roaster "${roasterName}":`, dbError.message)
     }
-    console.log(`[shipping-rates] roaster DB row for "${roasterName}": found=${!!roaster} shipping_address=${JSON.stringify(roaster?.shipping_address ?? null)}`)
 
-    const fromAddr = roaster?.shipping_address as RoasterShippingAddress | null
+    let fromAddr = (roaster?.shipping_address ?? null) as RoasterShippingAddress | null
+    let resolvedName = (roaster?.roaster_name as string | null) ?? roasterName
+
+    // 2. Fall back to override table for seed/demo roasters with no auth account
+    if (!roaster || !fromAddr?.postal_code) {
+      console.log(`[shipping-rates] roaster "${roasterName}" not found in roasters table (found=${!!roaster}) — checking overrides table`)
+      const { data: override, error: overrideErr } = await supabaseAdmin
+        .from("roaster_shipping_overrides")
+        .select("roaster_name, shipping_address")
+        .ilike("roaster_name", roasterName.trim())
+        .maybeSingle()
+
+      if (overrideErr) {
+        console.error(`[shipping-rates] overrides table error for "${roasterName}":`, overrideErr.message)
+      }
+      if (override) {
+        fromAddr = override.shipping_address as RoasterShippingAddress
+        resolvedName = override.roaster_name
+        console.log(`[shipping-rates] found override address for "${roasterName}": ${JSON.stringify(fromAddr)}`)
+      } else {
+        console.log(`[shipping-rates] no override found for "${roasterName}" either`)
+      }
+    } else {
+      console.log(`[shipping-rates] found roasters-table address for "${roasterName}": ${JSON.stringify(fromAddr)}`)
+    }
 
     if (!fromAddr?.postal_code || !fromAddr?.prefecture || !fromAddr?.city) {
-      console.warn(`[shipping-rates] roaster "${roasterName}" missing shipping address fields — postal_code=${fromAddr?.postal_code ?? "MISSING"} prefecture=${fromAddr?.prefecture ?? "MISSING"} city=${fromAddr?.city ?? "MISSING"}`)
+      console.warn(`[shipping-rates] "${roasterName}" still missing required address fields — postal_code=${fromAddr?.postal_code ?? "MISSING"} prefecture=${fromAddr?.prefecture ?? "MISSING"} city=${fromAddr?.city ?? "MISSING"}`)
       results.push({ roasterName, rates: [], fallback: true })
       continue
     }
@@ -99,7 +124,7 @@ export async function POST(req: NextRequest) {
     console.log(`[shipping-rates] roaster="${roasterName}" totalGrams=${totalGrams} totalQuantity=${totalQuantity}`)
 
     const fromAddress = {
-      full_name: roaster!.roaster_name as string,
+      full_name: resolvedName,
       country: "JP",
       province: fromAddr.prefecture,
       city: fromAddr.city,
