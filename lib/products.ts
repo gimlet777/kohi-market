@@ -16,6 +16,7 @@ export interface BatchInfo {
 
 export interface Product {
   id: number
+  roasterId?: string | null
   roaster: string
   region: string
   name: string
@@ -57,6 +58,7 @@ export interface ProductRow {
 export function rowToProduct(row: ProductRow): Product {
   return {
     id: row.id,
+    roasterId: row.roaster_id,
     roaster: row.roaster_name,
     region: row.region,
     name: row.product_name,

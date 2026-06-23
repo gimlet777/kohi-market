@@ -13,10 +13,12 @@ export interface RoasterRates {
   roasterName: string
   rates: ShipcoRate[]
   fallback: boolean
+  message?: string
 }
 
 interface CartItemForRates {
   productName: string
+  roasterId?: string | null
   roasterName: string
   quantity: number
   price: number
@@ -25,7 +27,7 @@ interface CartItemForRates {
 
 interface ShipcoCarrier {
   id: string
-  carrier: string  // carrier slug, e.g. "yamato"
+  carrier: string
   [key: string]: unknown
 }
 
@@ -91,7 +93,6 @@ export async function POST(req: NextRequest) {
   if (carriersResp?.ok && carriersResp.text) {
     try {
       const parsed = JSON.parse(carriersResp.text)
-      // Response may be an array directly, or { carriers: [...] }
       carriers = Array.isArray(parsed) ? parsed : (parsed.carriers ?? [])
     } catch {
       console.error("[shipping-rates] failed to parse carriers response")
@@ -100,17 +101,16 @@ export async function POST(req: NextRequest) {
 
   if (carriers.length === 0) {
     console.warn("[shipping-rates] no carriers registered in Ship&co account — all requests will return empty rates. Register a carrier (e.g. Yamato) in the Ship&co dashboard first.")
-    // Still proceed: the rates loop below will return empty arrays and the UI will show fallback.
   } else {
     console.log(`[shipping-rates] ${carriers.length} carrier(s): ${carriers.map(c => `${c.carrier}(id=${c.id})`).join(", ")}`)
   }
 
-  // ── 2. Group cart items by roaster ──────────────────────────────────────────
-  const byRoaster = new Map<string, CartItemForRates[]>()
+  // ── 2. Group cart items by roaster name, keeping the roaster ID ─────────────
+  const byRoaster = new Map<string, { roasterId: string | null; items: CartItemForRates[] }>()
   for (const item of items) {
-    const list = byRoaster.get(item.roasterName) ?? []
-    list.push(item)
-    byRoaster.set(item.roasterName, list)
+    const entry = byRoaster.get(item.roasterName) ?? { roasterId: item.roasterId ?? null, items: [] }
+    entry.items.push(item)
+    byRoaster.set(item.roasterName, entry)
   }
 
   console.log(`[shipping-rates] roasters in cart: [${[...byRoaster.keys()].join(", ")}]`)
@@ -121,50 +121,46 @@ export async function POST(req: NextRequest) {
 
   const results: RoasterRates[] = []
 
-  for (const [roasterName, roasterItems] of byRoaster) {
-    // ── 3. Resolve roaster shipping address ───────────────────────────────────
+  for (const [roasterName, { roasterId, items: roasterItems }] of byRoaster) {
+    // ── 3. No roaster ID → demo/mock product, can't look up address ───────────
+    if (!roasterId) {
+      console.log(`[shipping-rates] "${roasterName}" has no roaster_id — skipping rate lookup`)
+      results.push({
+        roasterName,
+        rates: [],
+        fallback: true,
+        message: `Shipping for ${roasterName} will be confirmed after order`,
+      })
+      continue
+    }
+
+    // ── 4. Look up roaster shipping address by ID ─────────────────────────────
     const { data: roaster, error: dbError } = await supabaseAdmin
       .from("roasters")
       .select("roaster_name, shipping_address")
-      .ilike("roaster_name", roasterName.trim())
+      .eq("id", roasterId)
       .maybeSingle()
 
-    if (dbError) console.error(`[shipping-rates] DB error for "${roasterName}":`, dbError.message)
+    if (dbError) console.error(`[shipping-rates] DB error for "${roasterName}" (id=${roasterId}):`, dbError.message)
+    console.log(`[shipping-rates] "${roasterName}" (id=${roasterId}): found=${!!roaster} shipping_address=${JSON.stringify(roaster?.shipping_address ?? null)}`)
 
-    let fromAddr = (roaster?.shipping_address ?? null) as RoasterShippingAddress | null
-    let resolvedName = (roaster?.roaster_name as string | null) ?? roasterName
-
-    if (!roaster || !fromAddr?.postal_code) {
-      console.log(`[shipping-rates] "${roasterName}" not in roasters table — checking overrides`)
-      const { data: override, error: overrideErr } = await supabaseAdmin
-        .from("roaster_shipping_overrides")
-        .select("roaster_name, shipping_address")
-        .ilike("roaster_name", roasterName.trim())
-        .maybeSingle()
-
-      if (overrideErr) console.error(`[shipping-rates] overrides error for "${roasterName}":`, overrideErr.message)
-
-      if (override) {
-        fromAddr = override.shipping_address as RoasterShippingAddress
-        resolvedName = override.roaster_name as string
-        console.log(`[shipping-rates] override found for "${roasterName}": ${JSON.stringify(fromAddr)}`)
-      } else {
-        console.warn(`[shipping-rates] no address found anywhere for "${roasterName}"`)
-        results.push({ roasterName, rates: [], fallback: true })
-        continue
-      }
-    }
+    const fromAddr = (roaster?.shipping_address ?? null) as RoasterShippingAddress | null
+    const resolvedName = (roaster?.roaster_name as string | null) ?? roasterName
 
     if (!fromAddr?.postal_code || !fromAddr?.prefecture || !fromAddr?.city) {
-      console.warn(`[shipping-rates] "${roasterName}" missing required fields: postal_code=${fromAddr?.postal_code ?? "MISSING"} prefecture=${fromAddr?.prefecture ?? "MISSING"} city=${fromAddr?.city ?? "MISSING"}`)
-      results.push({ roasterName, rates: [], fallback: true })
+      console.log(`[shipping-rates] "${roasterName}" missing shipping address fields — showing confirmation fallback`)
+      results.push({
+        roasterName,
+        rates: [],
+        fallback: true,
+        message: `Shipping for ${roasterName} will be confirmed after order`,
+      })
       continue
     }
 
     const totalGrams = roasterItems.reduce((sum, i) => sum + (i.grams || 100) * i.quantity, 0)
     const totalQuantity = roasterItems.reduce((sum, i) => sum + i.quantity, 0)
 
-    // country: "JP" required by Ship&co for both addresses
     const fromAddress = {
       full_name: resolvedName,
       country: "JP",
@@ -177,7 +173,7 @@ export async function POST(req: NextRequest) {
 
     const toAddress = {
       full_name: address.name,
-      country: "JP",   // address form is JP-only; always explicit
+      country: "JP",
       province: address.prefecture,
       city: address.city,
       address1: [address.district, address.building].filter(Boolean).join(" ") || address.city,
@@ -189,12 +185,17 @@ export async function POST(req: NextRequest) {
     console.log(`[shipping-rates] to:   ${toAddress.zip} ${toAddress.province} ${toAddress.city} ${toAddress.address1}`)
     console.log(`[shipping-rates] totalGrams=${totalGrams} totalQuantity=${totalQuantity}`)
 
-    // ── 4. Request rates per carrier ─────────────────────────────────────────
+    // ── 5. Request rates per carrier ─────────────────────────────────────────
     const roasterRates: ShipcoRate[] = []
 
     if (carriers.length === 0) {
       console.warn(`[shipping-rates] skipping rates call for "${roasterName}" — no carriers registered`)
-      results.push({ roasterName, rates: [], fallback: true })
+      results.push({
+        roasterName,
+        rates: [],
+        fallback: true,
+        message: `Shipping for ${roasterName} will be confirmed after order`,
+      })
       continue
     }
 
@@ -272,7 +273,17 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[shipping-rates] total rates for "${roasterName}": ${roasterRates.length} — ${roasterRates.map(r => `${r.carrier}/${r.service}=¥${r.price}`).join(", ") || "(none)"}`)
-    results.push({ roasterName, rates: roasterRates, fallback: roasterRates.length === 0 })
+
+    if (roasterRates.length === 0) {
+      results.push({
+        roasterName,
+        rates: [],
+        fallback: true,
+        message: `Shipping for ${roasterName} will be confirmed after order`,
+      })
+    } else {
+      results.push({ roasterName, rates: roasterRates, fallback: false })
+    }
   }
 
   const anyFallback = results.some(r => r.fallback)

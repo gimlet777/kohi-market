@@ -6,6 +6,7 @@ export interface CartItem {
   cartItemId: string   // `${productId}-${formatName}` — unique per product+format combo
   productId: number
   productName: string
+  roasterId: string | null
   roasterName: string
   format: { name: string; grams: number; price: number }
   price: number        // mirrors format.price for convenience

@@ -150,6 +150,7 @@ export default function AddressPage() {
           address: form,
           items: cart.items.map(i => ({
             productName: i.productName,
+            roasterId: i.roasterId,
             roasterName: i.roasterName,
             quantity: i.quantity,
             price: i.price,
@@ -521,7 +522,7 @@ export default function AddressPage() {
                 {roaster.fallback ? (
                   <div className="px-5 py-4">
                     <p className="text-xs text-stone-500 italic">
-                      Shipping calculated at dispatch — the roaster will contact you with shipping details.
+                      {roaster.message ?? "Shipping calculated at dispatch — the roaster will contact you with shipping details."}
                     </p>
                   </div>
                 ) : (
