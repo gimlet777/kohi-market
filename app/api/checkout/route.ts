@@ -1,7 +1,7 @@
 import Stripe from "stripe"
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase-admin"
-import type { ShippingAddress } from "@/app/checkout/address/page"
+import type { ShippingAddress, ShippingSelection } from "@/app/checkout/address/page"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -18,12 +18,14 @@ export async function POST(req: NextRequest) {
   let items: LineItem[]
   let address: ShippingAddress | undefined
   let userId: string | undefined
+  let shippingSelections: ShippingSelection[] | undefined
 
   try {
     const body = await req.json()
     items = body.items
     address = body.address
     userId = body.userId || undefined
+    shippingSelections = body.shippingSelections || undefined
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
   }
@@ -66,6 +68,8 @@ export async function POST(req: NextRequest) {
 
   const origin = req.nextUrl.origin
 
+  const totalShippingCost = (shippingSelections ?? []).reduce((sum, s) => sum + s.cost, 0)
+
   // Build the shipping object for Stripe PaymentIntent if address was provided
   const stripeShipping: Stripe.Checkout.SessionCreateParams["payment_intent_data"] =
     address
@@ -98,36 +102,52 @@ export async function POST(req: NextRequest) {
               allowed_countries: ["JP"],
             },
           }),
-      line_items: items.map(item => ({
-        price_data: {
-          currency: "jpy",
-          product_data: {
-            name: item.productName,
-            description: [
-              item.roasterName,
-              item.format.name,
-              item.format.grams > 0 ? `${item.format.grams}g` : null,
-            ]
-              .filter(Boolean)
-              .join(" · "),
-            metadata: {
-              roaster_name: item.roasterName,
-              roaster_email: roasterEmailMap[item.roasterName] ?? "",
-              roaster_region: roasterRegionMap[item.roasterName] ?? "",
-              product_origin: originMap[`${item.productName}|${item.roasterName}`] ?? "",
-              format_name: item.format.name,
-              grams: String(item.format.grams),
-              batch_id: item.batchId ?? "",
+      line_items: [
+        ...items.map(item => ({
+          price_data: {
+            currency: "jpy",
+            product_data: {
+              name: item.productName,
+              description: [
+                item.roasterName,
+                item.format.name,
+                item.format.grams > 0 ? `${item.format.grams}g` : null,
+              ]
+                .filter(Boolean)
+                .join(" · "),
+              metadata: {
+                roaster_name: item.roasterName,
+                roaster_email: roasterEmailMap[item.roasterName] ?? "",
+                roaster_region: roasterRegionMap[item.roasterName] ?? "",
+                product_origin: originMap[`${item.productName}|${item.roasterName}`] ?? "",
+                format_name: item.format.name,
+                grams: String(item.format.grams),
+                batch_id: item.batchId ?? "",
+              },
             },
+            unit_amount: item.price, // JPY is zero-decimal — ¥1800 = 1800
           },
-          unit_amount: item.price, // JPY is zero-decimal — ¥1800 = 1800
-        },
-        quantity: item.quantity,
-      })),
-      // Store address + userId so the webhook can award gamification rewards
+          quantity: item.quantity,
+        })),
+        // Shipping line item — only included when a carrier was selected
+        ...(totalShippingCost > 0
+          ? [{
+              price_data: {
+                currency: "jpy",
+                product_data: { name: "Shipping" },
+                unit_amount: totalShippingCost,
+              },
+              quantity: 1,
+            }]
+          : []),
+      ],
+      // Store address, userId, and per-roaster shipping selections for the webhook
       metadata: {
         ...(address ? { shipping_address: JSON.stringify(address) } : {}),
         ...(userId ? { user_id: userId } : {}),
+        ...(shippingSelections?.length
+          ? { shipping_selections: JSON.stringify(shippingSelections) }
+          : {}),
       },
       payment_intent_data: stripeShipping,
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

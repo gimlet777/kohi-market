@@ -8,6 +8,15 @@ import type { ProductRow } from "@/lib/products"
 import { UserNav } from "@/components/UserNav"
 import { NavLogo } from "@/components/NavLogo"
 
+interface RoasterShippingAddress {
+  postal_code: string
+  prefecture: string
+  city: string
+  district: string
+  building: string
+  phone: string
+}
+
 interface RoasterProfile {
   roaster_name: string
   email: string
@@ -19,6 +28,7 @@ interface RoasterProfile {
   hero_photo_url?: string | null
   gallery_urls?: string[] | null
   qr_version?: number | null
+  shipping_address?: RoasterShippingAddress | null
 }
 
 const REGIONS = ["Tokyo", "Kyoto", "Osaka", "Fukuoka", "Hokkaido"]
@@ -147,6 +157,14 @@ function DashboardContent() {
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [settingsError, setSettingsError] = useState<string | null>(null)
 
+  // Shipping address fields
+  const [shipPostal, setShipPostal] = useState("")
+  const [shipPrefecture, setShipPrefecture] = useState("")
+  const [shipCity, setShipCity] = useState("")
+  const [shipDistrict, setShipDistrict] = useState("")
+  const [shipBuilding, setShipBuilding] = useState("")
+  const [shipPhone, setShipPhone] = useState("")
+
   // QR stamp code
   const [qrVersion, setQrVersion] = useState(1)
   const [notifPrefs, setNotifPrefs] = useState({ new_order: true, order_reminder: true, low_stock: true, batch_expired: true })
@@ -181,7 +199,7 @@ function DashboardContent() {
       ] = await Promise.all([
         supabase
           .from("roasters")
-          .select("roaster_name, email, region, seller_type, bio, website, is_pro, hero_photo_url, gallery_urls, qr_version")
+          .select("roaster_name, email, region, seller_type, bio, website, is_pro, hero_photo_url, gallery_urls, qr_version, shipping_address")
           .eq("id", session.user.id)
           .single(),
         supabase
@@ -217,6 +235,15 @@ function DashboardContent() {
         setSettingsRegion(profileData.region ?? "")
         setSettingsBio(profileData.bio ?? "")
         setSettingsWebsite(profileData.website ?? "")
+        const sa = profileData.shipping_address as RoasterShippingAddress | null
+        if (sa) {
+          setShipPostal(sa.postal_code ?? "")
+          setShipPrefecture(sa.prefecture ?? "")
+          setShipCity(sa.city ?? "")
+          setShipDistrict(sa.district ?? "")
+          setShipBuilding(sa.building ?? "")
+          setShipPhone(sa.phone ?? "")
+        }
         setHeroUrl(profileData.hero_photo_url ?? "")
         setGalleryUrls(profileData.gallery_urls ?? [])
         setQrVersion(profileData.qr_version ?? 1)
@@ -275,6 +302,17 @@ function DashboardContent() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.replace("/roaster/login"); return }
 
+    const shippingAddr: RoasterShippingAddress | null = shipPostal.trim()
+      ? {
+          postal_code: shipPostal.trim(),
+          prefecture: shipPrefecture.trim(),
+          city: shipCity.trim(),
+          district: shipDistrict.trim(),
+          building: shipBuilding.trim(),
+          phone: shipPhone.trim(),
+        }
+      : null
+
     const { error } = await supabase
       .from("roasters")
       .update({
@@ -282,13 +320,21 @@ function DashboardContent() {
         region: settingsRegion,
         bio: settingsBio.trim() || null,
         website: settingsWebsite.trim() || null,
+        shipping_address: shippingAddr,
       })
       .eq("id", session.user.id)
 
     if (error) {
       setSettingsError(error.message)
     } else {
-      setProfile(prev => prev ? { ...prev, roaster_name: settingsName.trim(), region: settingsRegion, bio: settingsBio.trim() || undefined, website: settingsWebsite.trim() || undefined } : prev)
+      setProfile(prev => prev ? {
+        ...prev,
+        roaster_name: settingsName.trim(),
+        region: settingsRegion,
+        bio: settingsBio.trim() || undefined,
+        website: settingsWebsite.trim() || undefined,
+        shipping_address: shippingAddr,
+      } : prev)
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 3000)
     }
@@ -1031,6 +1077,97 @@ function DashboardContent() {
                   <p className="text-[11px] text-stone-300 mt-1.5 font-light">
                     To change your email address, contact support.
                   </p>
+                </div>
+              </div>
+
+              {/* Shipping origin address */}
+              <div className="border-t border-[rgba(42,21,8,0.07)] pt-5 space-y-4">
+                <div>
+                  <h3 className="text-[10px] tracking-[0.25em] uppercase text-stone-400">Shipping Origin Address</h3>
+                  <p className="text-[11px] text-stone-400 mt-1 font-light leading-relaxed">
+                    Used to calculate real-time shipping rates at checkout. Fill in your roastery or dispatch address.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    郵便番号 (Postal code)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={shipPostal}
+                    onChange={e => setShipPostal(e.target.value)}
+                    placeholder="1500001"
+                    className="w-40 px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                      都道府県 (Prefecture)
+                    </label>
+                    <input
+                      type="text"
+                      value={shipPrefecture}
+                      onChange={e => setShipPrefecture(e.target.value)}
+                      placeholder="東京都"
+                      className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                      市区町村 (City / Ward)
+                    </label>
+                    <input
+                      type="text"
+                      value={shipCity}
+                      onChange={e => setShipCity(e.target.value)}
+                      placeholder="渋谷区"
+                      className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    町名・番地 (District & street number)
+                  </label>
+                  <input
+                    type="text"
+                    value={shipDistrict}
+                    onChange={e => setShipDistrict(e.target.value)}
+                    placeholder="神南 1-2-3"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    建物名・部屋番号 (Building / unit)
+                  </label>
+                  <input
+                    type="text"
+                    value={shipBuilding}
+                    onChange={e => setShipBuilding(e.target.value)}
+                    placeholder="コーヒービル 101"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] tracking-[0.2em] uppercase text-stone-400 mb-1.5">
+                    電話番号 (Phone)
+                  </label>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={shipPhone}
+                    onChange={e => setShipPhone(e.target.value)}
+                    placeholder="0312345678"
+                    className="w-full px-4 py-3 border border-stone-200 rounded-[2px] text-sm text-[#2A1508] placeholder-stone-300 bg-white focus:outline-none focus:border-[#C4622D] transition-colors font-light"
+                  />
                 </div>
               </div>
 

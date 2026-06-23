@@ -151,6 +151,16 @@ export async function POST(req: NextRequest) {
   // Buyer's auth user ID (set by /api/checkout when the user was logged in)
   const buyerUserId = session.metadata?.user_id ?? null
 
+  // Per-roaster shipping selections stored by /api/checkout
+  interface ShippingSelection { roasterName: string; carrier: string; service: string; cost: number }
+  const shippingSelections: ShippingSelection[] = (() => {
+    try {
+      return JSON.parse(session.metadata?.shipping_selections ?? "[]")
+    } catch {
+      return []
+    }
+  })()
+
   // Fetch region from DB by roaster ID — don't trust Stripe metadata which may be empty
   // if the checkout route's case-sensitive name lookup missed the roaster.
   const resolvedRoasterIds = Object.values(roasterIdMap).filter((id): id is string => id !== null)
@@ -192,7 +202,8 @@ export async function POST(req: NextRequest) {
     }
 
     const roasterTotal = roaster.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
-    console.log(`[webhook] inserting order roaster="${roasterName}" roaster_id=${roasterId ?? "null"} total=${roasterTotal} buyer_email="${buyerEmail ?? "unknown"}" buyer_user_id=${buyerUserId ?? "null"}`)
+    const shippingSel = shippingSelections.find(s => s.roasterName === roasterName)
+    console.log(`[webhook] inserting order roaster="${roasterName}" roaster_id=${roasterId ?? "null"} total=${roasterTotal} shipping=${shippingSel?.carrier ?? "none"} buyer_email="${buyerEmail ?? "unknown"}" buyer_user_id=${buyerUserId ?? "null"}`)
 
     const { data: inserted, error: insertError } = await supabaseAdmin.from("orders").insert({
       roaster_id: roasterId,
@@ -200,6 +211,9 @@ export async function POST(req: NextRequest) {
       buyer_email: buyerEmail ?? "unknown",
       buyer_name: buyerName,
       shipping_address: shippingAddressForDb,
+      shipping_carrier: shippingSel?.carrier ?? null,
+      shipping_service: shippingSel?.service ?? null,
+      shipping_cost: shippingSel?.cost ?? null,
       items: roaster.items.map(i => ({
         productName: i.productName,
         formatName: i.formatName,
