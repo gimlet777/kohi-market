@@ -9,6 +9,7 @@ import { TasteQuiz, type QuizResults } from "@/components/TasteQuiz"
 import { UserNav } from "@/components/UserNav"
 import { slugify } from "@/lib/slugify"
 import { NavLogo } from "@/components/NavLogo"
+import { useCart } from "@/context/CartContext"
 
 // ─── Data layer ───────────────────────────────────────────────────────────────
 
@@ -133,6 +134,7 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const cart = useCart()
   const [lang, setLang] = useState<Lang>("EN")
   const [region, setRegion] = useState("All")
   const [roast, setRoast] = useState("All")
@@ -259,6 +261,11 @@ export default function Home() {
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
             </svg>
+            {cart.totalCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C4622D] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium leading-none">
+                {cart.totalCount > 9 ? "9+" : cart.totalCount}
+              </span>
+            )}
           </Link>
         </div>
       </nav>

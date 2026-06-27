@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   description: "Discover exceptional specialty coffee from independent Japanese roasters.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

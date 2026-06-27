@@ -13,6 +13,7 @@ body {
   color: #2A1508;
   font-family: var(--font-inter), sans-serif;
   font-weight: 300;
+  overflow-x: hidden;
 }
 
 @keyframes stamp-pop {
