@@ -34,6 +34,26 @@ export async function POST(req: NextRequest) {
   const buyerEmail = session.customer_details?.email
   console.log(`[webhook] checkout.session.completed session=${session.id} buyerEmail=${buyerEmail ?? "(none)"}`)
 
+  // ── Amount verification ──────────────────────────────────────────────────────
+  // expected_total_jpy was written server-side at session creation using DB prices.
+  // Any mismatch means prices were tampered with or Stripe applied an unexpected
+  // modification — block fulfillment and alert.
+  const expectedTotal = session.metadata?.expected_total_jpy !== undefined
+    ? parseInt(session.metadata.expected_total_jpy, 10)
+    : null
+
+  if (expectedTotal !== null && session.amount_total !== null) {
+    if (session.amount_total !== expectedTotal) {
+      console.error(
+        `[webhook] AMOUNT MISMATCH CRITICAL session=${session.id}: ` +
+        `Stripe charged ¥${session.amount_total} but expected ¥${expectedTotal}. ` +
+        `Fulfillment BLOCKED — investigate immediately.`
+      )
+      return NextResponse.json({ received: true, blocked: "amount_mismatch" })
+    }
+    console.log(`[webhook] amount verified ¥${session.amount_total} === expected ¥${expectedTotal} ✓`)
+  }
+
   // Address preference: our pre-collected form (in metadata) > Stripe-collected fallback
   let shippingAddressForDb: Record<string, string> | null = null
   let shippingAddressString = "No address provided"
@@ -242,34 +262,31 @@ export async function POST(req: NextRequest) {
     for (const item of roaster.items) {
       if (!item.batchId) continue
 
-      const { data: batch, error: fetchErr } = await supabaseAdmin
-        .from("batches")
-        .select("bags_remaining")
-        .eq("id", item.batchId)
-        .single()
+      // Atomic conditional decrement — eliminates the check-then-act race where
+      // two concurrent webhook deliveries both read the same bags_remaining and
+      // both write the same decremented value. The WHERE bags_remaining >= p_qty
+      // guard means exactly one caller can win; the other gets 0 rows back.
+      const { data: decremented, error: decrementErr } = await supabaseAdmin
+        .rpc("decrement_batch_stock", { p_batch_id: item.batchId, p_qty: item.quantity })
+      const rows = (decremented ?? []) as Array<{ bags_remaining: number; status: string }>
 
-      if (fetchErr || !batch) {
-        console.warn(`[webhook] batch not found for id=${item.batchId}`)
+      if (decrementErr) {
+        console.error(`[webhook] batch decrement error (${item.batchId}):`, decrementErr.message)
         continue
       }
 
-      const newRemaining = Math.max(0, batch.bags_remaining - item.quantity)
-      console.log(`[webhook] decrementing batch ${item.batchId}: ${batch.bags_remaining} → ${newRemaining}`)
-
-      const { error: updateErr } = await supabaseAdmin
-        .from("batches")
-        .update({
-          bags_remaining: newRemaining,
-          ...(newRemaining === 0 ? { status: "complete" } : {}),
-        })
-        .eq("id", item.batchId)
-
-      if (updateErr) {
-        console.error(`[webhook] batch update error (${item.batchId}):`, updateErr.message)
+      if (rows.length === 0) {
+        console.error(
+          `[webhook] OVERSELL CRITICAL batch=${item.batchId} qty=${item.quantity} ` +
+          `session=${session.id}: conditional decrement matched 0 rows — ` +
+          `stock exhausted by a concurrent order. This order may be unfulfillable.`
+        )
         continue
       }
 
-      console.log(`[webhook] batch ${item.batchId} updated OK${newRemaining === 0 ? " — marked complete" : ""}`)
+      const newRemaining = rows[0].bags_remaining
+      const newStatus    = rows[0].status
+      console.log(`[webhook] batch ${item.batchId} decremented → bags_remaining=${newRemaining}${newStatus === "complete" ? " — marked complete" : ""}`)
 
       if (!roasterId || !roasterEmail) continue
       const dashboardUrl = `${siteUrl}/roaster/dashboard?tab=batches`

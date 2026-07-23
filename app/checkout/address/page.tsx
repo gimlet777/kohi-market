@@ -224,7 +224,12 @@ export default function AddressPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: cart.items,
+          items: cart.items.map(i => ({
+            productId:  i.productId,
+            formatName: i.format.name,
+            quantity:   i.quantity,
+            ...(i.batchId ? { batchId: i.batchId } : {}),
+          })),
           address: form,
           userId: userId ?? undefined,
           shippingSelections,

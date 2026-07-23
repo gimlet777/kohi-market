@@ -30,11 +30,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [initialized, setInitialized] = useState(false)
 
-  // Hydrate from localStorage once on mount
+  // Hydrate from localStorage once on mount.
+  // Drop any items that pre-date the productId field — they'd hit "Invalid productId: undefined"
+  // at checkout. Valid items from the same cart are preserved.
   useEffect(() => {
     try {
       const stored = localStorage.getItem("kohi-cart")
-      if (stored) setItems(JSON.parse(stored))
+      if (stored) {
+        const parsed: CartItem[] = JSON.parse(stored)
+        setItems(parsed.filter(i => typeof i.productId === "number"))
+      }
     } catch {}
     setInitialized(true)
   }, [])
